@@ -20,8 +20,10 @@ There is no Bold Italic, because Stempel didn't make one. Each card lists the ot
 it (*weitere Garnituren*). The roman lists *Kursiv, Kursiv-Schwungversalien, Kursiv-Linotype, halbfett*, and the
 bold lists *magere, Kursiv, Kursiv-Schwungversalien, Kursiv-Linotype*. Neither lists a *halbfette Kursiv*.
 
-The `.otf` files have the fitted cubic Béziers, and the `.ttf` files are converted to quadratics with integer
-coordinates. The fonts have 1000 units per em, with the cap height at 692, as in digital Palatino, so the two
+The `.otf` files have the fitted cubic Béziers and are unhinted. The `.ttf` files are converted to quadratics with
+integer coordinates and hinted with [ttfautohint](https://freetype.org/ttfautohint/), which aligns the baseline,
+x-height, cap height and stems to the pixel grid at 8–50 px. That matters mainly for small text on Windows at 1×
+scaling. macOS ignores hints, and on high-resolution screens they make little difference. The fonts have 1000 units per em, with the cap height at 692, as in digital Palatino, so the two
 can be set at the same size.
 
 ## Character set and features
@@ -85,7 +87,7 @@ Everything is under `tools/` and runs from this directory (`metal-pal/`). The sc
    Fitting all 180–220 pairs per style leaves a residual of 3–7 units. Roman and bold side bearings are kept
    non-negative except for kerned sorts.
 5. **Assembly** (`tools/build.py`). The script builds the accented letters, derived glyphs and OpenType features,
-   then writes the OTF and TTF files with fontTools.
+   then writes the OTF and TTF files with fontTools and hints the TTFs with ttfautohint.
 
 ```
 pip install -r requirements.txt
@@ -114,7 +116,6 @@ because the card letterspaces them.
 - The accents, æ œ Æ Œ and the lining figures come from a smaller size on the card, and are scaled up.
 - Spacing in pairs that rarely or never appear in the specimens rests partly on the priors. The italic's lower
   case is spaced as on its card, which is looser than the italic in the display lines (by 11–49 units in each gap).
-- There is no hinting.
 
 The fonts are called *Metal Pal* because *Palatino* is a trademark of Monotype (Linotype). The name Palatino
 appears here only to identify the historical type the fonts are traced from. This project is not affiliated

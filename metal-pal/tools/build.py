@@ -323,7 +323,19 @@ def font(style, otf=True):
     d = os.path.join(ROOT, 'fonts', 'otf' if otf else 'ttf')
     os.makedirs(d, exist_ok=True)
     p = os.path.join(d, f'{psname}.{"otf" if otf else "ttf"}')
-    fb.save(p); print('wrote', os.path.relpath(p, ROOT), len(order), 'glyphs')
+    fb.save(p)
+    if not otf: autohint(p)
+    print('wrote', os.path.relpath(p, ROOT), len(order), 'glyphs')
+
+def autohint(path):
+    """TrueType hinting by ttfautohint: aligns the baseline, x-height, cap height and stems to
+    the pixel grid at small sizes (matters mainly on Windows at 1x).  The OTFs are left unhinted."""
+    from ttfautohint import ttfautohint
+    data = open(path, 'rb').read()
+    out = ttfautohint(in_buffer=data, default_script='latn', fallback_script='latn',
+                      hinting_range_min=8, hinting_range_max=50, increase_x_height=14,
+                      )
+    open(path, 'wb').write(out)
 
 if __name__ == '__main__':
     for st in [a for a in sys.argv[1:] if a in ('Regular', 'Italic', 'Bold')] or ['Regular', 'Italic', 'Bold']:

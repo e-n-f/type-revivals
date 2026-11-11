@@ -3,3 +3,4 @@ numpy
 opencv-python-headless
 scikit-image
 pillow
+ttfautohint-py
