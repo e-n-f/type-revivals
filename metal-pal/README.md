@@ -66,7 +66,10 @@ Everything is under `tools/` and runs from this directory (`metal-pal/`). The sc
    baseline. The median height of H I E F L T Z gives the cap height, and the scale makes it 692 units (about
    1.96 units per pixel). Each glyph is cut out by its own components, so a kerned italic f doesn't take in its
    neighbours, and is resampled to 1 unit per pixel. The *Akzente* line and the lining figures are a smaller size.
-   They are scaled to the main size's x-height, and thinned to its stroke weight (`build.py`).
+   They are scaled to the main size's x-height, and thinned to its stroke weight (`build.py`). Damage in the
+   printing is repaired from a sister glyph (`PATCHES` in `sheets.py`): the sister is shifted until it matches the
+   damaged glyph best around the damage, and its ink replaces the damaged spot. So far that is one nick in the
+   italic m's last arch, repaired from the n.
 3. **Tracing** (`tools/trace.py`). The iso-line at 50% ink of the lightly blurred raster gives sub-pixel outlines.
    Each contour is smoothed between its corners, so the paper's ragged edges go and the serifs stay sharp. It is
    then fitted with straight lines and cubic Béziers within 2.5 units, using the corner detection and Schneider
@@ -110,7 +113,7 @@ because the card letterspaces them.
 ## Limitations
 
 - The outlines are the type as printed on the specimen cards, with its ink spread. Nothing is "corrected"
-  towards the drawings.
+  towards the drawings, except clear printing damage (see `PATCHES`).
 - Each style comes from one size, the one on its card's type list. Metal type was cut
   separately for each size, so text sizes were somewhat wider and heavier.
 - The accents, æ œ Æ Œ and the lining figures come from a smaller size on the card, and are scaled up.

@@ -6,6 +6,7 @@ import sys, os, json, pickle, numpy as np, cv2
 sys.path.insert(0, os.path.dirname(__file__))
 import trace, vec
 from extract import CAP
+from sheets import PATCHES
 from fontTools.fontBuilder import FontBuilder
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.pens.ttGlyphPen import TTGlyphPen
@@ -114,6 +115,24 @@ def stroke(im):
     ridge = (d >= cv2.dilate(d, np.ones((3, 3)))) & (d > 2)
     return 2 * np.median(d[ridge])
 
+def patch(target, source, centre, r):
+    """Replace the ink of `target` within r of `centre` (raster pixels) by `source`'s, after
+    shifting `source` to match `target` best around the damage (r to 3r).  Returns the new ink."""
+    m = np.asarray(target, np.float32); n = np.asarray(source, np.float32)
+    H, W = m.shape; cx, cy = centre
+    yy, xx = np.mgrid[0:H, 0:W]; d = np.hypot(xx - cx, yy - cy)
+    wgt = ((d > r) & (d < 3 * r)).astype(np.float32)
+    shifted = lambda dx, dy: cv2.warpAffine(n, np.float32([[1, 0, dx], [0, 1, dy]]), (W, H),
+                                            flags=cv2.INTER_LINEAR)
+    err = lambda dx, dy: float((wgt * (shifted(dx, dy) - m) ** 2).sum())
+    best = min((err(dx, dy), dx, dy) for dy in range(-40, 41, 2) for dx in range(-n.shape[1], W, 2))
+    for step in (1, 0.25):   # refine
+        _, bx, by = best
+        best = min([best] + [(err(bx + i * step, by + j * step), bx + i * step, by + j * step)
+                             for i in (-2, -1, 0, 1, 2) for j in (-2, -1, 0, 1, 2)])
+    alpha = np.clip((1.4 * r - d) / (0.4 * r), 0, 1)     # inside r, fading out to 1.4r
+    return alpha * shifted(best[1], best[2]) + (1 - alpha) * m
+
 def build(style):
     data = pickle.load(open(os.path.join(BUILD, f'raster-{style}.pkl'), 'rb'))
     R = data['glyphs']; meta = data['meta']
@@ -121,6 +140,9 @@ def build(style):
     italic = style == 'Italic'
     XH = meta['xheight']
     G = {n: Img.of(r) for n, r in R.items()}
+    for n, (src, centre, r) in PATCHES.get(style, {}).items():
+        G[n] = Img(patch(G[n].ink, G[src].ink, centre, r), G[n].x0, G[n].top)
+        print(f'  patched {n} from {src}')
 
     # the accent line and the lining figures come from a smaller size, which is drawn
     # heavier: thin them to the stroke of the main size

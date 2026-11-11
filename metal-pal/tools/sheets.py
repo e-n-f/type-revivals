@@ -146,3 +146,13 @@ def runs(style):
     R.append(['Adieresis', 'Odieresis', 'Udieresis'])
     R.append([f + '.lf' for f in FIG])
     return R
+
+# ---------------------------------------------------------------- printing defects
+# Damage in the printed specimen, repaired from a sister glyph with the same shape there.
+# style: {glyph: (source glyph, (x, y) centre and radius of the damage in the glyph's raster,
+#                 in font units from the raster's top left)}
+PATCHES = {
+    'Italic': {
+        'm': ('n', (545, 110), 45),   # nick in the top right of the last arch; the n's arch is the same
+    },
+}
