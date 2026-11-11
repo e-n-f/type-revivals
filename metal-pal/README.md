@@ -13,7 +13,7 @@ ligatures and alternates that German hand composition used.
 | Font | Source card | Files |
 |---|---|---|
 | Metal Pal Regular | *Palatino*, St. 2 | `fonts/otf/MetalPal-Regular.otf`, `fonts/ttf/MetalPal-Regular.ttf` |
-| Metal Pal Italic | *Palatino-Kursiv*, St. 43 | `fonts/otf/MetalPal-Italic.otf`, `fonts/ttf/MetalPal-Italic.ttf` |
+| Metal Pal Italic | *Palatino-Kursiv*, St. 43, with the swash capitals of *Palatino-Kursiv-Schwungversalien*, St. 94 | `fonts/otf/MetalPal-Italic.otf`, `fonts/ttf/MetalPal-Italic.ttf` |
 | Metal Pal Bold | *Halbfette Palatino*, St. 44 | `fonts/otf/MetalPal-Bold.otf`, `fonts/ttf/MetalPal-Bold.ttf` |
 
 There is no Bold Italic, because Stempel didn't make one. Each card lists the other weights cast to go with
@@ -44,9 +44,11 @@ The fonts have no ñ, å, ø or other letters whose marks don't appear on the ca
 | default figures | old-style figures, on an en (500-unit) body as cast (*Zifferndicke: Halbgeviert*) |
 | `lnum` | lining figures (the cards' *Sonderziffern*) |
 | `liga` | fi fl ff ft, and the Qu ligature |
-| `dlig` | ch ck tz (and tt in Italic and Bold): the German composing-room ligatures. Italic: the Th swash ligature |
-| `swsh` (Italic) | the *Zierbuchstaben*: swash A B D E J M N R S T Z, and Th |
-| `ss01`, `salt` (Italic) | the alternate e (with a swash end), k and z |
+| `dlig` | ch ck tz (and tt in Italic and Bold): the German composing-room ligatures. Italic: the decorative Th ligature |
+| `swsh` (Italic) | the *Schwungversalien*: swash capitals A–Z, Ä Ö Ü and a swash & (St. 94, first cast 1953) |
+| `ss01` (Italic) | the alternate e (with a swash end), k and z |
+| `ss02` (Italic) | the *Zierbuchstaben* from the italic card: decorative A B D E J M N R S T Z, and Th |
+| `salt` (Italic) | every alternate above, chosen letter by letter |
 
 There is no kerning, because metal type had none. Sorts were cast with their side bearings, and the few kerned
 sorts (f, j and the italic's long-tailed letters) overhang their bodies here as they did in metal.
@@ -100,6 +102,9 @@ python3 tools/build.py        # fonts/otf, fonts/ttf (a few minutes)
 python3 tools/specimen.py     # specimen/
 ```
 
+Each font's version is in `VERSIONS` in `tools/build.py`. Raise it whenever that font changes, as
+[CONTRIBUTING.md](../CONTRIBUTING.md) requires; `scripts/check_font_versions.py` at the repository root checks it.
+
 ### Checking against the scans
 
 `specimen/compare-<Style>.png` shows the scan's type list (top) above the same letters set in the font at the
@@ -109,6 +114,20 @@ because the card letterspaces them.
 ![Regular against its scan](specimen/compare-Regular.png)
 ![Italic against its scan](specimen/compare-Italic.png)
 ![Bold against its scan](specimen/compare-Bold.png)
+
+## The swash capitals
+
+The *Schwungversalien* were sold as a fount of their own, to be set with the italic. Their card
+(St. 94) is traced like the others (the `Swash` sheet in `tools/sheets.py`). They come out the same height as the
+italic capitals (352 px on the scan against 352 px), so they share the italic's scale, and they are added to the
+Italic font as `A.swsh` … `Z.swsh`, `Adieresis.swsh` … and `ampersand.swsh`.
+
+Their spacing comes from the type list and the six display lines (16–48 p) on the card's other side, solved as for
+the other fonts. The card sets them only next to each other, so nothing measures the gap between a swash capital and
+the lower case. The type list is taken as letterspaced by the same amount as the italic card's capitals (64 units),
+which fixes their overall spacing. A few (M, Z) may sit loose before the lower case.
+
+![The swash capitals against their scan](specimen/compare-Swash.png)
 
 ## Text sizes
 

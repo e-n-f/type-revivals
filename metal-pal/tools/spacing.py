@@ -50,11 +50,18 @@ def solve(style, verbose=False):
     # term of their own.
     scan, lines = DISPLAY[style]
     RUNS = runs(style); nr = len(RUNS)
+    # The swash capitals' card has no lower case to refer to.  Its type list is taken as
+    # letterspaced like the italic card's capitals, by the same amount (that run's tracking).
+    swash = style == 'Swash'
+    if swash:
+        caps_track = json.load(open(os.path.join(BUILD, 'spacing-Italic.json')))['track'][0]
     for ri, run in enumerate(RUNS):
         run = [n for n in run if n in R]
         for a, b in zip(run, run[1:]):
             gap = inkbox(R[b])[0] - inkbox(R[a])[1]
-            if gap < 250: eqs.append((a, b, gap, None if ri == 0 else 0 if ri in (1, 2) else ri - 1, 1.0))  # the two runs of capitals share one
+            if swash:
+                if gap < 250: eqs.append((a, b, gap - caps_track, None, 1.0))
+            elif gap < 250: eqs.append((a, b, gap, None if ri == 0 else 0 if ri in (1, 2) else ri - 1, 1.0))  # the two runs of capitals share one
             elif verbose: print('  word space:', a, b, round(gap))
     # 2. display lines
     g = load(os.path.join(ROOT, 'scans', scan))
@@ -62,7 +69,9 @@ def solve(style, verbose=False):
         comps, _, _ = components(g, (3900, y0, 7900, y1), minarea=100)
         gs = [bbox(G) for G in group(comps)]
         words = text.split(); best = None
-        for combo in itertools.product(*[list(tokenizations(w, R)) for w in words]):
+        readings = ([[[c + '.swsh' if c.isalpha() else 'ampersand.swsh' for c in w]] for w in words] if swash
+                    else [list(tokenizations(w, R)) for w in words])
+        for combo in itertools.product(*readings):
             toks = [t for w in combo for t in w]
             if len(toks) != len(gs): continue
             ratio = np.array([width[t] / (q[2] - q[0]) for t, q in zip(toks, gs)])
@@ -114,6 +123,8 @@ def solve(style, verbose=False):
     return out
 
 if __name__ == '__main__':
+    # Swash after Italic: it takes the italic capitals' letterspacing on their card
     for st in [a for a in sys.argv[1:] if a in SHEETS] or list(SHEETS):
         sb = solve(st, verbose='-v' in sys.argv)
-        print('  ', ' '.join(f'{n}:{l:.0f}/{r:.0f}' for n, (l, r) in sb.items() if len(n) == 1))
+        print('  ', ' '.join(f'{n.split(".")[0]}:{l:.0f}/{r:.0f}' for n, (l, r) in sb.items()
+                             if len(n.split('.')[0]) == 1))

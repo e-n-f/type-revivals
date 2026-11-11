@@ -17,7 +17,9 @@ from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
 
 ROOT = os.path.join(os.path.dirname(__file__), '..')
 BUILD = os.path.join(ROOT, 'build')
-VERSION = '1.000'
+# Each font's version, in the head table and the name table.  Raise a font's version with every change to
+# that font, or font managers treat the new file as a duplicate of the installed one (see CONTRIBUTING.md).
+VERSIONS = {'Regular': '1.000', 'Italic': '1.001', 'Bold': '1.000'}
 FAMILY = 'Metal Pal'
 UPM = 1000
 FIGW = 500                       # figures are on an en (Halbgeviert) body
@@ -138,6 +140,9 @@ def build(style):
     R = data['glyphs']; meta = data['meta']
     sp = json.load(open(os.path.join(BUILD, f'spacing-{style}.json')))['sb']
     italic = style == 'Italic'
+    if italic:   # the swash capitals (Schwungversalien) come from a card of their own
+        R = dict(R, **pickle.load(open(os.path.join(BUILD, 'raster-Swash.pkl'), 'rb'))['glyphs'])
+        sp = dict(sp, **json.load(open(os.path.join(BUILD, 'spacing-Swash.json')))['sb'])
     XH = meta['xheight']
     G = {n: Img.of(r) for n, r in R.items()}
     for n, (src, centre, r) in PATCHES.get(style, {}).items():
@@ -284,21 +289,28 @@ def font(style, otf=True):
     liga = ' '.join(lig(p) for p in (['f', 'f', 'i'], ['f', 'f'], ['f', 'i'], ['f', 'l'], ['f', 't'], ['Q', 'u'])
                     if '_'.join(p) in have)
     dlig = ' '.join(lig(p) for p in (['c', 'h'], ['c', 'k'], ['t', 'z'], ['t', 't']) if '_'.join(p) in have)
-    if 'T_h.swsh' in have: dlig += ' sub T h by T_h.swsh;'
+    if 'T_h.ss02' in have: dlig += ' sub T h by T_h.ss02;'
     liga = liga.replace('sub f f i by f_f_i;', '')
     lnum = ' '.join(f'sub {f} by {f}.lf;' for f in FIGS)
     onum = ' '.join(f'sub {f}.lf by {f};' for f in FIGS)
     extra = ''
-    sw = [n for n in order if n.endswith('.swsh') and '_' not in n]
-    if sw:
-        extra += 'feature swsh { ' + ' '.join(f'sub {n.split(".")[0]} by {n};' for n in sw) + ' sub T h by T_h.swsh; } swsh;\n'
-        alts = [n for n in order if n.endswith(('.alt',)) or n == 'e.swsh']
-        extra += 'feature ss01 { ' + ' '.join(f'sub {n.split(".")[0]} by {n};' for n in alts) + ' } ss01;\n'
-        extra += 'feature salt { ' + ' '.join(f'sub {n.split(".")[0]} by {n};' for n in alts + sw) + ' } salt;\n'
+    single = lambda suffix: [n for n in order if n.endswith(suffix) and '_' not in n]
+    sw, alt, zier = single('.swsh'), single('.alt'), single('.ss02')
+    subs = lambda names: ' '.join(f'sub {n.split(".")[0]} by {n};' for n in names)
+    if sw: extra += f'feature swsh {{ {subs(sw)} }} swsh;\n'
+    if alt: extra += f'feature ss01 {{ featureNames {{ name "Alternate e, k, z"; }}; {subs(alt)} }} ss01;\n'
+    if zier:
+        th = ' sub T h by T_h.ss02;' if 'T_h.ss02' in have else ''
+        extra += f'feature ss02 {{ featureNames {{ name "Zierbuchstaben (decorative capitals)"; }}; {subs(zier)}{th} }} ss02;\n'
+    if sw or alt or zier:
+        choices = {}
+        for n in alt + sw + zier: choices.setdefault(n.split('.')[0], []).append(n)
+        extra += 'feature salt { ' + ' '.join(f'sub {b} from [{" ".join(v)}];' for b, v in choices.items()) + ' } salt;\n'
     fea = FEA.format(liga=liga or '', dlig=dlig or '', lnum=lnum, onum=onum, extra=extra)
     fea = fea.replace('feature dlig {  } dlig;', '')
 
     psname = FAMILY.replace(' ', '') + '-' + style
+    VERSION = VERSIONS[style]
     fb = FontBuilder(UPM, isTTF=not otf)
     fb.setupGlyphOrder(order)
     cmap = {UNI[n]: n for n in order if n in UNI}
