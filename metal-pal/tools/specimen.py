@@ -10,6 +10,7 @@ ROOT = os.path.join(os.path.dirname(__file__), '..')
 OUT = os.path.join(ROOT, 'specimen')
 STYLES = ['Regular', 'Italic', 'Bold']
 LABEL = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+CARDS = {'Regular': 'St. 2 (Palatino)', 'Italic': 'St. 43 (Palatino-Kursiv)', 'Bold': 'St. 44 (Halbfette Palatino)'}
 
 def fontpath(st): return os.path.join(ROOT, 'fonts', 'otf', f'MetalPal-{st}.otf')
 
@@ -70,10 +71,17 @@ def compare(st):
     for t, a, b, bi in ((t0, a0, b0, 0), (t1, a1, b1, 1)):
         first = boxes[bi]['bboxes'][0][0]
         d.text((first - x0, a + b * first - y0), t, font=f, fill=0, anchor='ls')
-    w = 2400; s = w / crop.width
-    both = Image.new('L', (w, int(crop.height * s) * 2 + 20), 255)
-    both.paste(crop.resize((w, int(crop.height * s)), Image.LANCZOS), (0, 0))
-    both.paste(ren.resize((w, int(crop.height * s)), Image.LANCZOS), (0, int(crop.height * s) + 20))
+    w = 2400; s = w / crop.width; h = int(crop.height * s)
+    lab = ImageFont.truetype(LABEL, 30); L = 56
+    both = Image.new('L', (w, 2 * (L + h) + 24), 255); d = ImageDraw.Draw(both)
+    d.text((10, 12), f'SCAN  ·  Stempel specimen card {CARDS[st]}, type list (Drucktypenverzeichnis)',
+           font=lab, fill=90)
+    both.paste(crop.resize((w, h), Image.LANCZOS), (0, L))
+    y = L + h + 12
+    d.line((0, y, w, y), fill=170, width=2)
+    d.text((10, y + 12), f'RENDERED  ·  the alphabets set in Metal Pal {st}, at the same cap height and baseline'
+           ' (the card letterspaces its capitals; the font does not)', font=lab, fill=90)
+    both.paste(ren.resize((w, h), Image.LANCZOS), (0, y + L))
     both.save(os.path.join(OUT, f'compare-{st}.png'))
 
 if __name__ == '__main__':
