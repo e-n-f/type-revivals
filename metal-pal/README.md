@@ -110,12 +110,42 @@ because the card letterspaces them.
 ![Italic against its scan](specimen/compare-Italic.png)
 ![Bold against its scan](specimen/compare-Bold.png)
 
+## Text sizes
+
+Each style's second card shows it from 5 or 6 p up to 48 p. `tools/textsizes.py` matches every line of those
+settings to its glyphs (49 of 51 lines) and compares it with the fonts at equal x-height:
+
+| Regular | 5 p | 6 p | 8 p | 9 p | 10 p | 12–48 p |
+|---|---|---|---|---|---|---|
+| x-height / point size (14–48 p = 1) | 1.19 | 1.10 | 1.04 | 1.04 | 1.00 | 0.99–1.05 |
+| x-height / cap height (font 0.652) | 0.678 | 0.681 | 0.660 | 0.649 | 0.640 | 0.633–0.655 |
+| letter widths | +3% | +3% | +1% | 0 | +1% | 0 (±0.6%) |
+| n m u stems | 1.58× | 1.47× | 1.37× | 1.22× | 1.14× | 1.20× at 12 p, 0.92–1.07× from 14 p |
+| gaps within words, units | +17 | +33 | +24 | +13 | +11 | −1 to +8 |
+
+The italic follows the same pattern, more strongly: at 5 p its x-height is 1.23 × the usual share of the body and
+0.698 of the cap height (font 0.625), and letters are 9.5% wider, with stems 1.57× as heavy. It is spaced 15–30
+units looser than its display sizes at 5–12 p. Its 6 p (Nr. 5643) is a separate cut: about as wide as the font,
+with an open-tailed g where every other size has the looped g. The bold changes least: at 6 p its x-height is 1.12 ×
+the usual share of the body and 0.700 of the cap height (font 0.656), and letters are 3% wider and spaced about 15
+units looser, but stems are only 1.10× as heavy, and nothing measurable changes from 9 p up.
+
+Ink spread on the card thickens small type more than large, so part of the extra stem weight is printing, not
+design. The bold's 6 p stems, about 15 px wide on the scan and only 10% heavier, limit the spread to about 1.5 px.
+With that much spread the design of the roman and italic is still at least 20–30% heavier at 5–8 p, and about the
+same as the font from 10 p up.
+
+So the text sizes from 5 to 9 p are an optical size of their own, with a bigger x-height, slightly wider letters,
+heavier strokes and looser spacing. From 10 p up, the fonts as traced represent the type within a few percent,
+apart from spacing, which the fonts take from the type list. Such differences could be built as separate "text" fonts or as a
+variable font with an optical-size axis (`opsz`). Neither is done.
+
 ## Limitations
 
 - The outlines are the type as printed on the specimen cards, with its ink spread. Nothing is "corrected"
   towards the drawings, except clear printing damage (see `PATCHES`).
-- Each style comes from one size, the one on its card's type list. Metal type was cut
-  separately for each size, so text sizes were somewhat wider and heavier.
+- Each style comes from one size: its card's type list, which matches the 28 p line. The smallest sizes were
+  designed differently (see [Text sizes](#text-sizes)).
 - The accents, æ œ Æ Œ and the lining figures come from a smaller size on the card, and are scaled up.
 - Spacing in pairs that rarely or never appear in the specimens rests partly on the priors. The italic's lower
   case is spaced as on its card, which is looser than the italic in the display lines (by 11–49 units in each gap).
