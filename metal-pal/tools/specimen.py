@@ -10,7 +10,7 @@ ROOT = os.path.join(os.path.dirname(__file__), '..')
 OUT = os.path.join(ROOT, 'specimen')
 STYLES = ['Regular', 'Italic', 'Bold']
 LABEL = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
-CARDS = {'Regular': 'St. 2 (Palatino)', 'Italic': 'St. 43 (Palatino-Kursiv)', 'Bold': 'St. 44 (Halbfette Palatino)'}
+CARDS = {'Swash': 'St. 94 (Palatino-Kursiv-Schwungversalien)', 'Regular': 'St. 2 (Palatino)', 'Italic': 'St. 43 (Palatino-Kursiv)', 'Bold': 'St. 44 (Halbfette Palatino)'}
 
 def fontpath(st): return os.path.join(ROOT, 'fonts', 'otf', f'MetalPal-{st}.otf')
 
@@ -38,7 +38,8 @@ def lines():
             feats = ['liga', 'dlig'] if i == 3 else ['liga']
             rows.append(('text', t, f, feats))
         if st == 'Italic':
-            rows.append(('text', 'ABDEJMNRSTZ Th  (swsh)   e k z  (ss01)', f, ['swsh', 'ss01', 'dlig']))
+            rows.append(('text', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ ÄÖÜ &  (swsh)', f, ['swsh']))
+            rows.append(('text', 'ABDEJMNRSTZ Th  (ss02)   e k z  (ss01)', f, ['ss02', 'ss01']))
         rows.append(('text', '1234567890  (lnum)', f, ['lnum']))
         for t in TEXT[:2]: rows.append(('text', t, f, ['liga']))
     H = sum(44 if r[0] == 'label' else int(size * 1.35) for r in rows) + 60
@@ -59,18 +60,23 @@ def compare(st):
     crop = Image.fromarray((g[y0:y1, x0:x1] * 255).astype(np.uint8))
     _, boxes = analyse(st)
     G = S['glyphs']; Hb = boxes[1]
+    swash = st == 'Swash'
     # cap height on the scan, px
-    capref = [Hb['bboxes'][int(G[c][0].split('.')[1])] for c in 'HE']
+    if swash:
+        capref = [boxes[0]['bboxes'][int(G[c + '.swsh'][0].split('.')[1])] for c in S['capref'] if c < 'V']
+    else:
+        capref = [Hb['bboxes'][int(G[c][0].split('.')[1])] for c in 'HE']
     cap_px = np.median([q[3] - q[1] for q in capref])
     size = cap_px / CAP * 1000
-    f = ImageFont.truetype(fontpath(st), int(round(size)))
+    f = ImageFont.truetype(fontpath('Italic' if swash else st), int(round(size)))
     ren = Image.new('L', crop.size, 255); d = ImageDraw.Draw(ren)
     a0, b0 = boxes[0]['base']; a1, b1 = boxes[1]['base']
     t0 = 'abcdefghijklmnopqrstuvwxyz'; t1 = ''.join(c for c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' if G.get(c, ['x'])[0].startswith('1.'))
+    if swash: t0, t1 = 'ABCDEFGHIJKLMNOPQRSTU', 'VWXYZ'
     asc = f.getmetrics()[0]
     for t, a, b, bi in ((t0, a0, b0, 0), (t1, a1, b1, 1)):
         first = boxes[bi]['bboxes'][0][0]
-        d.text((first - x0, a + b * first - y0), t, font=f, fill=0, anchor='ls')
+        d.text((first - x0, a + b * first - y0), t, font=f, fill=0, anchor='ls', features=['swsh'] if swash else None)
     w = 2400; s = w / crop.width; h = int(crop.height * s)
     lab = ImageFont.truetype(LABEL, 30); L = 56
     both = Image.new('L', (w, 2 * (L + h) + 24), 255); d = ImageDraw.Draw(both)
@@ -79,7 +85,8 @@ def compare(st):
     both.paste(crop.resize((w, h), Image.LANCZOS), (0, L))
     y = L + h + 12
     d.line((0, y, w, y), fill=170, width=2)
-    d.text((10, y + 12), f'RENDERED  ·  the alphabets set in Metal Pal {st}, at the same cap height and baseline'
+    what = 'the swash capitals (swsh) set in Metal Pal Italic' if swash else f'the alphabets set in Metal Pal {st}'
+    d.text((10, y + 12), f'RENDERED  ·  {what}, at the same cap height and baseline'
            ' (the card letterspaces its capitals; the font does not)', font=lab, fill=90)
     both.paste(ren.resize((w, h), Image.LANCZOS), (0, y + L))
     both.save(os.path.join(OUT, f'compare-{st}.png'))
@@ -87,4 +94,4 @@ def compare(st):
 if __name__ == '__main__':
     os.makedirs(OUT, exist_ok=True)
     lines()
-    for st in STYLES: compare(st)
+    for st in STYLES + ['Swash']: compare(st)

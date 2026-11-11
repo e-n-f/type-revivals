@@ -86,6 +86,14 @@ def measure(boxes, refs, base_box=None):
 def run(style):
     S = SHEETS[style]; G = S['glyphs']
     g, boxes = analyse(style)
+    if 'capref' in S:      # a sheet of capitals only (the swash capitals)
+        caph = np.median([measure(boxes, G[c + '.swsh']) for c in S['capref']])
+        scale = CAP / caph
+        print(f'{style}: cap {caph:.1f}px  scale {scale:.4f}')
+        out = {n: dict(raster(g, boxes, refs, scale), scale=scale) for n, refs in G.items()}
+        os.makedirs(BUILD, exist_ok=True)
+        pickle.dump(dict(glyphs=out, meta=dict(scale=scale)), open(os.path.join(BUILD, f'raster-{style}.pkl'), 'wb'))
+        return
     flat = [c for c in 'HIEFLTZ' if c in G]
     caph = np.median([measure(boxes, G[c]) for c in flat])
     scale = CAP / caph

@@ -53,8 +53,9 @@ g.update({'c_h': ['0.29', '0.30'], 'c_k': ['0.31', '0.32']})
 g.update(seq(['f_f', 'f_i', 'f_l', 'f_t', 'germandbls', 't_t', 't_z'], 0, 33))
 g.update(seq(UC, 1))
 g.update(seq(['Adieresis', 'Odieresis', 'Udieresis', 'Q_u'], 2))
-g.update(seq(['A.swsh', 'B.swsh', 'D.swsh', 'E.swsh', 'J.swsh', 'M.swsh', 'N.swsh', 'R.swsh',
-              'S.swsh', 'T.swsh', 'T_h.swsh', 'Z.swsh'], 2, 19))
+# the Zierbuchstaben (decorative capitals), stylistic set 2
+g.update(seq(['A.ss02', 'B.ss02', 'D.ss02', 'E.ss02', 'J.ss02', 'M.ss02', 'N.ss02', 'R.ss02',
+              'S.ss02', 'T.ss02', 'T_h.ss02', 'Z.ss02'], 2, 19))
 g.update(seq([f + '.osf' for f in FIG], 3))
 g.update(seq(['ampersand', 'period', 'periodcentered', 'comma'], 3, 10))
 g.update({'colon': ['3.14', '3.15']})
@@ -63,7 +64,7 @@ g.update({'exclam': ['3.20', '3.21'], 'question': ['3.22'], 'quoteright': ['3.23
           'quotedblbase': ['3.24', '3.25'], 'quotedblleft': ['3.26', '3.27'],
           'guillemotright': ['3.28', '3.29'], 'guillemotleft': ['3.30', '3.31']})
 g.update(seq(['slash', 'parenleft', 'parenright', 'bracketleft', 'bracketright', 'section',
-              'dagger', 'asterisk', 'paragraph', 'e.swsh', 'k.alt', 'z.alt'], 3, 32))
+              'dagger', 'asterisk', 'paragraph', 'e.alt', 'k.alt', 'z.alt'], 3, 32))
 acc = {}
 i = 0
 for a in ACC:
@@ -97,7 +98,21 @@ g.update(seq([f + '.osf' for f in FIG], 3, 3))
 g.update(seq(['acc.' + a for a in ACC], 4))
 g.update(seq([f + '.lf' for f in FIG], 5))
 
-SHEETS = {'Regular': REGULAR, 'Italic': ITALIC, 'Bold': BOLD}
+# ---------------------------------------------------------------- Italic swash capitals, St. 94
+# Palatino-Kursiv-Schwungversalien (1953): a separate fount of swash capitals for the italic.
+# Its glyphs go into the Italic font as <letter>.swsh.
+SWASH = dict(
+    scan='53152378370_1a1b225d3d_o.jpg',
+    boxes=[(300, 2550, 9500, 3300), (300, 3300, 9500, 4100)],
+    glyphs={}, into='Italic',
+    capref=['B', 'D', 'F', 'I', 'R', 'X'],   # letters whose tops and bottoms give the cap height
+)
+g = SWASH['glyphs']
+g.update(seq([c + '.swsh' for c in 'ABCDEFGHIJKLMNOPQRSTU'], 0))
+g.update(seq([c + '.swsh' for c in 'VWXYZ'] + ['Adieresis.swsh', 'Odieresis.swsh', 'Udieresis.swsh',
+              'ampersand.swsh'], 1))
+
+SHEETS = {'Regular': REGULAR, 'Italic': ITALIC, 'Bold': BOLD, 'Swash': SWASH}
 
 # ---------------------------------------------------------------- display lines (for spacing)
 # (scan, (y0, y1) band of the line, text).  x range of the right-hand column: 3900-7900.
@@ -119,6 +134,13 @@ DISPLAY = {
         ((3630, 4450), 'Forschung am Nordpol'),
         ((4570, 5530), 'Tänze aus Spanien'),
         ((5650, 6450), 'Balkanstaaten')]),
+    'Swash': ('53152150304_27da1719ee_o.jpg', [
+        ((480, 1150), 'ABCDEFGHIJKLMNOPQR'),
+        ((1380, 2150), 'STUVWXYZ&ABCDE'),
+        ((2330, 3150), 'FGHIJKLMNOPQ'),
+        ((3330, 4250), 'RSTUVWXYZ'),
+        ((4420, 5450), 'ABCDEFGH'),
+        ((5640, 6400), 'IKLMN')]),
     'Bold': ('53151948591_7b952d8a3e_o.jpg', [
         ((540, 1120), 'Die Gesellenprüfung als Autoschlosser'),
         ((1230, 1850), 'Tiere und Pflanzen aus Australien'),
@@ -131,6 +153,9 @@ DISPLAY = {
 # runs of the character sheets set solid, as glyph names in order
 def runs(style):
     G = SHEETS[style]['glyphs']
+    if style == 'Swash':
+        return [[c + '.swsh' for c in 'ABCDEFGHIJKLMNOPQRSTU'], [c + '.swsh' for c in 'VWXYZ'],
+                ['Adieresis.swsh', 'Odieresis.swsh', 'Udieresis.swsh']]
     R = [list(LC), [c for c in UC if c in G and G[c][0].startswith('1.')],
          [c for c in UC if c in G and G[c][0].startswith('2.')],
          [f + '.osf' for f in FIG]]
