@@ -17,7 +17,7 @@ from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
 ROOT = os.path.join(os.path.dirname(__file__), '..')
 BUILD = os.path.join(ROOT, 'build')
 VERSION = '1.000'
-FAMILY = 'Metal Palatino'
+FAMILY = 'Metal Pal'
 UPM = 1000
 FIGW = 500                       # figures are on an en (Halbgeviert) body
 SPACE = 250
@@ -308,8 +308,8 @@ def font(style, otf=True):
         'familyName': FAMILY, 'styleName': style,
         'uniqueFontIdentifier': f'{psname};{VERSION}', 'fullName': f'{FAMILY} {style}',
         'psName': psname, 'version': f'Version {VERSION}',
-        'copyright': 'Traced from D. Stempel AG specimen cards (Palatino by Hermann Zapf, 1950-51), photographed by Letterform Archive.',
-        'description': 'A digitization of the foundry metal type Palatino, as shown in Stempel specimen cards.',
+        'copyright': 'Traced from D. Stempel AG specimen cards of the foundry type designed by Hermann Zapf (1950-51), photographed by Letterform Archive.',
+        'description': 'A revival of a 1950s Stempel foundry type, traced from its specimen cards.',
     })
     fsSel = (0x20 if bold else 0) | (0x01 if italic else 0) | (0x40 if style == 'Regular' else 0)
     fb.setupOS2(sTypoAscender=asc, sTypoDescender=desc, sTypoLineGap=200, usWinAscent=1000, usWinDescent=330,

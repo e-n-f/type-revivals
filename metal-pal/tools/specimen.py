@@ -11,7 +11,7 @@ OUT = os.path.join(ROOT, 'specimen')
 STYLES = ['Regular', 'Italic', 'Bold']
 LABEL = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
 
-def fontpath(st): return os.path.join(ROOT, 'fonts', 'otf', f'MetalPalatino-{st}.otf')
+def fontpath(st): return os.path.join(ROOT, 'fonts', 'otf', f'MetalPal-{st}.otf')
 
 TEXT = ['Von den vielen Welten, die der Mensch nicht von der Natur geschenkt',
         'bekam, sondern sich aus dem eigenen Geist erschaffen hat, ist die Welt',
@@ -32,7 +32,7 @@ def lines():
     rows = []
     for st in STYLES:
         f = ImageFont.truetype(fontpath(st), size)
-        rows.append(('label', f'Metal Palatino {st}', lab))
+        rows.append(('label', f'Metal Pal {st}', lab))
         for i, t in enumerate(SETS[st]):
             feats = ['liga', 'dlig'] if i == 3 else ['liga']
             rows.append(('text', t, f, feats))
