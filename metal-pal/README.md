@@ -125,8 +125,8 @@ settings to its glyphs (49 of 51 lines) and compares it with the fonts at equal 
 
 The italic follows the same pattern, more strongly: at 5 p its x-height is 1.23 × the usual share of the body and
 0.698 of the cap height (font 0.625), and letters are 9.5% wider, with stems 1.57× as heavy. It is spaced 15–30
-units looser than its display sizes at 5–12 p. Its 6 p (Nr. 5643) is a separate cut: about as wide as the font,
-with an open-tailed g where every other size has the looped g. The bold changes least: at 6 p its x-height is 1.12 ×
+units looser than its display sizes at 5–12 p. Its 6 p is about as wide as the font, unlike the 5 p. Every g at
+6 p has a gap in the left side of its tail, where the thin stroke that closes it didn't print. The bold changes least: at 6 p its x-height is 1.12 ×
 the usual share of the body and 0.700 of the cap height (font 0.656), and letters are 3% wider and spaced about 15
 units looser, but stems are only 1.10× as heavy, and nothing measurable changes from 9 p up.
 
