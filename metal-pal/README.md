@@ -102,6 +102,9 @@ python3 tools/build.py        # fonts/otf, fonts/ttf (a few minutes)
 python3 tools/specimen.py     # specimen/
 ```
 
+Each font's version is in `VERSIONS` in `tools/build.py`. Raise it whenever that font changes, as
+[CONTRIBUTING.md](../CONTRIBUTING.md) requires; `scripts/check_font_versions.py` at the repository root checks it.
+
 ### Checking against the scans
 
 `specimen/compare-<Style>.png` shows the scan's type list (top) above the same letters set in the font at the

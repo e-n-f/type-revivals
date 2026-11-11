@@ -8,3 +8,5 @@ notes on its sources.
 | [`metal-pal/`](metal-pal/) | Metal Pal Regular, Italic, Bold | D. Stempel AG specimen cards of Hermann Zapf's foundry Palatino (1950–51) |
 
 ![Metal Pal](metal-pal/specimen/specimen-lines.png)
+
+Every change to a font raises its version number; see [CONTRIBUTING.md](CONTRIBUTING.md).

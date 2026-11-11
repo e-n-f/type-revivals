@@ -17,7 +17,9 @@ from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
 
 ROOT = os.path.join(os.path.dirname(__file__), '..')
 BUILD = os.path.join(ROOT, 'build')
-VERSION = '1.000'
+# Each font's version, in the head table and the name table.  Raise a font's version with every change to
+# that font, or font managers treat the new file as a duplicate of the installed one (see CONTRIBUTING.md).
+VERSIONS = {'Regular': '1.000', 'Italic': '1.001', 'Bold': '1.000'}
 FAMILY = 'Metal Pal'
 UPM = 1000
 FIGW = 500                       # figures are on an en (Halbgeviert) body
@@ -308,6 +310,7 @@ def font(style, otf=True):
     fea = fea.replace('feature dlig {  } dlig;', '')
 
     psname = FAMILY.replace(' ', '') + '-' + style
+    VERSION = VERSIONS[style]
     fb = FontBuilder(UPM, isTTF=not otf)
     fb.setupGlyphOrder(order)
     cmap = {UNI[n]: n for n in order if n in UNI}
