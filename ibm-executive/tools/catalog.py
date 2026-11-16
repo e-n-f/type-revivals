@@ -281,7 +281,9 @@ CHOSEN = {
     'BoldFace2': {'!': (466, 9, 14, U), '"': (466, 6, 11, L), "'": (466, 4, 13, U), '*': (480, 3, 12, U),
                   ':': (480, 4, 13, U), ';': (466, 3, 11, L), '[': (466, 5, 13, U), ']': (466, 10, 13, U),
                   '^': (480, 11, 13, U)},
-    'Charter': {'"': (464, 4, 6, U), '^': (464, 4, 16, U), '_': (464, 11, 20, L)},
+    # Charter's < > [ ]: IBM parts 1199012, 1199008, 1122702 and 1122704, cleaner than the BCD table's
+    'Charter': {'"': (464, 4, 6, U), '^': (464, 4, 16, U), '_': (464, 11, 20, L), '<': (465, 7, 12, U),
+                '>': (464, 7, 8, U), '[': (464, 6, 12, U), ']': (464, 11, 11, U)},
 }
 # The widths of characters the fonts have, where the catalogue's cells agree (read from the same sheets).
 # The period and comma are 3 units where the fits gave 2: a period is nearly always followed by a space, so the

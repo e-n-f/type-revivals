@@ -42,7 +42,7 @@ SOURCES['MidCentury'] = [('MidCenturyTyped', 'wW'), ('MidCentury', None), ('MidC
 # Arcadia's a: the two-storey one of the 1955 newsletter that announced the face (and of IBM's catalogue);
 # the brochure's machine had the one-storey alternate, which is ss01
 SOURCES['Arcadia'] = [('ArcadiaTyped', 'aw'), ('Arcadia', None), ('ArcadiaTyped', ':;\'"@#$¢*_')]
-SOURCES['Charter'] = [('CharterTyped', 'W'), ('Charter', None), ('CharterTyped', '[]<>;:*\'#@!\\')]
+SOURCES['Charter'] = [('CharterTyped', 'W'), ('Charter', None), ('CharterTyped', ';:*\'#@!\\')]
 # IBM's 1972 "Type Available" catalogue (tools/catalog.py): a real w and W for every face that has no other
 # source of them, the characters chosen from its other cells (catalog.CHOSEN; Mid-Century's # among them, in
 # place of the letter's small raised one), and IBM's own widths
