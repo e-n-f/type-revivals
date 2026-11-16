@@ -269,16 +269,17 @@ def font(face, otf=True, data=None):
         for n in order:
             pen = TTGlyphPen(None); draw(pen, glyphs[n], quad=True); gl[n] = pen.glyph()
         fb.setupGlyf(gl)
-    lsb = {}; ymax = 0; ymin = 0
+    lsb = {}; ymax = 0; ymin = 0; lmin = 0
     for n in order:
         bp = BoundsPen(None); draw(bp, glyphs[n], quad=not otf)
         lsb[n] = int(np.floor(bp.bounds[0])) if bp.bounds else 0
-        if bp.bounds: ymin = min(ymin, bp.bounds[1]); ymax = max(ymax, bp.bounds[3])
+        if bp.bounds:
+            ymin = min(ymin, bp.bounds[1]); ymax = max(ymax, bp.bounds[3])
+            if len(n) == 1 and n.isalpha(): lmin = min(lmin, bp.bounds[1])
     fb.setupHorizontalMetrics({n: (adv[n], lsb[n]) for n in order})
-    # the line is the typewriter's single spacing, split between ascent and descent as the glyphs are
-    desc = int(np.floor(ymin)); asc = int(round(LINE)) + desc
-    asc = max(asc, int(np.ceil(info['cap'] * 1.25)))
-    gap = max(0, int(round(LINE)) - (asc - desc))
+    # the line is the typewriter's single spacing, six lines to the inch, with the letters' descenders below
+    # the baseline and the rest above (the underscore prints lower, at about the descender line, as typed)
+    desc = int(np.floor(lmin)); asc = int(round(LINE)) + desc; gap = 0
     fb.setupHorizontalHeader(ascent=asc, descent=desc, lineGap=gap)
     fb.setupNameTable({
         'familyName': family, 'styleName': style,
