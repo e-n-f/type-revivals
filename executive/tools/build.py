@@ -281,6 +281,15 @@ def match_weight(img, src, ref, chars='nmhu'):
     return Img(ink, img.x0 - r, img.top + r), 2 * r
 
 
+def on_s(dollar, s):
+    """the $ moved up or down so its S stands where the S does: the bottom of its wide rows (the S, not the bar)
+    on the S's bottom.  A $ from a line of signs is placed by that line's baseline, which can be off"""
+    def body_bottom(im):
+        w = (im.ink > 0.5).sum(1); rows = np.nonzero(w > 0.45 * w.max())[0]
+        return im.top - rows.max()                               # y of the lowest wide row
+    return dollar.shift(0, body_bottom(s) - body_bottom(dollar))
+
+
 def build(face):
     G, srcs = glyph_images(face)
     notes = []
@@ -298,6 +307,7 @@ def build(face):
     ref = json.load(open(os.path.join(BUILD, 'units-Modern.json')))['units']
     if 'w' not in G and 'v' in G: G['w'] = standin(G, 'v', 'w', ref); notes.append('w from two v')
     if 'W' not in G and 'V' in G: G['W'] = standin(G, 'V', 'W', ref); notes.append('W from two V')
+    if '$' in G and 'S' in G: G['$'] = dict(G['$'], img=on_s(G['$']['img'], G['S']['img']))
     M = marks(G, xh, cap)
     composed = []
     for ch in COMPOSE:

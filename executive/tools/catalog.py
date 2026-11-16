@@ -62,8 +62,16 @@ def all_cells(face):
                 # the half-row's baseline: the commonest foot among its taller glyphs
                 hs = np.array([o['bottom'] - o['top'] for o in row]); tall = [o for o, h in zip(row, hs) if h >= 0.6 * hs.max()]
                 base = float(np.median([o['bottom'] for o in tall]))
-                for o in row: o['base'] = base
+                for o in row: o['base'] = base; o['_drop'] = base - line[0]
                 out += row
+    # The grid is printed: every half-row's baseline is the same distance below its line's rule.  A row's own
+    # estimate can be off (a row of signs has few letters on the baseline), so every cell takes the median
+    # distance of all the face's half-rows of its kind (upper or lower)
+    for kind in ('upper', 'lower'):
+        cells = [o for o in out if o['cell'][3] == kind]
+        d = float(np.median([o['_drop'] for o in cells]))
+        for o in cells:
+            o['base'] += d - o['_drop']; del o['_drop']
     return out
 
 def grid(ink):
