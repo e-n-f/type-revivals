@@ -84,7 +84,12 @@ def grid(ink):
     cells = []
     for a, b in zip(cols, cols[1:]):
         if b - a > 150: cells.append((a, b))
-    lines = [(a, b) for a, b in zip(rows, rows[1:]) if b - a > 300]
+    lines = []
+    for a, b in zip(rows, rows[1:]):
+        if b - a < 300: continue
+        if b - a > 600:                 # two lines, the rule between them too faint to find
+            lines += [(a, (a + b) // 2), ((a + b) // 2, b)]
+        else: lines.append((a, b))
     return lines, cells
 
 def half(ink, line, cell, lower):
@@ -261,33 +266,46 @@ def candidates(face, cells, want, out, n=4):
     sheet.save(out)
 
 
-# Cells chosen by eye from the candidates (catalog-<Face>-candidates.png, made by `catalog.py survey`), or by
-# IBM part number: the characters each font lacks, as (page, line, cell, half) or (part number, half).  Their width is the cell's.  Characters with no clear
+# Cells chosen by eye from the candidates (catalog-<Face>-candidates.png, made by `catalog.py survey`), or found
+# by IBM part number with parts(): the characters each font lacks, as (page, line, cell, half).  An entry may
+# also be (part number, half), looked up when the build runs; but the part-number reader misreads some
+# digits (an 8 as a 3, a 9 as a 6), so a cell found that way is written down by its place once checked.  Their width is the cell's.  Characters with no clear
 # cell are left out: \ and | in every face, { } and ~ but in Mid-Century, < > but in Arcadia and Charter.
 U, L = 'upper', 'lower'
 CHOSEN = {
     'Modern': {'=': (399, 4, 17, U), '^': (399, 4, 12, U),
-               '<': ('1097876', U), '[': ('1168513', U), '>': ('1168514', U), '{': ('1140982', U),
-               '}': ('1140983', U),
-               ']': (400, 5, 11, U),        # part 1088760, whose number has touching digits
-               '\\': (421, 5, 11, L)},       # part 1199057, likewise
-    'Documentary': {'!': (425, 1, 8, U), '#': (425, 3, 6, U), "'": (424, 11, 19, L), '*': (424, 6, 15, L),
-                    ':': (426, 6, 3, U), ';': (426, 7, 4, U), '=': (426, 6, 12, U), '[': (424, 12, 9, U),
-                    ']': (426, 3, 7, L), '_': (426, 5, 20, L)},
+               # by IBM part number, found with parts() and checked by eye
+               '<': (399, 5, 14, U),        # 1097876
+               '[': (399, 9, 4, U),         # 1168513
+               '>': (399, 14, 15, U),       # 1168514
+               '{': (400, 8, 19, U),        # 1140982
+               '}': (401, 2, 17, U),        # 1140983
+               ']': (400, 5, 11, U),        # 1088760
+               '\\': (421, 5, 11, L)},       # 1199057
+    'Documentary': {'!': (425, 1, 8, U), '#': (425, 3, 6, U), "'": (424, 12, 19, L), '*': (424, 7, 15, L),
+                    ':': (426, 6, 3, U), ';': (426, 7, 4, U), '=': (426, 6, 12, U), '[': (424, 13, 9, U),
+                    ']': (426, 3, 7, L), '_': (426, 5, 20, L),
+                    '@': (424, 5, 8, U),        # 1085226
+                    '|': (424, 13, 16, U),      # 1097373
+                    '~': (425, 8, 17, U)},      # 1092384
     'MidCentury': {'!': (459, 4, 1, U), "'": (459, 11, 20, L), '@': (459, 12, 9, U), '[': (461, 3, 8, U),
                    ']': (461, 3, 8, L), '}': (461, 3, 12, U), '{': (461, 3, 12, L), '^': (461, 10, 13, U),
                    '~': (460, 3, 8, U), '#': (459, 10, 1, U)},
     'Arcadia': {'<': (534, 3, 15, U), '>': (534, 3, 15, L), '[': (534, 3, 10, U), ']': (534, 3, 11, U),
                 '^': (533, 9, 3, U)},
     'Doric': {'!': (538, 10, 2, U), '"': (538, 5, 4, U), "'": (538, 6, 19, L), '*': (538, 6, 8, U),
-              ':': (539, 2, 7, U), ';': (538, 4, 8, U), '[': (539, 2, 1, U), ']': (539, 2, 1, L), '^': (539, 6, 7, U)},
+              ':': (539, 2, 7, U), ';': (538, 4, 8, U), '[': (539, 2, 1, U), ']': (539, 2, 1, L), '^': (539, 8, 7, U)},
     'BoldFace1': {'"': (371, 5, 18, U), '#': (370, 13, 12, U), '$': (351, 12, 8, U), "'": (371, 6, 18, U),
                   '*': (351, 9, 16, U), ':': (352, 2, 18, L), ';': (371, 4, 17, L), '@': (371, 1, 3, U),
                   '^': (351, 6, 1, U),
-                  # by IBM part number
-                  '|': ('1085831', U), '[': ('1086232', U), ']': ('1088372', U), '_': ('1097370', L),
-                  '{': ('1094192', U), '}': ('1094192', L), '>': ('1086154', U), '<': ('1086154', L),
-                  '~': ('1102251', L)},
+                  # by IBM part number, found with parts() and checked by eye
+                  '|': (351, 8, 4, U),      # 1085831
+                  '[': (351, 8, 8, U),      # 1086232
+                  ']': (351, 14, 13, U),    # 1088372
+                  '_': (370, 5, 17, L),     # 1097370
+                  '{': (371, 3, 18, U), '}': (371, 3, 18, L),     # 1094192
+                  '>': (372, 11, 12, U), '<': (372, 11, 12, L),   # 1086154
+                  '~': (371, 3, 7, L)},     # 1102251
     'BoldFace2': {'!': (466, 9, 14, U), '"': (466, 6, 11, L), "'": (466, 4, 13, U), '*': (480, 3, 12, U),
                   ':': (480, 4, 13, U), ';': (466, 3, 11, U), '[': (466, 5, 13, U), ']': (466, 10, 13, U),
                   '^': (480, 11, 13, U)},
