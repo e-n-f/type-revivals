@@ -129,6 +129,37 @@ def average(occs, k):
     return Img(np.mean(stack, 0), x0, top)
 
 
+# Fractions whose numerator is damaged in every print, taken from another fraction of the same element (the
+# numerator 1 is the same): Bookface Academic's ¼, whose 1 is merged with the g of the line above it.
+NUMERATOR_FROM = {'BookfaceAcademic72': {'¼': '½'}}
+
+
+def numerator_from(frac, src):
+    """frac with src's numerator: everything above the fraction bar replaced, lined up by the bar's top and,
+    sideways, by the numerator's stem just above the bar (below any damage)"""
+    def bar(im):
+        w = (im.ink > 0.5).sum(1); rows = np.nonzero(w > 0.6 * w.max())[0]
+        # the bar: the widest rows below the image's middle (the numerator's foot serif is narrower)
+        rows = rows[rows > 0.35 * im.ink.shape[0]]
+        return int(rows.min())                                  # its top row
+    def stem(im, row):
+        cols = np.nonzero(im.ink[row] > 0.5)[0]; return im.x0 + (cols.min() + cols.max()) / 2
+    bf, bs = bar(frac), bar(src)
+    # the stem's middle a third of the way up from the bar to the top of the numerator (above the foot serif)
+    rf, rs = bf - max(4, bf // 3), bs - max(4, bs // 3)
+    dx = stem(frac, rf) - stem(src, rs)
+    dy = (frac.top - bf) - (src.top - bs)                        # moves src's bar top onto frac's
+    gap = 6                                                      # rows above the bar that stay frac's
+    out = frac.ink.copy(); out[:bf - gap] = 0
+    num = src.ink[:bs - gap]
+    import cv2
+    M = np.float32([[1, 0, src.x0 + dx - frac.x0], [0, 1, (frac.top - src.top) - dy]])
+    placed = cv2.warpAffine(np.pad(num, ((0, src.ink.shape[0] - num.shape[0]), (0, 0))), M,
+                            (out.shape[1], out.shape[0]), flags=cv2.INTER_LINEAR)
+    # the numerator may reach above the frac image's top: grow the canvas upwards
+    return Img(np.maximum(out, placed), frac.x0, frac.top)
+
+
 def build(face):
     data = pickle.load(open(os.path.join(BUILD, f'occ-{face}.pkl'), 'rb'))
     p = float(np.median([q for q, _ in data['pitches']])); pitch = data['pitches'][0][1]
@@ -136,9 +167,13 @@ def build(face):
     by = {}
     for o in data['occ']: by.setdefault(o['ch'], []).append(o)
     glyphs, adv, counts = {}, {}, {}
+    ims = {}
     for ch, occs in by.items():
         occs = register(clean(occs), k); counts[ch] = len(occs)
-        im = average(occs, k)
+        ims[ch] = average(occs, k)
+    for frac, src in NUMERATOR_FROM.get(face, {}).items():
+        ims[frac] = numerator_from(ims[frac], ims[src])
+    for ch, im in ims.items():
         segs = trace.trace(im.ink, SIGMA * k)
         glyphs[gname(ch)] = [[(s[0],) + tuple((q[0] + im.x0 + ADV / 2, q[1] + im.top) for q in s[1:]) for s in c]
                              for c in segs]

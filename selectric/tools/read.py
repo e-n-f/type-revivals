@@ -142,6 +142,19 @@ def cells(L, p, lab, ink):
             out.setdefault(k, []).append(m)
     return out, c0, p
 
+def trim_neighbours(m, base, H, gap):
+    """a character's ink without a neighbouring line's character that touches it (Bookface's ¼, whose
+    numerator touches the g of the line above).  Only where the ink reaches further than any character does
+    above its baseline (1.8 cap heights; a stacked fraction's numerator reaches 1.4) or below it (0.9): it is
+    cut where the neighbour's descender ends, a quarter of a cap height below the upper line's baseline (gap:
+    the distance between the lines' baselines)"""
+    ys = np.nonzero(m.any(1))[0]
+    if not len(ys): return m
+    m = m.copy()
+    if ys[0] < base - 1.8 * H: m[:max(0, int(round(base - gap + 0.27 * H)))] = False
+    if ys[-1] > base + 0.9 * H: m[int(round(base + 0.27 * H)):] = False
+    return m
+
 def runs_of(ks):
     ks = sorted(ks); out = []
     for k in ks:
@@ -206,10 +219,11 @@ def read_block(scan, box, pitch, texts):
                 b, a = np.polyfit(fx[keep], fy[keep], 1)
                 r = fy - (a + b * fx); keep = np.abs(r) < max(3.0, 2.5 * np.median(np.abs(r[keep])))
         base_at = lambda x: a + b * x
+        gap = float(np.median(np.diff([M['base'] for M in lines])))       # from one baseline to the next
         report.append((text, len(pairs), sum(len(w) for w in text.split()), cost))
         for ch, k in pairs:
             if ch == SKIP: continue
-            m = np.any(cs[k], axis=0)
+            m = trim_neighbours(np.any(cs[k], axis=0), base_at(c0 + k * pl), H, gap)
             # with the faint ink around the strokes (a light print's edges, below the threshold), within the cell
             lo, hi = int(np.floor(c0 + (k - 0.6) * pl)), int(np.ceil(c0 + (k + 0.6) * pl))
             grown = cv2.dilate(m.astype(np.uint8), np.ones((5, 5), np.uint8)).astype(bool)
