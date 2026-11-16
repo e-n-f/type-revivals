@@ -4,7 +4,7 @@ Digital fonts traced from the type of the **IBM Selectric** typewriter, as IBM's
 shows it, in two printings. Every Selectric character is the same width: 1/10 inch on a 10-pitch element, 1/12 inch on a 12-pitch
 one. The fonts are monospaced to match, so text set in them lines up as it did on the machine.
 
-![The twenty fonts](specimen/specimen-lines.png)
+![The fonts](specimen/specimen-lines.png)
 
 | Font | Pitch | Font | Pitch |
 |---|---|---|---|
@@ -16,14 +16,14 @@ one. The fonts are monospaced to match, so text set in them lines up as it did o
 | Sel Prestige Pica 72 | 10 | Sel Prestige Elite 72 | 12 |
 | Sel Manifold 72 | 10 | Sel Scribe | 12 |
 | Sel Orator | 10 | Sel Adjutant | 12 |
-| | | Sel Artisan 12 | 12 |
-| | | Sel Dual Gothic | 12 |
+| Sel ANSI OCR | 10 | Sel Artisan 12 | 12 |
+| Sel AN3 360 | 10 | Sel Dual Gothic | 12 |
 | | | Sel Light Italic | 12 |
 | | | Sel Script | 12 |
 
 The files are `fonts/otf/Sel<Face>-Regular.otf` (cubic outlines, unhinted) and `fonts/ttf/Sel<Face>-Regular.ttf`
 (quadratic, hinted with [ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px), with `-Italic` for Courier
-12 Italic, Light Italic and Script. All are at version 1.001. The sources are listed in
+12 Italic, Light Italic and Script. The text faces are at version 1.001, the two OCR faces at 1.000. The sources are listed in
 [`scans/README.md`](scans/README.md).
 
 ## Size and spacing
@@ -40,7 +40,13 @@ Each face has what its brochure line shows: A–Z, a–z, the figures, and `! @ 
 
 - **Sel Manifold 72** is capitals only; its lower-case keys type the capitals, as on the element.
 - **Sel Orator**'s lower case is small capitals, as on the element.
-- No face has `< > [ \ ] ^ ` { | } ~`: a standard Selectric element doesn't have them.
+- No text face has `< > [ \ ] ^ ` { | } ~`: a standard Selectric element doesn't have them.
+- **Sel ANSI OCR** is OCR-A (the American National Standards Institute's font A, size 1), with its own signs in
+  place of the usual ones: the hook ⑁, chair ⑂ and fork ⑃ (on `!`, `@` and `#`, as OCR-A puts them, and also at
+  their own code points U+2441–2443), the long bar `|`, braces `{ }`, the solid block █ (on `^` and at U+2588), an
+  upright `"` and `'`, and `¬`. It has no `( ) ¢ ½ ¼ ,`; the `-` and `_` are its short and long dashes.
+- **Sel AN3 360** matches IBM's AN3 chain and train printer type of System/360. Its lower case is small capitals,
+  like Orator's, and its signs are `‡ @ # $ % ¤ & * ( ) - _ = + < > ? / ° ' : ; , .` (no `!`, `"` or `¢`).
 
 ![Printable ASCII in each font](specimen/ascii.png)
 
@@ -75,5 +81,5 @@ python3 tools/specimen.py    # specimen/
 
 - The signs and rarer letters have only two prints, one from each printing. Brochure b (about 1970, different
   texts) would give a third.
-- The OCR faces (ANSI, AN3/360, 915, 1403, 12L2/12F2, Printing and Publishing 2 and 3) and the Symbol 10 and 12
-  elements aren't made yet.
+- The other OCR faces (AN3/360 Bold, OF-2, 915, 12L2/12F2, 1403, Printing and Publishing 2 and 3; USASI and
+  Communications in brochure b) and the Symbol 10 and 12 elements aren't made yet.

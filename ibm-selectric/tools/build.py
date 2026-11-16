@@ -28,12 +28,14 @@ BUILD = os.path.join(ROOT, 'build')
 # Each font's version, in the head table and the name table.  Raise a font's version with every change to
 # that font, or font managers treat the new file as a duplicate of the installed one (see CONTRIBUTING.md).
 VERSIONS = {f: '1.001' for f in S.FACES}
+VERSIONS.update(ANSIOCR='1.000', AN3360='1.000')
 NAMES = {'Advocate': 'Advocate', 'BookfaceAcademic72': 'Bookface Academic 72', 'Courier72': 'Courier 72',
          'Delegate': 'Delegate', 'Pica72': 'Pica 72', 'PrestigePica72': 'Prestige Pica 72', 'Adjutant': 'Adjutant',
          'Artisan12': 'Artisan 12', 'Courier12': 'Courier 12', 'Courier12Italic': 'Courier 12 Italic',
          'Elite72': 'Elite 72', 'LargeElite72': 'Large Elite 72', 'LetterGothic': 'Letter Gothic',
          'PrestigeElite72': 'Prestige Elite 72', 'Scribe': 'Scribe', 'Manifold72': 'Manifold 72', 'Orator': 'Orator',
-         'DualGothic': 'Dual Gothic', 'LightItalic': 'Light Italic', 'Script': 'Script'}
+         'DualGothic': 'Dual Gothic', 'LightItalic': 'Light Italic', 'Script': 'Script', 'ANSIOCR': 'ANSI OCR',
+         'AN3360': 'AN3 360'}
 ITALIC = {'Courier12Italic': -12.0, 'LightItalic': -12.0, 'Script': -10.0}
 CAPS_ONLY = {'Manifold72'}            # the lower-case keys type the capitals
 UPM, ADV = 1000, 600
@@ -41,6 +43,8 @@ SIGMA = 0.6                           # smoothing of the traced ink, in pixels o
 MAXSHIFT = 60                         # the largest correction registration may make, in font units (5 px)
 # typographic quotes typed with the typewriter's straight ones
 ALIAS = {0x2018: "'", 0x2019: "'", 0x201C: '"', 0x201D: '"', 0xA0: ' '}
+# OCR-A's special symbols are also on the ASCII keys OCR-A puts them on
+KEYS = {'ANSIOCR': {'!': '⑁', '@': '⑂', '#': '⑃', '^': '█'}}
 
 
 def gname(ch):
@@ -146,6 +150,8 @@ def build(face):
     cmap = {ord(ch): gname(ch) for ch in by}
     if face in CAPS_ONLY:
         for c in S.LC: cmap[ord(c)] = gname(c.upper())
+    for key, ch in KEYS.get(face, {}).items():
+        if ch in by: cmap[ord(key)] = gname(ch)
     cmap[0x20] = 'space'
     for u, ch in ALIAS.items():
         if ch == ' ' or ch in by: cmap[u] = 'space' if ch == ' ' else gname(ch)

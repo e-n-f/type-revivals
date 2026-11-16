@@ -139,3 +139,26 @@ for _f, (_scan, (_y0, _y1), _subs) in SECOND.items():
         for _a, _b in _subs.items(): _l = _l.replace(_a, _b)
         _new.append(_l)
     FACES[_f].append((_scan, XC + (_y0, _y1), _pitch, _new))
+
+# ------------------------------------------------------------------------------------------------ OCR faces
+# Page 5 of the first printing, page 4 of the second.  ANSI is OCR-A (ANSI X3.17, font A, size 1): its
+# symbols are OCR-A's own, mapped to the ASCII keys OCR-A puts them on (hook ⑁ for !, chair ⑂ for @, fork ⑃ for
+# #, the long bar for |, the long dash for _, the block █ for ^).  AN3/360's lower case is small capitals.
+A5, C4 = 'selectric-a-0005.jp2', 'selectric-c-0004.jp2'
+OCR_SYM = {
+    'ANSIOCR': '⑁⑂⑃$%|&*{}-_=+█/?\'":;.¬',
+    'AN3360': '‡@#$%¤&*()-_=+<>?/°\':;,.',
+}
+FACES['ANSIOCR'] = [(A5, X + (1250, 1869), 10, para(
+    'IBM ANSI Type meets the American National Standards Institute',
+    'specification for A font, size 1. It is available in corres-',
+    'pondence or keypunch simulator keyboard arrangements.', symbols=OCR_SYM['ANSIOCR'])),
+                    (C4, XC + (1203, 1822), 10, para(
+    'IBM ANSI Type meets the American National Standards Institute',
+    'specification for A font, size 1. It is available in corres-',
+    'pondence or keypunch simulator keyboard arrangements.', symbols=OCR_SYM['ANSIOCR']))]
+_AN3 = ['IBM AN3/360 Type style lower case, alphabetic characters,',
+        'numerals and symbols are designed to match .079 inch size',
+        'AN3 style popular on IBM System/360 chain/train printers.']
+FACES['AN3360'] = [(A5, X + (1869, 2494), 10, para(*_AN3, symbols=OCR_SYM['AN3360'])),
+                   (C4, XC + (1822, 2448), 10, para(*_AN3, symbols=OCR_SYM['AN3360']))]
