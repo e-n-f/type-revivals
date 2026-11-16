@@ -1,7 +1,7 @@
 # Sel
 
 Digital fonts traced from the type of the **IBM Selectric** typewriter, as IBM's type-style brochure of 1972
-shows it. Every Selectric character is the same width: 1/10 inch on a 10-pitch element, 1/12 inch on a 12-pitch
+shows it, in two printings. Every Selectric character is the same width: 1/10 inch on a 10-pitch element, 1/12 inch on a 12-pitch
 one. The fonts are monospaced to match, so text set in them lines up as it did on the machine.
 
 ![The twenty fonts](specimen/specimen-lines.png)
@@ -23,7 +23,7 @@ one. The fonts are monospaced to match, so text set in them lines up as it did o
 
 The files are `fonts/otf/Sel<Face>-Regular.otf` (cubic outlines, unhinted) and `fonts/ttf/Sel<Face>-Regular.ttf`
 (quadratic, hinted with [ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px), with `-Italic` for Courier
-12 Italic, Light Italic and Script. All are at version 1.000. The sources are listed in
+12 Italic, Light Italic and Script. All are at version 1.001. The sources are listed in
 [`scans/README.md`](scans/README.md).
 
 ## Size and spacing
@@ -55,7 +55,8 @@ python3 tools/build.py       # fonts/otf, fonts/ttf
 python3 tools/specimen.py    # specimen/
 ```
 
-1. **Reading** (`read.py`, with the faces' blocks and texts in `sources.py`). Each face's block holds a
+1. **Reading** (`read.py`, with the faces' blocks and texts in `sources.py`). Each face appears in both printings
+   of the brochure (a and c in `scans/README.md`), so every character has at least two prints. Each face's block holds a
    paragraph of three lines, its capitals and signs, and its lower case and figures. The reader finds the
    lines, fits the block's pitch and each line's phase (the lattice that puts the most character centres in
    the middle of a cell), and puts every piece of ink in the cell of its centre. A piece wider than a cell
@@ -68,10 +69,7 @@ python3 tools/specimen.py    # specimen/
 
 ## Not yet done
 
-- A few characters printed only once, and faintly, come out thin or broken: Scribe's figures, ½ ¼ and `?`,
-  Prestige Pica's `S`, Prestige Elite's `.`. A second print from brochure b or c would fix them.
-- Each face's signs and rarer letters (j k q x z, most capitals) occur only once, in the brochure's alphabet
-  lines, so they aren't averaged. Brochures b and c show every face again (c is a later printing of a, with
-  slightly different wording; b an earlier brochure with different text), which would give two or three of each.
+- The signs and rarer letters have only two prints, one from each printing. Brochure b (about 1970, different
+  texts) would give a third.
 - The OCR faces (ANSI, AN3/360, 915, 1403, 12L2/12F2, Printing and Publishing 2 and 3) and the Symbol 10 and 12
   elements aren't made yet.
