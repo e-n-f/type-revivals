@@ -290,3 +290,84 @@ TYPED_COLUMNS = {'Registry': [(NL55_6, (680, 2570, 2320, 2690),
                                [('@', 28, 93), ('#', 93, 140), ('$', 158, 199), ('%', 208, 270), ('¢', 279, 315),
                                 ('&', 319, 375), ('*', 379, 425), ('(', 425, 447), (')', 460, 484), ('!', 547, 560),
                                 ('"', 577, 605), (':', 625, 640), ('?', 658, 694)])]}
+
+# ------------------------------------------------------------------------------ Typesetting with the IBM...
+# "Typesetting with the IBM Executive" (archive.org typesettingwithi0000gard): a page per face typed on the
+# Executive, all with the same paragraph, then the signs and the two alphabets.  Screenshots of the book's page
+# images (typesetting-<face>-<n>.png).  The keyboard's underscore is left out of the signs: it often prints a
+# line low, over a capital of the alphabet line (read.py trims what reaches above the capitals there).
+def _set_para(of='of', quotes=True):
+    q = '"color"' if quotes else 'color'
+    return ['The purpose of this paragraph is to show the various IBM Executive',
+            'types when set on different ratchet spacings and with different',
+            'percentages of reduction. These lines have purposely been set',
+            f'without right hand margination so that the true {q} of the type',
+            'will show. Consult the separate charts in this book to find out how',
+            f'wide to set a line to achieve a given reduction {of} the width you',
+            'want the final printed job to be.']
+_SIGNS = "§1234567890%‡='-.,#*¶/$†?!¢()@&+‘;:"
+_ALPHA = 'abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+_SETBOX = {'arcadia': (0, 238, 2090, 855), 'boldface1': (0, 295, 2114, 994), 'boldface2': (0, 242, 1982, 857),
+           'boldfaceitalic': (0, 225, 2400, 848), 'charter': (0, 273, 2032, 930),
+           'copperplate1': (0, 331, 2352, 1065), 'copperplate2': (0, 309, 2382, 1045),
+           'directory': (0, 372, 2520, 1372), 'documentary': (0, 329, 2552, 1064), 'heritage': (31, 322, 2426, 1115),
+           'midcentury': (0, 333, 2286, 1071), 'modern': (18, 272, 2594, 1013), 'patron': (0, 326, 2400, 1066),
+           'registry': (0, 305, 2350, 1059), 'secretarial': (0, 306, 2567, 1040),
+           'testimonial': (0, 290, 2538, 1041), 'text': (0, 261, 1864, 890)}
+_AT = {'modern', 'boldfaceitalic', 'copperplate1', 'copperplate2'}
+_SETSIGNS = {'boldfaceitalic': "§234567890-=1';/.,¶@#$%¢&*()+!\":?.,",
+             'patron': "1234567890-=';/.,!@#$%¢&*()+\":?.,",
+             # Copperplate: the small figures and signs (unshifted keys), then the large ones (shifted), which
+             # are named by their full-width forms here and in the font's ss01
+             # (one word: the gap between the sets is no wider than Copperplate's letter spacing)
+             'copperplate1': '1234567890()*$?-+.１２３４５６７８９０（）＊＄？－＋．',
+             'copperplate2': '1234567890()*$?-+.１２３４５６７８９０（）＊＄？－＋．'}
+_FACE = {'arcadia': 'Arcadia', 'boldface1': 'BoldFace1', 'boldface2': 'BoldFace2', 'boldfaceitalic': 'BoldFaceItalic',
+         'charter': 'Charter', 'copperplate1': 'Copperplate1', 'copperplate2': 'Copperplate2', 'directory': 'Directory',
+         'documentary': 'Documentary', 'heritage': 'Heritage', 'midcentury': 'MidCentury', 'modern': 'Modern',
+         'patron': 'Patron', 'registry': 'Registry', 'secretarial': 'Secretarial', 'testimonial': 'Testimonial',
+         'text': 'Text'}
+TYPESET = {}
+for _k, _box in _SETBOX.items():
+    _para = _set_para('at' if _k in _AT else 'of', quotes=not _k.startswith('copperplate'))
+    TYPESET[_FACE[_k]] = [(f'typesetting-{_k}-1.png', _box, _para + [_SETSIGNS.get(_k, _SIGNS), _ALPHA])]
+
+# Scans read through a correction: SHEAR un-slants an italic page (x + s*y) so its letters stand apart; OPEN
+# closes the small breaks in a faint print (a grey opening of k px)
+SHEAR = {'typesetting-boldfaceitalic-1.png': 0.32}
+OPEN = {}
+# GAMMA darkens a soft page's mid-tones (g ** gamma), so thin strokes stay joined to their letters
+GAMMA = {'typesetting-boldfaceitalic-1.png': 3.0, 'typesetting-boldface2-1.png': 2.0, 'typesetting-testimonial-1.png': 3.0,
+         'typesetting-testimonial-3.png': 2.0, 'typesetting-secretarial-1.png': 2.0}
+
+# More pages of 'Typesetting with the IBM Executive', at other ratchet spacings and reductions: each its own
+# source (<Face>Set<n>), since each is at its own scale.  Pages whose lines run together, or that are cut off,
+# are left out.
+TYPESET_MORE = {}
+TYPESET_MORE.setdefault(_FACE['arcadia'], {})[3] = [('typesetting-arcadia-3.png', (0, 330, 2648, 1279), _set_para('at' if 'arcadia' in _AT else 'of', quotes=not 'arcadia'.startswith('copperplate')) + [_SETSIGNS.get('arcadia', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['boldface1'], {})[3] = [('typesetting-boldface1-3.png', (93, 376, 2823, 1328), _set_para('at' if 'boldface1' in _AT else 'of', quotes=not 'boldface1'.startswith('copperplate')) + [_SETSIGNS.get('boldface1', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['boldface1'], {})[4] = [('typesetting-boldface1-4.png', (71, 336, 2801, 1168), _set_para('at' if 'boldface1' in _AT else 'of', quotes=not 'boldface1'.startswith('copperplate')) + [_SETSIGNS.get('boldface1', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['boldface2'], {})[3] = [('typesetting-boldface2-3.png', (0, 298, 2592, 1021), _set_para('at' if 'boldface2' in _AT else 'of', quotes=not 'boldface2'.startswith('copperplate')) + [_SETSIGNS.get('boldface2', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['boldfaceitalic'], {})[3] = [('typesetting-boldfaceitalic-3.png', (89, 317, 2831, 1275), _set_para('at' if 'boldfaceitalic' in _AT else 'of', quotes=not 'boldfaceitalic'.startswith('copperplate')) + [_SETSIGNS.get('boldfaceitalic', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['charter'], {})[2] = [('typesetting-charter-2.png', (0, 268, 2446, 820), _set_para('at' if 'charter' in _AT else 'of', quotes=not 'charter'.startswith('copperplate')) + [_SETSIGNS.get('charter', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['charter'], {})[3] = [('typesetting-charter-3.png', (0, 305, 2192, 1243), _set_para('at' if 'charter' in _AT else 'of', quotes=not 'charter'.startswith('copperplate')) + [_SETSIGNS.get('charter', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['copperplate1'], {})[2] = [('typesetting-copperplate1-2.png', (0, 280, 2558, 814), _set_para('at' if 'copperplate1' in _AT else 'of', quotes=not 'copperplate1'.startswith('copperplate')) + [_SETSIGNS.get('copperplate1', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['copperplate1'], {})[3] = [('typesetting-copperplate1-3.png', (0, 309, 2534, 1472), _set_para('at' if 'copperplate1' in _AT else 'of', quotes=not 'copperplate1'.startswith('copperplate')) + [_SETSIGNS.get('copperplate1', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['copperplate2'], {})[2] = [('typesetting-copperplate2-2.png', (0, 303, 2576, 843), _set_para('at' if 'copperplate2' in _AT else 'of', quotes=not 'copperplate2'.startswith('copperplate')) + [_SETSIGNS.get('copperplate2', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['copperplate2'], {})[3] = [('typesetting-copperplate2-3.png', (0, 353, 2604, 1278), _set_para('at' if 'copperplate2' in _AT else 'of', quotes=not 'copperplate2'.startswith('copperplate')) + [_SETSIGNS.get('copperplate2', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['directory'], {})[2] = [('typesetting-directory-2.png', (62, 416, 1719, 1676), _set_para('at' if 'directory' in _AT else 'of', quotes=not 'directory'.startswith('copperplate')) + [_SETSIGNS.get('directory', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['directory'], {})[3] = [('typesetting-directory-3.png', (103, 423, 2807, 1517), _set_para('at' if 'directory' in _AT else 'of', quotes=not 'directory'.startswith('copperplate')) + [_SETSIGNS.get('directory', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['documentary'], {})[2] = [('typesetting-documentary-2.png', (69, 311, 2784, 1258), _set_para('at' if 'documentary' in _AT else 'of', quotes=not 'documentary'.startswith('copperplate')) + [_SETSIGNS.get('documentary', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['documentary'], {})[3] = [('typesetting-documentary-3.png', (69, 322, 2784, 1267), _set_para('at' if 'documentary' in _AT else 'of', quotes=not 'documentary'.startswith('copperplate')) + [_SETSIGNS.get('documentary', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['midcentury'], {})[3] = [('typesetting-midcentury-3.png', (0, 281, 2455, 1379), _set_para('at' if 'midcentury' in _AT else 'of', quotes=not 'midcentury'.startswith('copperplate')) + [_SETSIGNS.get('midcentury', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['modern'], {})[3] = [('typesetting-modern-3.png', (26, 391, 2735, 1538), _set_para('at' if 'modern' in _AT else 'of', quotes=not 'modern'.startswith('copperplate')) + [_SETSIGNS.get('modern', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['patron'], {})[3] = [('typesetting-patron-3.png', (0, 268, 2579, 1191), _set_para('at' if 'patron' in _AT else 'of', quotes=not 'patron'.startswith('copperplate')) + [_SETSIGNS.get('patron', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['registry'], {})[3] = [('typesetting-registry-3.png', (13, 277, 2552, 1232), _set_para('at' if 'registry' in _AT else 'of', quotes=not 'registry'.startswith('copperplate')) + [_SETSIGNS.get('registry', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['secretarial'], {})[2] = [('typesetting-secretarial-2.png', (89, 298, 2804, 1208), _set_para('at' if 'secretarial' in _AT else 'of', quotes=not 'secretarial'.startswith('copperplate')) + [_SETSIGNS.get('secretarial', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['secretarial'], {})[3] = [('typesetting-secretarial-3.png', (65, 319, 2788, 1317), _set_para('at' if 'secretarial' in _AT else 'of', quotes=not 'secretarial'.startswith('copperplate')) + [_SETSIGNS.get('secretarial', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['testimonial'], {})[3] = [('typesetting-testimonial-3.png', (98, 0, 2807, 1134), _set_para('at' if 'testimonial' in _AT else 'of', quotes=not 'testimonial'.startswith('copperplate')) + [_SETSIGNS.get('testimonial', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['text'], {})[3] = [('typesetting-text-3.png', (0, 331, 2596, 1271), _set_para('at' if 'text' in _AT else 'of', quotes=not 'text'.startswith('copperplate')) + [_SETSIGNS.get('text', _SIGNS), _ALPHA])]
+TYPESET_MORE.setdefault(_FACE['text'], {})[4] = [('typesetting-text-4.png', (0, 426, 2418, 1708), _set_para('at' if 'text' in _AT else 'of', quotes=not 'text'.startswith('copperplate')) + [_SETSIGNS.get('text', _SIGNS), _ALPHA])]
+# characters of a page that read wrong and are left out: Directory's first page prints its % in pieces that
+# merge with the 0 and the ‡ beside it
+TYPESET_DROP = {'DirectorySet': '0%‡'}

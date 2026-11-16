@@ -76,8 +76,8 @@ The chart shows each font's printable ASCII (0x21–0x7E) in code order. A chara
   The catalogue has no `\` or `|` for any of the faces, and `{ } ~` and `< >` only where listed.
 - **Executive Secretarial and Registry** have no brochure line. Secretarial's letters and signs are the 1972
   catalogue's single prints (`CHOSEN` in `tools/catalog.py`), because the memo typed in it is a faint photocopy
-  whose letters are broken; the memo gives its unit, 1/32 inch, and its word space. It has no 1 or 0 (its
-  keyboard had none: the `1` and `0` keys type the l and the O, as typists did). Registry's characters are the
+  whose letters are broken; the memo gives its unit, 1/32 inch, and its word space. Its 1 and 0, which neither of those
+  sources shows, are from its page of "Typesetting with the IBM Executive". Registry's characters are the
   1955 newsletter's typed prints, which give its unit, 1/36 inch, with the catalogue filling in `= + [ ] < ½ ¼`.
   The newsletter's line of signs is read by hand-listed columns (`TYPED_COLUMNS`): its `@#` and `*(` touch, its
   `%` prints in two pieces, and its `_` didn't print. Both faces take their letters' widths from the catalogue.

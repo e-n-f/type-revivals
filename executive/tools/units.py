@@ -9,7 +9,7 @@ characters (i, l, j, f, t, ., ', the punctuation) 2 units, as on every Executive
 
 The keyboard sheet (Modern's @ # ¢ _) is one line typed key after key, fitted with Modern's widths fixed.
 """
-import sys, os, json, pickle, numpy as np
+import sys, os, re, json, pickle, numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import read as R
 
@@ -142,13 +142,15 @@ def run_keyboard(standard):
     json.dump(dict(pitch=float(p), escapement=32, units=units, offset={}, rule=rule, rms=rms),
               open(os.path.join(R.BUILD, 'units-Keyboard.json'), 'w'), indent=1, ensure_ascii=False)
 
-def run_typed(face, dpi=300):
+def run_typed(face, dpi=300, src='Typed'):
     """a face's typed documents: the unit in pixels from the pairs of characters the face's table has (two
     centres  p (u_a + u_b) / 2  apart), then each other character's width from its pairs with known ones.  At
     the scan's 300 dpi the unit should come out at dpi / escapement pixels."""
-    known = json.load(open(os.path.join(R.BUILD, f'units-{face}.json')))
+    path = os.path.join(R.BUILD, f'units-{face}.json')
+    if not os.path.exists(path): path = os.path.join(R.BUILD, f'units-{face}Typed.json')   # Secretarial, Registry
+    known = json.load(open(path))
     ku, esc = known['units'], known['escapement']
-    res = pickle.load(open(os.path.join(R.BUILD, f'occ-{face}Typed.pkl'), 'rb'))
+    res = pickle.load(open(os.path.join(R.BUILD, f'occ-{face}{src}.pkl'), 'rb'))
     occ = [o for _, oc in res if oc for o in oc]
     pr = pairs_of(occ)
     S = np.array([(ku[a] + ku[b]) / 2 for a, b, _ in pr if a in ku and b in ku])
@@ -165,42 +167,54 @@ def run_typed(face, dpi=300):
             if c not in ku and other in ku and other not in '()':
                 est.setdefault(c, []).append(2 * d / p - ku[other])
     units = {c: max(2, int(round(float(np.median(v))))) for c, v in est.items()}
-    ink = inkw(occ); m = known['margin']
+    ink = inkw(occ); m = known.get('margin', 0.5)
     for c in ink:       # no usable pair: from its ink and the face's fitted margin, as for a rare character
         if c not in ku and c not in units: units[c] = max(2, round(ink[c] / p + m)); est[c] = 'ink'
+    for c in list(units):   # a fit far from the character's ink (a sign between other signs): from its ink
+        by_ink = max(2, round(ink[c] / p + m))
+        if est.get(c) != 'ink' and abs(units[c] - by_ink) > 1: units[c] = by_ink; est[c] = 'ink'
     for a, b in ('[]', '<>', '()'):   # a pair of brackets alike: the wider
         if a in units and b in units: units[a] = units[b] = max(units[a], units[b])
-    print(f'{face}Typed: unit {p:.2f} px (1/{esc} inch at {dpi} dpi: {dpi / esc:.2f}), rms {rms:.2f} px over'
+    if '‘' in units and "'" in ku: units['‘'] = ku["'"]       # the left quote as wide as the apostrophe
+    print(f'{face}{src}: unit {p:.2f} px (1/{esc} inch at {dpi} dpi: {dpi / esc:.2f}), rms {rms:.2f} px over'
           f' {int(keep.sum())} pairs; new widths:', {c: (units[c], est[c] if est[c] == 'ink' else round(float(np.median(est[c])), 2))
                                                       for c in sorted(units)})
     json.dump(dict(pitch=p, escapement=esc, units=units, offset={}, rule={c: 'typed' for c in units}, rms=rms),
-              open(os.path.join(R.BUILD, f'units-{face}Typed.json'), 'w'), indent=1, ensure_ascii=False)
+              open(os.path.join(R.BUILD, f'units-{face}{src}.json'), 'w'), indent=1, ensure_ascii=False)
 
 # Faces with no brochure line: their typed page fitted with the catalogue's widths.  The escapement from the
 # unit in pixels: the memo is scanned at 300 dpi; the newsletter's scale is that of its page 5, whose Arcadia
 # (1/32 inch) has a 17.00 px unit.
 CATALOG_FACES = {'Secretarial': 300.0, 'Registry': 32 * 17.00}
+# Faces whose main source is their page of 'Typesetting with the IBM Executive' (screenshots, of no known scale):
+# the escapement each is printed with in IBM's 1960 catalogue
+SET_FACES = {'Text': 45, 'BoldFaceItalic': 32, 'Directory': 32, 'Testimonial': 32, 'Copperplate1': 36,
+             'Copperplate2': 36, 'Patron': 36}
 
-def run_catalog_typed(face, dpi):
-    cat = json.load(open(os.path.join(R.BUILD, 'catalog-units.json')))[face]
-    res = pickle.load(open(os.path.join(R.BUILD, f'occ-{face}Typed.pkl'), 'rb'))
+def run_catalog_typed(face, dpi=None, src='Typed', esc=None):
+    cat = json.load(open(os.path.join(R.BUILD, 'catalog-units.json'))).get(face, {})
+    res = pickle.load(open(os.path.join(R.BUILD, f'occ-{face}{src}.pkl'), 'rb'))
     occ = [o for _, oc in res if oc for o in oc]
     pr = pairs_of(occ); ink = inkw(occ)
-    S_ = np.array([(cat[a] + cat[b]) / 2 for a, b, _ in pr if a in cat and b in cat])
-    D = np.array([d for a, b, d in pr if a in cat and b in cat])
-    p = float(S_ @ D / (S_ @ S_))
-    for _ in range(3):
-        keep = np.abs(D - p * S_) < 0.6 * p
-        p = float(S_[keep] @ D[keep] / (S_[keep] @ S_[keep]))
-    esc = min((32, 36, 45), key=lambda e: abs(dpi / e - p))
+    if cat:
+        S_ = np.array([(cat[a] + cat[b]) / 2 for a, b, _ in pr if a in cat and b in cat])
+        D = np.array([d for a, b, _ in pr if a in cat and b in cat]) if False else \
+            np.array([d for a, b, d in pr if a in cat and b in cat])
+        p = float(S_ @ D / (S_ @ S_))
+        for _ in range(3):
+            keep = np.abs(D - p * S_) < 0.6 * p
+            p = float(S_[keep] @ D[keep] / (S_[keep] @ S_[keep]))
+    else:          # no catalogue alphabet (Copperplate 1): the unit from a fit of the widths, as for a brochure
+        w0, _, _, cnt0, _, _ = solve(pr, ink); p = pitch(w0, cnt0)[0]
+    if esc is None: esc = min((32, 36, 45), key=lambda e: abs(dpi / e - p))
     # the characters the catalogue's alphabet doesn't give: from their pairs, as for a brochure face
     w, d, m, cnt, rms, rej = solve(pr, ink, p, {c: cat.get(c, max(2, round(ink[c] / p + 0.5))) for c in ink})
     units = {c: cat.get(c, max(2, round(w[c] / p)) if c in w else max(2, round(ink[c] / p + m / p))) for c in ink}
     for c in ink: cnt.setdefault(c, 0)
-    print(f'{face}Typed: unit {p:.2f} px -> 1/{esc} inch ({dpi / esc:.2f} px), rms {rms:.2f} px over {len(pr)} pairs;'
+    print(f'{face}{src}: unit {p:.2f} px, 1/{esc} inch, rms {rms:.2f} px over {len(pr)} pairs;'
           f' widths not in the catalogue: {dict((c, units[c]) for c in sorted(units) if c not in cat)}')
     json.dump(dict(pitch=p, escapement=esc, units=units, offset=d, ink=ink, count=cnt, rule={}, rms=rms, margin=m / p),
-              open(os.path.join(R.BUILD, f'units-{face}Typed.json'), 'w'), indent=1, ensure_ascii=False)
+              open(os.path.join(R.BUILD, f'units-{face}{src}.json'), 'w'), indent=1, ensure_ascii=False)
 
 if __name__ == '__main__':
     faces = [a for a in sys.argv[1:] if a in R.FACES + R.TYPED] or R.FACES + R.TYPED
@@ -210,6 +224,11 @@ if __name__ == '__main__':
         elif face in R.TYPED: pass
         elif face not in ('Modern', 'ModernFI'): run(face, std, p32)
     for face in faces:              # after the faces' own tables
-        if face in R.TYPED and face[:-len('Typed')] in CATALOG_FACES:
+        m = re.match(r'(.+)(Set\d*)$', face)
+        if m and not os.path.exists(os.path.join(R.BUILD, f'occ-{face}.pkl')): continue   # a page not read
+        if m and m.group(1) in SET_FACES:
+            run_catalog_typed(m.group(1), src=m.group(2), esc=SET_FACES[m.group(1)])
+        elif m: run_typed(m.group(1), src=m.group(2))
+        elif face in R.TYPED and face[:-len('Typed')] in CATALOG_FACES:
             run_catalog_typed(face[:-len('Typed')], CATALOG_FACES[face[:-len('Typed')]])
         elif face in R.TYPED: run_typed(face[:-len('Typed')])

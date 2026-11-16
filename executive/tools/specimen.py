@@ -16,7 +16,10 @@ ROOT = os.path.join(HERE, '..')
 OUT = os.path.join(ROOT, 'specimen')
 LABEL = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
 
-def fontpath(face): return os.path.join(ROOT, 'fonts', 'otf', f'Executive{face}-Regular.otf')
+def fontpath(face):
+    from build import NAMES, ITALIC
+    name = ('Executive ' + NAMES.get(face, face)).replace(' ', '').replace('-', '')
+    return os.path.join(ROOT, 'fonts', 'otf', f'{name}-{"Italic" if face in ITALIC else "Regular"}.otf')
 
 TEXT = ['Dear Sir: We acknowledge with thanks your letter of June 4, 1952,',
         'and enclose our cheque for $1,284.50 (net 30 days) as agreed.']
@@ -52,6 +55,8 @@ for _f in VERSIONS:
     if _f != 'Modern': COMPARE[_f] = (_f, list(range(12)), 1.0)
 COMPARE['Secretarial'] = ('SecretarialTyped', list(range(8)), 0.6)        # the memo's first paragraphs
 COMPARE['Registry'] = ('RegistryTyped', list(range(10)), 0.5)             # the newsletter's paragraph
+from build import NEW_FACES
+for _f in NEW_FACES: COMPARE[_f] = (f'{_f}Set', list(range(9)), 0.6)      # its 'Typesetting' page
 
 def compare(face):
     src, lids, scale = COMPARE[face]
