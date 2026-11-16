@@ -104,3 +104,38 @@ FACES = {
         'writing. It provides the look of a personal note and a change of pace',
         'and emphasis. Script is also available in a Puerto Rican version.'))],
 }
+
+# The same brochure, a later printing: archive.org ibm-selectric-typewriter-type-styles-brochure, pages 2, 3 and
+# 5 (scans/selectric-c-0002.jp2 ...).  The same faces and texts but "Latin American" for "Puerto Rican", and the
+# footnote marks printed black: read, and not used ('·').
+C2, C3, C5 = 'selectric-c-0002.jp2', 'selectric-c-0003.jp2', 'selectric-c-0005.jp2'
+XC = (1250, 5080)
+SECOND = {
+    'Advocate': (C2, (1231, 1850), {'available in a Puerto Rican version.': 'available in a Latin American version.·'}),
+    'BookfaceAcademic72': (C2, (1850, 2445), {'accounting version.': 'accounting version.·'}),
+    'Courier72': (C2, (2445, 3083), {'and Puerto Rican version.': 'and Latin American version.·'}),
+    'Delegate': (C2, (3083, 3715), {'in a Puerto Rican version.': 'in a Latin American version.·'}),
+    'Pica72': (C2, (3715, 4335), {'chemical version.': 'chemical version.·'}),
+    'PrestigePica72': (C2, (4335, 4962), {'and Puerto Rican version.': 'and Latin American version.·'}),
+    'Adjutant': (C2, (4962, 5594), {}),
+    'Artisan12': (C2, (5594, 6250), {'in a Puerto Rican version.': 'in a Latin American version.·'}),
+    'Courier12': (C3, (1242, 1856), {}),
+    'Courier12Italic': (C3, (1856, 2448), {}),
+    'Elite72': (C3, (2448, 3089), {'language typing.': 'language typing.·'}),
+    'LargeElite72': (C3, (3089, 3725), {}),
+    'LetterGothic': (C3, (3725, 4321), {'in a Puerto Rican version.': 'in a Latin American version.·'}),
+    'PrestigeElite72': (C3, (4321, 4954), {'English characters.': 'English characters.·'}),
+    'Scribe': (C3, (4954, 5585), {'in a Puerto Rican version.': 'in a Latin American version.·'}),
+    'Manifold72': (C5, (1229, 1849), {}),
+    'Orator': (C5, (1849, 2478), {}),
+    'DualGothic': (C5, (2478, 3095), {}),
+    'LightItalic': (C5, (3095, 3721), {}),
+    'Script': (C5, (3721, 4342), {'in a Puerto Rican version.': 'in a Latin American version.··'}),
+}
+for _f, (_scan, (_y0, _y1), _subs) in SECOND.items():
+    _, _, _pitch, _lines = FACES[_f][0]
+    _new = []
+    for _l in _lines:
+        for _a, _b in _subs.items(): _l = _l.replace(_a, _b)
+        _new.append(_l)
+    FACES[_f].append((_scan, XC + (_y0, _y1), _pitch, _new))

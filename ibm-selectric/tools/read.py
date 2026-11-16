@@ -56,9 +56,16 @@ def lines_of(comps):
             groups[-1]['c'].append(c); groups[-1]['foot'] = float(np.median([d['y'] + d['h'] for d in groups[-1]['c']]))
         else: groups.append(dict(c=[c], foot=f))
     groups = [g for g in groups if len(g['c']) >= 3]
+    # a small group of raised marks (" ' * on a darker print) a little above a line's feet is part of that line
+    merged = []
+    for g in sorted(groups, key=lambda g: -len(g['c'])):
+        near = [m for m in merged if abs(m['foot'] - g['foot']) < 1.0 * H]
+        if near and len(g['c']) < 0.5 * len(near[0]['c']): near[0]['c'] += g['c']
+        else: merged.append(g)
+    groups = sorted(merged, key=lambda g: g['foot'])
     lines = []
     for g in groups:
-        base = float(np.median([c['y'] + c['h'] for c in g['c']]))
+        base = float(np.median([c['y'] + c['h'] for c in g['c'] if c['h'] > 0.75 * H]))
         top = float(np.percentile([c['y'] for c in g['c']], 10))
         lines.append(dict(base=base, top=top, comps=[]))
     ids = {id(c) for g in groups for c in g['c']}
