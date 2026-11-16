@@ -225,6 +225,7 @@ if __name__ == '__main__':
         elif face not in ('Modern', 'ModernFI'): run(face, std, p32)
     for face in faces:              # after the faces' own tables
         m = re.match(r'(.+)(Set\d*)$', face)
+        if m and not os.path.exists(os.path.join(R.BUILD, f'occ-{face}.pkl')): continue   # a page not read
         if m and m.group(1) in SET_FACES:
             run_catalog_typed(m.group(1), src=m.group(2), esc=SET_FACES[m.group(1)])
         elif m: run_typed(m.group(1), src=m.group(2))

@@ -63,7 +63,8 @@ SOURCES['Charter'] = [('CharterTyped', 'W'), ('Charter', None), ('CharterTyped',
 from catalog import CHOSEN as _CHOSEN
 for _f in OLD_FACES: SOURCES[_f].append((f'Catalog{_f}', 'wW' + ''.join(_CHOSEN.get(_f, {}))))
 # 'Typesetting with the IBM Executive': § ‡ ¶ † ‘, which no other source of these faces shows
-for _f in OLD_FACES: SOURCES[_f].append((f'{_f}Set', '§‡¶†‘'))
+for _f in OLD_FACES:
+    if _f in _S0.TYPESET: SOURCES[_f].append((f'{_f}Set', '§‡¶†‘'))   # (Doric has no page)
 # Secretarial's 1 and 0, which the catalogue and the memo lack: its 'Typesetting' page has them
 SOURCES['Secretarial'].insert(0, ('SecretarialSet', '10'))
 # The new faces: their 'Typesetting' page, the catalogue filling in.  Bold Face Italic's page is soft (read
@@ -86,7 +87,7 @@ MATCH_HEIGHTS = {'Keyboard': ('Modern', '0123456789'), 'MidCenturyTyped': ('MidC
                  **{f'Catalog{f}': (f, 'EFHILTZxzvnmu') for f in VERSIONS},
                  'CatalogSecretarial': ('SecretarialTyped', 'EFHILTxzvnmu'),
                  'CatalogRegistry': ('RegistryTyped', 'EFHILTZxzvnmu'),
-                 **{f'{f}Set': (MAIN.get(f, f), 'EFHILTZxzvnmu') for f in OLD_FACES},
+                 **{f'{f}Set': (MAIN.get(f, f), 'EFHILTZxzvnmu') for f in OLD_FACES if f in _S0.TYPESET},
                  **{f'Catalog{f}': (f'{f}Set', 'EFHILTZxzvnmu') for f in NEW_FACES},
                  'CatalogBoldFaceItalic': ('BoldFaceItalicSet', 'EFHILTZxzvnmu')}
 # printed sources, crisper than the typed ones: thickened to the face's weight (match_weight)
