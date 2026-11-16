@@ -394,17 +394,18 @@ def read_keyboard():
     ln = Line(scan, box, 30)
     return [(text, match(ln, text, S.KEYBOARD_MULTI, S.KEYBOARD_SPLIT))], [ln]
 
-def read_typed(face):
-    """a face's typed documents (sources.TYPED): single lines, and blocks of lines"""
+def read_typed(entries):
+    """documents typed in a face (sources.TYPED), or a printed sheet (sources.SHEETS): single lines, table
+    rows, and blocks of lines"""
     lines, items, rows = [], [], []
-    for scan, box, text, *kind in S.TYPED[face]:
+    for scan, box, text, *kind in entries:
         if isinstance(text, str):
             # (a table's cells are clean: a small minimum keeps the dots of ; and !)
             rows.append(bool(kind)); lines.append(Line(scan, box, 4 if kind else 15)); items.append(text)
         else:
             ls = block_lines(scan, box, 15)
             if len(ls) != len(text):
-                raise SystemExit(f'{face}: {len(ls)} lines in {box}, expected {len(text)}')
+                raise SystemExit(f'{scan}: {len(ls)} lines in {box}, expected {len(text)}')
             lines += ls; items += text; rows += [False] * len(ls)
     model = None
     for _ in range(3):
@@ -420,15 +421,17 @@ def read_typed(face):
                 for o in oc: o['base'] = base
     return res, lines
 
-TYPED = [f + 'Typed' for f in S.TYPED]
+TYPED = [f + 'Typed' for f in S.TYPED] + list(S.SHEETS)
 FACES = ['Modern', 'ModernFI', 'Keyboard', 'Documentary', 'MidCentury', 'Arcadia', 'Doric', 'BoldFace1', 'BoldFace2', 'Charter']
 
 def read(face):
     """occurrences of every character of a face, and the brochure's Modern for the unit calibration"""
     if face == 'Modern':
         return read_jowa()
+    if face in S.SHEETS:      # a printed sheet, for an alternate
+        return read_typed(S.SHEETS[face])
     if face in TYPED:         # documents typed in the face, for the characters the brochure lacks
-        return read_typed(face[:-len('Typed')])
+        return read_typed(S.TYPED[face[:-len('Typed')]])
     if face == 'Keyboard':    # Modern's @ # ¢ _, from the typed keyboard sheet
         return read_keyboard()
     if face == 'ModernFI':    # the brochure's Modern: for the unit calibration and the characters Jowa lacks

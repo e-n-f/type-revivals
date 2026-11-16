@@ -201,3 +201,13 @@ TYPED['Charter'] = [_row(k, t) for k, t in CH_CALIBRATION] + [_row(k, t) for k, 
     (CH_LABELS, (750, 1998, 1242, 2042), 'Standard BCD Interchange Code'),
     (CH_LABELS, (562, 2789, 1170, 2833), 'Figure 5. Code Summary Comparison'),
 ]
+
+# ----------------------------------------------------------------------------------- printed sheets (alternates)
+# IBM's "Type designs for the IBM 'Executive' Typewriter", sheet 1: Arcadia with a two-storey a, where the
+# Finnish brochure's Arcadia has a one-storey one.  Printed, not typed; read for that a alone.
+SHEETS = {
+    'ArcadiaSheet': [('type-designs-ibm-executive-0001.jp2', (2450, 2480, 8400, 3140),
+                      ['This is a sample of IBM Arcadia Type. Designed for all-',
+                       'purpose use, its distinctive appearance enhances finished',
+                       'copy in a variety of applications.'])],
+}

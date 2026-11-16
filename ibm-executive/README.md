@@ -19,7 +19,8 @@ keep those widths exactly, so text set in them falls where the machine would hav
 | Exec Charter | Charter | 1/45 inch | Finnish brochure; BCD code table of 1962 | `ExecCharter-Regular` |
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
-[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px), version 1.000. The sources are listed in
+[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The fonts are at version 1.000, except Exec
+Arcadia at 1.001 (its two-storey a). The sources are listed in
 [`scans/README.md`](scans/README.md).
 
 ## Size and spacing
@@ -54,6 +55,10 @@ gives every character an offset from the centre of its slug, as well as its widt
   brochure faces compose ä å ö ü, á à é è ë í ì ï ó ò ú ù ý ÿ, Å Ä Ö Ü and Á À É È Ó Ò Ú Ù Ý where the face shows
   the acute and grave. A capital's accent missing from a scan is the lower-case one, raised by the difference
   between the cap height and the x-height. ç Ç ø Ø ß are traced as printed. ¨ ´ ` are also spacing glyphs.
+- **Exec Arcadia's `ss01`** (also in `salt`) gives the two-storey a of IBM's own "Type designs" sheet, with
+  à ä å, in place of the brochure's one-storey a. The sheet is a crisp print: its a is averaged over its 13
+  occurrences, scaled so the sheet's letters are as tall as the brochure's, and thickened by the difference
+  between the two sources' n m h u stems (16 units), so that it has the brochure's weight.
 - `)` is the `(` turned round in Modern, whose card has only the `(`. The typographic quotes ‘ ’ “ ” map to the
   typewriter's straight `'` and `"`.
 
@@ -101,8 +106,9 @@ rough to measure them, so it is used only for their shapes, scaled so its figure
   (`type-designs-ibm-executive-0001.jp2`) shows Arcadia with a two-storey a, and every other letter the two
   share matches: the slab-serifed I B M, E C T V, k o n e s i and the straight-tailed y. So the brochure shows
   Arcadia with an alternate a. These sources don't say why (an option for some market, a later revision, or
-  a change for that brochure). Exec Arcadia follows the brochure. The sheet is printed, not typed ("not
-  representative of typewritten material", its note says), but it could give the two-storey a as an alternate.
+  a change for that brochure). Exec Arcadia follows the brochure, and has the sheet's a as a stylistic
+  alternate (`ss01`), although the sheet is printed, not typed ("not representative of typewritten
+  material", its note says).
 - Arcadia has no real w or W. A memo by R. W. Bemer (7 November 1961), offered for it, is in IBM's
   **Secretarial**. It has the same wide monoline slab serif as the sheet's Secretarial sample: the
   ball-terminal r and c, the two-storey a with a curved tail, the curve-tailed y, the open one-storey g and

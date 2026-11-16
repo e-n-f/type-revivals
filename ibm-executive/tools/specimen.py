@@ -11,7 +11,7 @@ from fontTools.ttLib import TTFont
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(HERE, '..', '..', 'common'))
 import read as R
-from build import VERSIONS, NAMES, PER_INCH
+from build import VERSIONS, NAMES, PER_INCH, ALTERNATES
 ROOT = os.path.join(HERE, '..')
 OUT = os.path.join(ROOT, 'specimen')
 LABEL = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
@@ -34,13 +34,16 @@ def lines():
         cmap = TTFont(fontpath(face)).getBestCmap()
         for t in SETS + TEXT:     # leave out what the face doesn't have
             rows.append(('text', ''.join(c for c in t if c == ' ' or ord(c) in cmap), f))
+        for _, ch, feat, label in ALTERNATES.get(face, []):    # and its alternates
+            t = ''.join(c for c in TEXT[1] if c == ' ' or ord(c) in cmap)
+            rows.append(('text', f'{t}  ({feat})', f, [feat]))
     H = sum(48 if r[0] == 'label' else int(size * 1.3) for r in rows) + 60
     im = Image.new('L', (W, H), 255); d = ImageDraw.Draw(im); y = 30
     for r in rows:
         if r[0] == 'label':
             y += 16; d.text((40, y), r[1], font=r[2], fill=110); y += 32
         else:
-            d.text((40, y), r[1], font=r[2], fill=0); y += int(size * 1.3)
+            d.text((40, y), r[1], font=r[2], fill=0, features=r[3] if len(r) > 3 else None); y += int(size * 1.3)
     im.save(os.path.join(OUT, 'specimen-lines.png'))
 
 # which lines of each source to show: (source, line ids, display scale)

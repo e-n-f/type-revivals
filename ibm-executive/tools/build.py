@@ -9,7 +9,7 @@ Scale: 200 font units to the 1/32-inch unit, so 6400 units to the inch (1000 to 
 its typewriter size when set at 11.25 pt).  A 1/36-inch face's unit is 6400/36 = 177.8 font units and a
 1/45-inch face's 142.2; each advance is its whole number of units, rounded to the font unit.
 """
-import sys, os, json, pickle, unicodedata, numpy as np
+import sys, os, json, pickle, unicodedata, numpy as np, cv2
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(HERE, '..', '..', 'common'))
 import trace
@@ -21,12 +21,13 @@ from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.pens.reverseContourPen import ReverseContourPen
 from fontTools.pens.boundsPen import BoundsPen
 from fontTools.agl import UV2AGL
+from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
 
 ROOT = os.path.join(HERE, '..')
 BUILD = os.path.join(ROOT, 'build')
 # Each font's version, in the head table and the name table.  Raise a font's version with every change to
 # that font, or font managers treat the new file as a duplicate of the installed one (see CONTRIBUTING.md).
-VERSIONS = {'Modern': '1.000', 'Documentary': '1.000', 'MidCentury': '1.000', 'Arcadia': '1.000',
+VERSIONS = {'Modern': '1.000', 'Documentary': '1.000', 'MidCentury': '1.000', 'Arcadia': '1.001',
             'Doric': '1.000', 'BoldFace1': '1.000', 'BoldFace2': '1.000', 'Charter': '1.000'}
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
          'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter'}
@@ -43,7 +44,11 @@ SOURCES['Charter'] = [('CharterTyped', 'W'), ('Charter', None), ('CharterTyped',
 # card's (its unit fit is too rough to set the scale by), and the typed documents' letters to the brochure's
 # (the brochure's halftone thins the ink, so its letters print a few per cent smaller than typed ones).
 MATCH_HEIGHTS = {'Keyboard': ('Modern', '0123456789'), 'MidCenturyTyped': ('MidCentury', 'EFHILTZxzvnmu'),
-                 'CharterTyped': ('Charter', 'EFHILTZxzvnmu')}
+                 'CharterTyped': ('Charter', 'EFHILTZxzvnmu'), 'ArcadiaSheet': ('Arcadia', 'EFHILTZxzvnmu')}
+# Stylistic alternates: (source, character, feature, name).  IBM's own sheet shows Arcadia with a two-storey a
+# where the Finnish brochure has a one-storey one; the alternate has the a's width and place in its slug, and
+# the accented a's get it too.  Each alternate is also offered by salt.
+ALTERNATES = {'Arcadia': [('ArcadiaSheet', 'a', 'ss01', "Two-storey a (IBM's type designs sheet)")]}
 SPACE_FROM = {'Modern': 'ModernFI'}      # the Jowa text is justified foundry type: its word spaces vary
 UPM = 1000
 PER_INCH = 6400                          # 200 font units to the 1/32 inch
@@ -65,6 +70,7 @@ def decompose(ch):
 
 
 def gname(ch):
+    if len(ch) > 1: base, suffix = ch.split('.', 1); return gname(base) + '.' + suffix    # an alternate
     if ch == 'ı': return 'dotlessi'
     return UV2AGL.get(ord(ch), f'uni{ord(ch):04X}')
 
@@ -72,14 +78,19 @@ def gname(ch):
 class Source:
     def __init__(self, name):
         self.name = name
-        u = json.load(open(os.path.join(BUILD, f'units-{name}.json')))
-        self.esc = u['escapement']; self.p = u['pitch']; self.units = u['units']; self.offset = u['offset']
-        self.unit = PER_INCH / self.esc              # font units per typewriter unit
-        self.k = self.unit / self.p                  # font units per scan pixel
+        path = os.path.join(BUILD, f'units-{name}.json')
+        if os.path.exists(path):
+            u = json.load(open(path))
+            self.esc = u['escapement']; self.p = u['pitch']; self.units = u['units']; self.offset = u['offset']
+            self.unit = PER_INCH / self.esc              # font units per typewriter unit
+            self.k = self.unit / self.p                  # font units per scan pixel
+        else:       # a printed sheet: no units of its own; its scale is set by MATCH_HEIGHTS
+            self.esc = self.p = None; self.units = {}; self.offset = {}
         res = pickle.load(open(os.path.join(BUILD, f'occ-{name}.pkl'), 'rb'))
         self.occ = [o for _, oc in res if oc for o in oc]
         if name in MATCH_HEIGHTS:
             ref, chars = MATCH_HEIGHTS[name]; ref = Source(ref)
+            if self.esc is None: self.esc, self.unit = ref.esc, ref.unit
             h = lambda s, c: np.median([o['bottom'] - o['top'] for o in s.occ if o['ch'] == c])
             have = set(o['ch'] for o in self.occ) & set(o['ch'] for o in ref.occ)
             self.k = float(np.median([h(ref, c) * ref.k / h(self, c) for c in chars if c in have]))
@@ -192,6 +203,29 @@ def standin(G, small, big, ref):
     return dict(img=img, units=units, off=v['off'], src=v['src'], n=v['n'], standin=True)
 
 
+def stems(im, y):
+    """the widths of the strokes the row at height y crosses"""
+    m = im.ink[int(round(im.top - y))] > 0.5
+    edges = np.flatnonzero(np.diff(np.r_[0, m.astype(np.int8), 0]))
+    return list(edges[1::2] - edges[::2])
+
+
+def match_weight(img, src, ref, chars='nmhu'):
+    """img, from src, thickened to ref's weight: by the median difference of the stems of chars at half the
+    x-height, half on each side.  (The type designs sheet is a crisp print; the brochure's halftone spreads the
+    ink, and every other glyph of the face comes from it.)"""
+    diffs = []
+    for c in chars:
+        a, b = average(clean(src.by_char()[c]), src.k), average(clean(ref.by_char()[c]), ref.k)
+        xh = top_of(b); sa, sb = stems(a, xh / 2), stems(b, xh / 2)
+        if len(sa) == len(sb): diffs += [y - x for x, y in zip(sa, sb)]
+    r = int(round(np.median(diffs) / 2))
+    if r <= 0: return img, 0
+    k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1))
+    ink = cv2.dilate(np.pad(img.ink, r), k)
+    return Img(ink, img.x0 - r, img.top + r), 2 * r
+
+
 def build(face):
     G, srcs = glyph_images(face)
     notes = []
@@ -227,6 +261,20 @@ def build(face):
         G['¨'] = dict(img=M[('dieresis', 'lc')][0], units=G['´']['units'] if '´' in G else 2, off=0.0,
                       src=srcs[0], n=0)
     # an accented letter printed but not composable (its accent found on no other letter) stays as printed
+    features = []
+    for src, ch, feat, label in ALTERNATES.get(face, []):
+        s = Source(src); alt = average(clean(s.by_char()[ch]), s.k)
+        alt, thick = match_weight(alt, s, srcs[0])
+        subs = [(ch, f'{ch}.{feat}')]
+        G[f'{ch}.{feat}'] = dict(G[ch], img=alt, n=len(s.by_char()[ch]))
+        for acc in composed:        # its accented forms, with the same accents in the same places
+            base, kind = decompose(acc)
+            if base != ch: continue
+            m, dx = M[(kind, 'uc' if base.isupper() else 'lc')]
+            G[f'{acc}.{feat}'] = dict(G[acc], img=alt.union(m.shift(alt.cx() + dx, 0)))
+            subs.append((acc, f'{acc}.{feat}'))
+        features.append((feat, label, [(gname(a), gname(b)) for a, b in subs]))
+        notes.append(f'{feat}: {len(subs)} alternates from {src}, strokes {thick} units heavier')
 
     # outlines: each glyph's ink centre at the centre of its slug, moved by the fitted offset
     glyphs, adv = {}, {}
@@ -245,13 +293,14 @@ def build(face):
     glyphs['.notdef'] = [[('L', (60, 0), (60, 640)), ('L', (60, 640), (340, 640)), ('L', (340, 640), (340, 0)),
                           ('L', (340, 0), (60, 0))]]
     adv['.notdef'] = 400
-    cmap = {ord(ch): gname(ch) for ch in G}
+    cmap = {ord(ch): gname(ch) for ch in G if len(ch) == 1}
     cmap[0x20] = 'space'
     for u, ch in ALIAS.items():
         if ch == ' ' or ch in G: cmap[u] = 'space' if ch == ' ' else gname(ch)
     print(f'{face}: {len(G)} characters ({len(composed)} composed), space {su} units from {n} gaps;'
           f' {"; ".join(notes)}')
-    return glyphs, adv, cmap, dict(xh=xh, cap=cap, esc=srcs[0].esc, space=su, composed=''.join(composed))
+    return glyphs, adv, cmap, dict(xh=xh, cap=cap, esc=srcs[0].esc, space=su, composed=''.join(composed),
+                                   features=features)
 
 
 def font(face, otf=True, data=None):
@@ -302,6 +351,13 @@ def font(face, otf=True, data=None):
                 fsSelection=0x40 | 0x80, version=4)   # regular, use the typo metrics (OS/2 version 4)
     fb.setupPost()
     fb.font['head'].fontRevision = float(VERSION)
+    if info.get('features'):
+        fea = 'languagesystem DFLT dflt;\nlanguagesystem latn dflt;\n'
+        for feat, label, subs in info['features']:
+            fea += (f'feature {feat} {{ featureNames {{ name "{label}"; }}; '
+                    + ' '.join(f'sub {a} by {b};' for a, b in subs) + f' }} {feat};\n')
+        fea += 'feature salt { ' + ' '.join(f'sub {a} by {b};' for _, _, subs in info['features'] for a, b in subs) + ' } salt;\n'
+        addOpenTypeFeaturesFromString(fb.font, fea)
     d = os.path.join(ROOT, 'fonts', 'otf' if otf else 'ttf')
     os.makedirs(d, exist_ok=True)
     p = os.path.join(d, f'{psname}.{"otf" if otf else "ttf"}')
