@@ -92,7 +92,10 @@ def run(face, standard=None, p32=None):
     rule = {}
     for c in units:
         if cnt.get(c, 0) < RARE:
-            if esc == 32 and standard and c in standard: units[c] = standard[c]; rule[c] = 'standard'
+            # a letter seen twice whose fit lands on a whole unit keeps it: Arcadia's capitals F L P R Y Z are
+            # 3 units, not the 4 of the other faces
+            if c.isalpha() and cnt.get(c, 0) >= 2 and abs(w[c] / p - round(w[c] / p)) < 0.35: rule[c] = 'fit'
+            elif esc == 32 and standard and c in standard: units[c] = standard[c]; rule[c] = 'standard'
             else: units[c] = max(2, round((ink[c] + m) / p)); rule[c] = 'ink'
     figs = [w[c] / p for c in FIGS if c in w]
     if figs:

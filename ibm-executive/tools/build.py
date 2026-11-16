@@ -126,9 +126,13 @@ def glyph_images(face):
     G = {}
     for s, (_, only) in zip(srcs, SOURCES[face]):
         for ch, occs in s.by_char().items():
-            if ch in G or ch not in s.units or (only and ch not in only): continue
-            G[ch] = dict(img=average(clean(occs), s.k), units=s.units[ch], off=s.offset.get(ch, 0) * s.k,
-                         src=s, n=len(occs))
+            if ch in G or (only and ch not in only): continue
+            occs = clean(occs)
+            # a character with no neighbour to fit (the last of a line): its ink and half a unit of margin
+            # (a width fitted from another source of the face comes first: Modern's & from the brochure)
+            u = (next((t.units[ch] for t in srcs if ch in t.units), None)
+                 or max(2, int(round(np.median([o['w'] for o in occs]) / s.p + 0.5))))
+            G[ch] = dict(img=average(occs, s.k), units=u, off=s.offset.get(ch, 0) * s.k, src=s, n=len(occs))
     return G, srcs
 
 
