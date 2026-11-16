@@ -19,8 +19,8 @@ keep those widths exactly, so text set in them falls where the machine would hav
 | Executive Charter | Charter | 1/45 inch | Finnish brochure; BCD code table of 1962 | `ExecutiveCharter-Regular` |
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
-[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Executive Modern and Mid-Century 1.004;
-Doric, Bold Face 2 and Charter 1.005; Documentary, Bold Face 1 and Arcadia 1.006. Every face takes its w and W
+[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Executive Modern and Mid-Century 1.005;
+Doric, Bold Face 2 and Charter 1.006; Documentary, Bold Face 1 and Arcadia 1.007. Every face takes its w and W
 (where nothing better has them) and its letters' widths from IBM's 1972 catalogue. The sources are listed in
 [`scans/README.md`](scans/README.md).
 
@@ -101,7 +101,11 @@ python3 tools/specimen.py    # specimen/
    new characters' widths from their pairs with those. Pairs with a parenthesis are left out, because the
    typist spaced them, "( : )". A character with no usable pair takes its width from its ink and the face's
    fitted margin. The typed pages are scaled so their letters are as tall as the brochure's, which prints a
-   few per cent smaller (its halftone thins the ink).
+   few per cent smaller (its halftone thins the ink). A character from a second source (a typed page or the
+   catalogue) is also moved up or down to the brochure's baseline: each of its lines is moved by the median
+   difference between the heights of its characters and the same characters in the brochure, because a line
+   of signs has few letters to find its baseline by. A `$` is then moved so its centre of mass is its face's
+   `S`'s, since its S-shaped body is most of its ink and its bar reaches about as far above as below.
 3. **Averaging and tracing** (`glyphs.py`, `build.py`, `common/trace.py`). Every occurrence of a character is
    scaled to font units and aligned to the others by phase correlation. The occurrences are averaged, which
    cancels most of the ribbon's and the paper's noise, and the 50 % ink contour is traced into Bézier curves.

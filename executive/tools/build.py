@@ -27,8 +27,8 @@ ROOT = os.path.join(HERE, '..')
 BUILD = os.path.join(ROOT, 'build')
 # Each font's version, in the head table and the name table.  Raise a font's version with every change to
 # that font, or font managers treat the new file as a duplicate of the installed one (see CONTRIBUTING.md).
-VERSIONS = {'Modern': '1.004', 'Documentary': '1.006', 'MidCentury': '1.004', 'Arcadia': '1.006',
-            'Doric': '1.005', 'BoldFace1': '1.006', 'BoldFace2': '1.005', 'Charter': '1.005'}
+VERSIONS = {'Modern': '1.005', 'Documentary': '1.007', 'MidCentury': '1.005', 'Arcadia': '1.007',
+            'Doric': '1.006', 'BoldFace1': '1.007', 'BoldFace2': '1.006', 'Charter': '1.006'}
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
          'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter'}
 BOLD = {'BoldFace1', 'BoldFace2'}
@@ -152,6 +152,28 @@ def mask_rows(im, keep):
 def top_of(im): return im.bbox()[3]
 
 
+def height(o):
+    """an occurrence's ink's centre of mass, in pixels above its line's baseline"""
+    a = o['ink']; return (o['base'] - o['Y0']) - float((a.sum(1) * np.arange(a.shape[0])).sum() / a.sum())
+
+
+def level(occs, s, main):
+    """occurrences from a second source, moved up or down to the main source's baselines.  A line's baseline is
+    estimated from the letters on it that sit on the baseline, and a line of signs has few: its baseline can be
+    several pixels off (Arcadia's and Bold Face 1's $ came out 100 units high).  So each line is moved by the
+    median difference, in font units, between its characters and the same characters in the main source"""
+    if s.name == main.name: return occs
+    ref = {c: float(np.median([height(o) for o in os_])) * main.k for c, os_ in main.by_char().items()}
+    lines = {}
+    for o in s.occ: lines.setdefault(o['line'], []).append(o)
+    out = []
+    for o in occs:
+        d = [ref[q['ch']] - height(q) * s.k for q in lines.get(o['line'], []) if q['ch'] in ref]
+        if len(d) < 2: out.append(o); continue
+        out.append(dict(o, base=o['base'] + float(np.median(d)) / s.k))
+    return out
+
+
 def glyph_images(face):
     """{char: (Img in font units, baseline at y = 0, ink placed anywhere), units, offset in font units, source}"""
     srcs = [Source(s) for s, _ in SOURCES[face]]
@@ -161,7 +183,7 @@ def glyph_images(face):
     for s, (_, only) in zip(srcs, SOURCES[face]):
         for ch, occs in s.by_char().items():
             if ch in G or (only and ch not in only): continue
-            occs = clean(occs)
+            occs = level(clean(occs), s, main)
             # a character with no neighbour to fit (the last of a line): its ink and half a unit of margin
             # (IBM's own width comes first, where the catalogue prints one; then a width fitted from another
             # source of the face: Modern's & from the brochure)
@@ -259,6 +281,14 @@ def match_weight(img, src, ref, chars='nmhu'):
     return Img(ink, img.x0 - r, img.top + r), 2 * r
 
 
+def on_s(dollar, s):
+    """the $ moved up or down so its centre of mass is the S's: its S-shaped body is most of its ink, and its
+    bar reaches about as far above as below.  A $ from a line of signs is placed by that line's baseline, which
+    can be off (Arcadia's and Bold Face 1's were 50-100 units high)"""
+    c = lambda im: im.top - float((im.ink.sum(1) * np.arange(im.ink.shape[0])).sum() / im.ink.sum())
+    return dollar.shift(0, c(s) - c(dollar))
+
+
 def build(face):
     G, srcs = glyph_images(face)
     notes = []
@@ -276,6 +306,7 @@ def build(face):
     ref = json.load(open(os.path.join(BUILD, 'units-Modern.json')))['units']
     if 'w' not in G and 'v' in G: G['w'] = standin(G, 'v', 'w', ref); notes.append('w from two v')
     if 'W' not in G and 'V' in G: G['W'] = standin(G, 'V', 'W', ref); notes.append('W from two V')
+    if '$' in G and 'S' in G: G['$'] = dict(G['$'], img=on_s(G['$']['img'], G['S']['img']))
     M = marks(G, xh, cap)
     composed = []
     for ch in COMPOSE:
