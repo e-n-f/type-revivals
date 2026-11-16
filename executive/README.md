@@ -104,7 +104,8 @@ python3 tools/specimen.py    # specimen/
    few per cent smaller (its halftone thins the ink). A character from a second source (a typed page or the
    catalogue) is also moved up or down to the brochure's baseline: each of its lines is moved by the median
    difference between the heights of its characters and the same characters in the brochure, because a line
-   of signs has few letters to find its baseline by.
+   of signs has few letters to find its baseline by. A `$` is then moved so its centre of mass is its face's
+   `S`'s, since its S-shaped body is most of its ink and its bar reaches about as far above as below.
 3. **Averaging and tracing** (`glyphs.py`, `build.py`, `common/trace.py`). Every occurrence of a character is
    scaled to font units and aligned to the others by phase correlation. The occurrences are averaged, which
    cancels most of the ribbon's and the paper's noise, and the 50 % ink contour is traced into Bézier curves.

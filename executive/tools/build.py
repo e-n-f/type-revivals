@@ -282,12 +282,11 @@ def match_weight(img, src, ref, chars='nmhu'):
 
 
 def on_s(dollar, s):
-    """the $ moved up or down so its S stands where the S does: the bottom of its wide rows (the S, not the bar)
-    on the S's bottom.  A $ from a line of signs is placed by that line's baseline, which can be off"""
-    def body_bottom(im):
-        w = (im.ink > 0.5).sum(1); rows = np.nonzero(w > 0.45 * w.max())[0]
-        return im.top - rows.max()                               # y of the lowest wide row
-    return dollar.shift(0, body_bottom(s) - body_bottom(dollar))
+    """the $ moved up or down so its centre of mass is the S's: its S-shaped body is most of its ink, and its
+    bar reaches about as far above as below.  A $ from a line of signs is placed by that line's baseline, which
+    can be off (Arcadia's and Bold Face 1's were 50-100 units high)"""
+    c = lambda im: im.top - float((im.ink.sum(1) * np.arange(im.ink.shape[0])).sum() / im.ink.sum())
+    return dollar.shift(0, c(s) - c(dollar))
 
 
 def build(face):
