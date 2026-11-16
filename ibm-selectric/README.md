@@ -68,6 +68,8 @@ python3 tools/specimen.py    # specimen/
 
 ## Not yet done
 
+- A few characters printed only once, and faintly, come out thin or broken: Scribe's figures, ½ ¼ and `?`,
+  Prestige Pica's `S`, Prestige Elite's `.`. A second print from brochure b or c would fix them.
 - Each face's signs and rarer letters (j k q x z, most capitals) occur only once, in the brochure's alphabet
   lines, so they aren't averaged. Brochures b and c show every face again (c is a later printing of a, with
   slightly different wording; b an earlier brochure with different text), which would give two or three of each.
