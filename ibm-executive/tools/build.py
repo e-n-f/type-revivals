@@ -27,8 +27,8 @@ ROOT = os.path.join(HERE, '..')
 BUILD = os.path.join(ROOT, 'build')
 # Each font's version, in the head table and the name table.  Raise a font's version with every change to
 # that font, or font managers treat the new file as a duplicate of the installed one (see CONTRIBUTING.md).
-VERSIONS = {'Modern': '1.000', 'Documentary': '1.000', 'MidCentury': '1.000', 'Arcadia': '1.001',
-            'Doric': '1.000', 'BoldFace1': '1.000', 'BoldFace2': '1.000', 'Charter': '1.000'}
+VERSIONS = {'Modern': '1.000', 'Documentary': '1.001', 'MidCentury': '1.000', 'Arcadia': '1.002',
+            'Doric': '1.001', 'BoldFace1': '1.001', 'BoldFace2': '1.001', 'Charter': '1.001'}
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
          'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter'}
 BOLD = {'BoldFace1', 'BoldFace2'}
@@ -40,11 +40,17 @@ SOURCES['Modern'] = [('Modern', None), ('ModernFI', '`´§&'), ('Keyboard', '@#�
 # documents typed in the faces, for what the brochure lacks (a real w and W among it)
 SOURCES['MidCentury'] = [('MidCenturyTyped', 'wW'), ('MidCentury', None), ('MidCenturyTyped', ':;"#*')]
 SOURCES['Charter'] = [('CharterTyped', 'W'), ('Charter', None), ('CharterTyped', '[]<>;:*\'#@!\\')]
+# IBM's 1972 "Type Available" catalogue (tools/catalog.py): a real w and W for every face that has no other
+# source of them, and IBM's own widths for the 52 letters
+for _f in VERSIONS: SOURCES[_f].append((f'Catalog{_f}', 'wW'))
 # A source scaled so its letters are as tall as another's: the keyboard photograph's figures to the Jowa
 # card's (its unit fit is too rough to set the scale by), and the typed documents' letters to the brochure's
 # (the brochure's halftone thins the ink, so its letters print a few per cent smaller than typed ones).
 MATCH_HEIGHTS = {'Keyboard': ('Modern', '0123456789'), 'MidCenturyTyped': ('MidCentury', 'EFHILTZxzvnmu'),
-                 'CharterTyped': ('Charter', 'EFHILTZxzvnmu'), 'ArcadiaSheet': ('Arcadia', 'EFHILTZxzvnmu')}
+                 'CharterTyped': ('Charter', 'EFHILTZxzvnmu'), 'ArcadiaSheet': ('Arcadia', 'EFHILTZxzvnmu'),
+                 **{f'Catalog{f}': (f, 'EFHILTZxzvnmu') for f in VERSIONS}}
+# printed sources, crisper than the typed ones: thickened to the face's weight (match_weight)
+REWEIGHT = {'ArcadiaSheet'} | {f'Catalog{f}' for f in VERSIONS}
 # Stylistic alternates: (source, character, feature, name).  IBM's own sheet shows Arcadia with a two-storey a
 # where the Finnish brochure has a one-storey one; the alternate has the a's width and place in its slug, and
 # the accented a's get it too.  Each alternate is also offered by salt.
@@ -139,16 +145,21 @@ def top_of(im): return im.bbox()[3]
 def glyph_images(face):
     """{char: (Img in font units, baseline at y = 0, ink placed anywhere), units, offset in font units, source}"""
     srcs = [Source(s) for s, _ in SOURCES[face]]
+    main = Source(face)                    # the face's own (brochure or Jowa) letters, for the weight
+    cat = json.load(open(os.path.join(BUILD, 'catalog-units.json'))).get(face, {})
     G = {}
     for s, (_, only) in zip(srcs, SOURCES[face]):
         for ch, occs in s.by_char().items():
             if ch in G or (only and ch not in only): continue
             occs = clean(occs)
             # a character with no neighbour to fit (the last of a line): its ink and half a unit of margin
-            # (a width fitted from another source of the face comes first: Modern's & from the brochure)
-            u = (next((t.units[ch] for t in srcs if ch in t.units), None)
+            # (IBM's own width comes first, where the catalogue prints one; then a width fitted from another
+            # source of the face: Modern's & from the brochure)
+            u = (cat.get(ch) or next((t.units[ch] for t in srcs if ch in t.units), None)
                  or max(2, int(round(np.median([o['w'] for o in occs]) / s.p + 0.5))))
-            G[ch] = dict(img=average(occs, s.k), units=u, off=s.offset.get(ch, 0) * s.k, src=s, n=len(occs))
+            img = average(occs, s.k)
+            if s.name in REWEIGHT: img, _ = match_weight(img, s, main)
+            G[ch] = dict(img=img, units=u, off=s.offset.get(ch, 0) * s.k, src=s, n=len(occs))
     return G, srcs
 
 
@@ -264,7 +275,7 @@ def build(face):
     features = []
     for src, ch, feat, label in ALTERNATES.get(face, []):
         s = Source(src); alt = average(clean(s.by_char()[ch]), s.k)
-        alt, thick = match_weight(alt, s, srcs[0])
+        alt, thick = match_weight(alt, s, Source(face))
         subs = [(ch, f'{ch}.{feat}')]
         G[f'{ch}.{feat}'] = dict(G[ch], img=alt, n=len(s.by_char()[ch]))
         for acc in composed:        # its accented forms, with the same accents in the same places
