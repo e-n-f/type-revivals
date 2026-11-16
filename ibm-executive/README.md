@@ -11,12 +11,12 @@ keep those widths exactly, so text set in them falls where the machine would hav
 |---|---|---|---|---|
 | Exec Modern | Modern (Monotype series 602) | 1/32 inch | Jowa "IBM Executive 602" card; Finnish brochure; typed keyboard sheet | `ExecModern-Regular` |
 | Exec Documentary | Documentary | 1/32 inch | Finnish brochure | `ExecDocumentary-Regular` |
-| Exec Mid-Century | Mid-Century | 1/36 inch | Finnish brochure | `ExecMidCentury-Regular` |
+| Exec Mid-Century | Mid-Century | 1/36 inch | Finnish brochure; ASA letter of 1962 | `ExecMidCentury-Regular` |
 | Exec Arcadia | Arcadia | 1/32 inch | Finnish brochure | `ExecArcadia-Regular` |
 | Exec Doric | Doric | 1/32 inch | Finnish brochure | `ExecDoric-Regular` |
 | Exec Bold Face 1 | Bold Face #1 | 1/32 inch | Finnish brochure | `ExecBoldFace1-Regular` |
 | Exec Bold Face 2 | Bold Face #2 | 1/36 inch | Finnish brochure | `ExecBoldFace2-Regular` |
-| Exec Charter | Charter | 1/45 inch | Finnish brochure | `ExecCharter-Regular` |
+| Exec Charter | Charter | 1/45 inch | Finnish brochure; BCD code table of 1962 | `ExecCharter-Regular` |
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
 [ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px), version 1.000. The sources are listed in
@@ -43,8 +43,11 @@ gives every character an offset from the centre of its slug, as well as its widt
 - **The brochure faces** have what the Finnish brochure shows: a–z and A–Z without w and W, å ä ö ü Å Ä Ö, the
   figures, `. , -` and the symbols the brochure prints for each face (`+ § = % ? & ( ) / £` and some of
   `! $ " ` ´`). Documentary's `` ` `` and Arcadia's `´` printed too faintly to trace.
-- **w and W are stand-ins** in the brochure faces, which come from a Finnish alphabet. Each is two overlapped v's
-  (V's), spaced so the letter is as much wider than the v as Modern's w is (Modern: v 3, w 4, V 4, W 5 units).
+- **Exec Mid-Century** also has `w W : ; " # *` from a letter typed in it (the `#` small and raised, as typed),
+  and **Exec Charter** has `W [ ] < > ; : * ' # @ ! \` from a code table typed in it.
+- **w and W are stand-ins** where no typed page shows them: in Documentary, Arcadia, Doric, Bold Face 1 and 2,
+  and Charter's w. The brochure comes from a Finnish alphabet. Each stand-in is two overlapped v's (V's), spaced
+  so the letter is as much wider than the v as Modern's w is (Modern: v 3, w 4, V 4, W 5 units).
 - **Accented letters are put together** from the face's own letters and accents, for every accent the scans show.
   Each accent is averaged over all the letters that carry it, and placed at its average offset from the
   letter's centre. Modern composes à á â ã ä å è é ê ë ì í î ï ñ ò ó ô õ ö ù ú û ü ý ÿ and their capitals. The
@@ -77,6 +80,11 @@ python3 tools/specimen.py    # specimen/
    The 1/32, 1/36 and 1/45-inch escapements are told apart against the brochure's Modern, which is 1/32. A
    character seen in fewer than four pairs takes the 1/32-inch faces' common table (Modern's), unless it is a
    letter whose fit lands on a whole unit. Arcadia's capitals F J L P R Y Z are narrower than the other faces'.
+   The typed pages' unit in pixels is fitted from pairs of letters whose widths the face's table has, and the
+   new characters' widths from their pairs with those. Pairs with a parenthesis are left out, because the
+   typist spaced them, "( : )". A character with no usable pair takes its width from its ink and the face's
+   fitted margin. The typed pages are scaled so their letters are as tall as the brochure's, which prints a
+   few per cent smaller (its halftone thins the ink).
 3. **Averaging and tracing** (`glyphs.py`, `build.py`, `common/trace.py`). Every occurrence of a character is
    scaled to font units and aligned to the others by phase correlation. The occurrences are averaged, which
    cancels most of the ribbon's and the paper's noise, and the 50 % ink contour is traced into Bézier curves.
@@ -89,6 +97,8 @@ rough to measure them, so it is used only for their shapes, scaled so its figure
 
 ## Not yet done
 
+- Arcadia has no real w or W. A memo by R. W. Bemer (7 November 1961) offered for it is in another face: a
+  slab serif with a two-storey a, not the brochure's monoline Arcadia with its one-storey a.
 - The brochure is a halftone print at about 13 px to the unit, so the brochure faces are softer than Modern,
   which is traced from a 9983-px photograph of the Jowa card (36 px to the unit).
 - Modern's `† [ ] =` and em dash, shown on the Science Museum's 602 specimen, are in tiles too small to trace.

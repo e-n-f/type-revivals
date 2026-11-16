@@ -74,6 +74,7 @@ class Line:
         self.off = (x0, Y0)
         self.ink = ink_of(g[Y0:Y1, x0:x1])
         comps, self.lab = components(self.ink, minarea)
+        comps = [c for c in comps if not (c['w'] > 100 and c['w'] > 8 * c['h'])]   # a table's ruled lines
         lo, hi = (y0 - Y0, y1 - Y0)
         if center is not None: lo, hi = center
         self.groups = group([c for c in comps if lo <= c['cy'] < hi])
@@ -226,7 +227,7 @@ def widths_ok(out, chars, model):
             if not 0.6 * model[ch] - 3 <= w <= 1.45 * model[ch] + 3: return False
     return True
 
-def match(line, text, multi, split=None, lid=0, model=None):
+def match(line, text, multi, split=None, lid=0, model=None, minocc=3):
     """occurrences for a line whose text is known.  Words are told apart by the widest gaps; a word whose
     groups don't fit its letters is left out.  Returns (occurrences, words fitted, words)"""
     model = model or {}
@@ -251,7 +252,7 @@ def match(line, text, multi, split=None, lid=0, model=None):
         for k, (ch, G) in enumerate(zip(w, fit)):
             o = occurrence(line, ch, G, (lid, wi), k)
             if o is not None: occ.append(o)
-    if len(occ) < 3: return None
+    if len(occ) < minocc: return None
     a, b = baseline(occ)
     for o in occ:
         o['base'] = a + b * (o['x0'] + o['w'] / 2)
@@ -393,12 +394,41 @@ def read_keyboard():
     ln = Line(scan, box, 30)
     return [(text, match(ln, text, S.KEYBOARD_MULTI, S.KEYBOARD_SPLIT))], [ln]
 
+def read_typed(face):
+    """a face's typed documents (sources.TYPED): single lines, and blocks of lines"""
+    lines, items, rows = [], [], []
+    for scan, box, text, *kind in S.TYPED[face]:
+        if isinstance(text, str):
+            # (a table's cells are clean: a small minimum keeps the dots of ; and !)
+            rows.append(bool(kind)); lines.append(Line(scan, box, 4 if kind else 15)); items.append(text)
+        else:
+            ls = block_lines(scan, box, 15)
+            if len(ls) != len(text):
+                raise SystemExit(f'{face}: {len(ls)} lines in {box}, expected {len(text)}')
+            lines += ls; items += text; rows += [False] * len(ls)
+    model = None
+    for _ in range(3):
+        res = [(t, match(ln, t, S.MULTI, lid=k, model=model, minocc=1 if row else 3))
+               for k, (t, ln, row) in enumerate(zip(items, lines, rows))]
+        model = width_model(res)
+    # table rows: the baseline at the depth the flat-footed capitals' rows have it
+    feet = [o['bottom'] for (t, oc), row in zip(res, rows) if row and oc for o in oc if o['ch'] in 'ABDEFHKLMNTWXZ']
+    if feet:
+        base = float(np.median(feet))
+        for (t, oc), row in zip(res, rows):
+            if row and oc:
+                for o in oc: o['base'] = base
+    return res, lines
+
+TYPED = [f + 'Typed' for f in S.TYPED]
 FACES = ['Modern', 'ModernFI', 'Keyboard', 'Documentary', 'MidCentury', 'Arcadia', 'Doric', 'BoldFace1', 'BoldFace2', 'Charter']
 
 def read(face):
     """occurrences of every character of a face, and the brochure's Modern for the unit calibration"""
     if face == 'Modern':
         return read_jowa()
+    if face in TYPED:         # documents typed in the face, for the characters the brochure lacks
+        return read_typed(face[:-len('Typed')])
     if face == 'Keyboard':    # Modern's @ # ¢ _, from the typed keyboard sheet
         return read_keyboard()
     if face == 'ModernFI':    # the brochure's Modern: for the unit calibration and the characters Jowa lacks
@@ -418,7 +448,7 @@ def contact(face, res, out):
 
 if __name__ == '__main__':
     os.makedirs(BUILD, exist_ok=True)
-    for face in [a for a in sys.argv[1:] if a in FACES] or FACES:
+    for face in [a for a in sys.argv[1:] if a in FACES + TYPED] or FACES + TYPED:
         res, _ = read(face)
         bad = [(t, ) for t, oc in res if oc is None]
         n = sum(len(oc) for _, oc in res if oc)

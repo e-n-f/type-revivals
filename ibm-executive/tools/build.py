@@ -36,9 +36,14 @@ BOLD = {'BoldFace1', 'BoldFace2'}
 # (source, the characters taken from it; None for all)
 SOURCES = {f: [(f, None)] for f in VERSIONS}
 SOURCES['Modern'] = [('Modern', None), ('ModernFI', '`´§&'), ('Keyboard', '@#¢_')]
-# the keyboard photograph is scaled so its figures are as tall as the Jowa card's (its unit fit is too rough
-# to set the scale by)
-MATCH_FIGURES = {'Keyboard': 'Modern'}
+# documents typed in the faces, for what the brochure lacks (a real w and W among it)
+SOURCES['MidCentury'] = [('MidCenturyTyped', 'wW'), ('MidCentury', None), ('MidCenturyTyped', ':;"#*')]
+SOURCES['Charter'] = [('CharterTyped', 'W'), ('Charter', None), ('CharterTyped', '[]<>;:*\'#@!\\')]
+# A source scaled so its letters are as tall as another's: the keyboard photograph's figures to the Jowa
+# card's (its unit fit is too rough to set the scale by), and the typed documents' letters to the brochure's
+# (the brochure's halftone thins the ink, so its letters print a few per cent smaller than typed ones).
+MATCH_HEIGHTS = {'Keyboard': ('Modern', '0123456789'), 'MidCenturyTyped': ('MidCentury', 'EFHILTZxzvnmu'),
+                 'CharterTyped': ('Charter', 'EFHILTZxzvnmu')}
 SPACE_FROM = {'Modern': 'ModernFI'}      # the Jowa text is justified foundry type: its word spaces vary
 UPM = 1000
 PER_INCH = 6400                          # 200 font units to the 1/32 inch
@@ -73,11 +78,11 @@ class Source:
         self.k = self.unit / self.p                  # font units per scan pixel
         res = pickle.load(open(os.path.join(BUILD, f'occ-{name}.pkl'), 'rb'))
         self.occ = [o for _, oc in res if oc for o in oc]
-        if name in MATCH_FIGURES:
-            ref = Source(MATCH_FIGURES[name])
+        if name in MATCH_HEIGHTS:
+            ref, chars = MATCH_HEIGHTS[name]; ref = Source(ref)
             h = lambda s, c: np.median([o['bottom'] - o['top'] for o in s.occ if o['ch'] == c])
-            figs = [c for c in '0123456789' if c in self.units and c in ref.units]
-            self.k = float(np.median([h(ref, c) * ref.k / h(self, c) for c in figs]))
+            have = set(o['ch'] for o in self.occ) & set(o['ch'] for o in ref.occ)
+            self.k = float(np.median([h(ref, c) * ref.k / h(self, c) for c in chars if c in have]))
 
     def by_char(self):
         d = {}
@@ -306,7 +311,8 @@ def font(face, otf=True, data=None):
 
 
 if __name__ == '__main__':
-    infos = {}
+    p = os.path.join(BUILD, 'fonts.json')        # what the specimens need of each font; kept for the others
+    infos = json.load(open(p)) if os.path.exists(p) else {}
     for face in [a for a in sys.argv[1:] if a in VERSIONS] or list(VERSIONS):
         data = build(face)
         font(face, True, data); font(face, False, data)

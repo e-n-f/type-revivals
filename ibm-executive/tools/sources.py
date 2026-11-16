@@ -127,3 +127,77 @@ KEYBOARD_SKIP = '(4%'     # inked over by the faint 8, or split from one another
 # the widths of # ¢ _ are IBM's own: the typed sheet typed-bold-face-1-units.jpg lists them at 3 units of
 # 1/32 inch ("qeryuopasdghkzxcvbnSJ!#$¢*"_ : 3 units"), as the fitted tables have the other characters.
 KEYBOARD_UNITS = {'#': 3, '¢': 3, '_': 3}
+
+# ----------------------------------------------------------------------------- typed documents (300 dpi scans)
+# Pages typed on Executives, for characters the brochure doesn't show.  Each entry is (scan, box, text): a
+# box holding one line and its text, or a box holding several lines (found as for the brochure) and a list
+# of their texts.  Boxes in pixels of the scan.
+#
+# Mid-Century: a letter of the American Standards Association, 28 May 1962 (ISO/TC97/WGB document USA-4).
+MC_LETTER = 'midcentury-asa-letter-0027.jpg'
+TYPED = {
+    'MidCentury': [
+        (MC_LETTER, (380, 735, 2157, 812), 'ISO/TC97/Working Group B - COMPUTERS AND INFORMATION PROCESSING'),
+        (MC_LETTER, (268, 898, 392, 962), 'Date:'),
+        (MC_LETTER, (490, 898, 777, 962), '28 May 1962'),
+        (MC_LETTER, (1205, 898, 1935, 962), 'Return Address: Mr. Leon Bloom'),
+        (MC_LETTER, (1578, 956, 2395, 1012), 'The National Cash Register Company'),
+        (MC_LETTER, (1578, 1013, 2275, 1070), '1401 East El Segundo Boulevard'),
+        (MC_LETTER, (268, 1018, 1072, 1077), 'Document Number: ISO/TC97/WGB'),
+        (MC_LETTER, (768, 1077, 982, 1133), '(USA - 4)'),
+        (MC_LETTER, (1578, 1071, 2085, 1128), 'Hawthorne, California'),
+        (MC_LETTER, (268, 1240, 452, 1312), 'Subject:'),
+        (MC_LETTER, (490, 1226, 2190, 1300), 'Action of ASA Subcommittee of X3.2 on Resolution #1 of WGB - 4 May 1962'),
+        (MC_LETTER, (495, 1415, 1400, 1645), ['Mr. J. Birle, Director General', 'Association Francaise De NORmalisation',
+                                             '23, Rue Notre-Dame Des Victoires', 'Paris, (2), FRANCE']),
+        (MC_LETTER, (495, 1708, 862, 1766), 'Dear Mr. Birle:'),
+        (MC_LETTER, (495, 1812, 2118, 1998), ['The ASA X3.2 Subcommittee on Character Codes and Sets has considered',
+                                             'Proposal B of Working Group B and in that regard have passed the follow-',
+                                             'ing resolution by a vote of seven (7) for, and two (2) against:']),
+        (MC_LETTER, (490, 2042, 2140, 2342), ['" That X3.2 recommend to X3 that the USA support Proposal B of WGB',
+                                             'Resolution 1 of 3 and 4 May 1962, subject to recommendations on Logical',
+                                             'End of Media (LEM) and to satisfy requirements of X3.3 (transmission) and',
+                                             'the needs of the Sterling areas; documentation of unanimous or majority',
+                                             'and minority positions to be provided".']),
+        (MC_LETTER, (495, 2388, 2100, 2456), 'The changes indicated by the resolution are specifically the following:'),
+        (MC_LETTER, (705, 2503, 2022, 2566), 'Logical End of Media (LEM) to replace End of Block (EOB).'),
+        (MC_LETTER, (840, 2618, 2080, 2686), 'is reserved for possible future use as a Data Link Escape.'),
+        (MC_LETTER, (705, 2733, 2052, 2916), ['The colon (:) and semi colon (;) has been interchanged with',
+                                             'the asterisk (*) and plus (+) in order to better accommodate',
+                                             'the Sterling monitary requirements in the 6-bit set.']),
+    ],
+}
+
+# Charter: "Standard BCD Interchange Code", 1962, typed in Charter.  Page 46's Graphics column holds one
+# character (or two) to a row, rows CH_ROW0 + k CH_PITCH pixels down (k = collating number - 1); page 47's
+# captions and labels give the neighbour pairs for the unit.
+CH_TABLE, CH_LABELS = 'charter-bcd-code-0046.jpg', 'charter-bcd-code-0047.jpg'
+CH_ROW0, CH_PITCH = 405, 42.33
+# Each row is a line of its own; a lone symbol can't show where the baseline is, so it is set at the depth the
+# rows of flat-footed capitals have it (all rows are the same height).
+def _row(k, text): return (CH_TABLE, (600, int(CH_ROW0 + CH_PITCH * (k - 0.5)), 800, int(CH_ROW0 + CH_PITCH * (k + 0.5))), text, 'row')
+CH_CALIBRATION = ((25, 'A'), (26, 'B'), (28, 'D'), (29, 'E'), (30, 'F'), (32, 'H'), (37, 'K'), (38, 'L'), (39, 'M'),
+                  (40, 'N'), (46, 'T'), (49, 'W'), (50, 'X'), (52, 'Z'))
+TYPED['Charter'] = [_row(k, t) for k, t in CH_CALIBRATION] + [_row(k, t) for k, t in ((2, '['), (3, '<'), (5, '& +'), (7, '*'), (8, ']'), (9, ';'), (14, '% ('),
+                                             (16, '\\'), (19, '# ='), (20, "@ '"), (21, ':'), (22, '>'), (24, '?'),
+                                             (34, '!'))] + [
+    (CH_LABELS, (557, 472, 830, 512), 'Graphic Subset 1'),
+    (CH_LABELS, (557, 517, 890, 557), 'Print Arrangement A'),
+    (CH_LABELS, (557, 562, 830, 604), 'Graphic Subset 2'),
+    (CH_LABELS, (557, 607, 895, 647), 'Print Arrangement H'),
+    (CH_LABELS, (552, 688, 1090, 732), 'Figure 2. Graphic Subset 1 and 2'),
+    (CH_LABELS, (562, 923, 866, 963), 'Control Characters'),
+    (CH_LABELS, (680, 1013, 965, 1055), 'Group Mark'),
+    (CH_LABELS, (680, 1058, 965, 1100), 'Tape Mark'),
+    (CH_LABELS, (680, 1103, 965, 1145), 'Segment Mark'),
+    (CH_LABELS, (680, 1148, 965, 1190), 'Mode Change'),
+    (CH_LABELS, (680, 1193, 965, 1235), 'Record Mark'),
+    (CH_LABELS, (680, 1238, 965, 1280), 'Substitute Blank'),
+    (CH_LABELS, (680, 1283, 965, 1325), 'Word Separator'),
+    (CH_LABELS, (552, 1365, 1240, 1409), 'Figure 3. Control Characters and Graphics'),
+    (CH_LABELS, (700, 1728, 866, 1771), 'Minus Zero'),
+    (CH_LABELS, (700, 1773, 866, 1816), 'Plus Zero'),
+    (CH_LABELS, (552, 1863, 1040, 1905), 'Figure 4. Minus and Plus Zero'),
+    (CH_LABELS, (750, 1998, 1242, 2042), 'Standard BCD Interchange Code'),
+    (CH_LABELS, (562, 2789, 1170, 2833), 'Figure 5. Code Summary Comparison'),
+]

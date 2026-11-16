@@ -109,7 +109,7 @@ def run(face, standard=None, p32=None):
     changed = {c: f'{fitted[c]}->{units[c]}' for c in units if fitted[c] != units[c]}
     print(f'{face}: 1/{esc} inch, unit {p:.2f} px, margin {m / p:.2f} unit; {len(pr)} pairs, rms {rms2:.2f} px with'
           f' whole units; changed from the fit: {changed}')
-    json.dump(dict(pitch=p, escapement=esc, units=units, offset=d2, ink=ink, count=cnt2, rule=rule, rms=rms2),
+    json.dump(dict(pitch=p, escapement=esc, units=units, offset=d2, ink=ink, count=cnt2, rule=rule, rms=rms2, margin=m / p),
               open(os.path.join(R.BUILD, f'units-{face}.json'), 'w'), indent=1, ensure_ascii=False)
     return p, units
 
@@ -142,9 +142,46 @@ def run_keyboard(standard):
     json.dump(dict(pitch=float(p), escapement=32, units=units, offset={}, rule=rule, rms=rms),
               open(os.path.join(R.BUILD, 'units-Keyboard.json'), 'w'), indent=1, ensure_ascii=False)
 
+def run_typed(face, dpi=300):
+    """a face's typed documents: the unit in pixels from the pairs of characters the face's table has (two
+    centres  p (u_a + u_b) / 2  apart), then each other character's width from its pairs with known ones.  At
+    the scan's 300 dpi the unit should come out at dpi / escapement pixels."""
+    known = json.load(open(os.path.join(R.BUILD, f'units-{face}.json')))
+    ku, esc = known['units'], known['escapement']
+    res = pickle.load(open(os.path.join(R.BUILD, f'occ-{face}Typed.pkl'), 'rb'))
+    occ = [o for _, oc in res if oc for o in oc]
+    pr = pairs_of(occ)
+    S = np.array([(ku[a] + ku[b]) / 2 for a, b, _ in pr if a in ku and b in ku])
+    D = np.array([d for a, b, d in pr if a in ku and b in ku])
+    p = float(S @ D / (S @ S))
+    for _ in range(3):              # drop the pairs that don't fit (a misread, a space taken for a gap)
+        keep = np.abs(D - p * S) < 0.6 * p
+        p = float(S[keep] @ D[keep] / (S[keep] @ S[keep]))
+    rms = float(np.sqrt(np.mean((D[keep] - p * S[keep]) ** 2)))
+    est = {}
+    for a, b, d in pr:
+        for c, other in ((a, b), (b, a)):
+            # not from parentheses: the typist spaced them, "( : )", about two units wider than set solid
+            if c not in ku and other in ku and other not in '()':
+                est.setdefault(c, []).append(2 * d / p - ku[other])
+    units = {c: max(2, int(round(float(np.median(v))))) for c, v in est.items()}
+    ink = inkw(occ); m = known['margin']
+    for c in ink:       # no usable pair: from its ink and the face's fitted margin, as for a rare character
+        if c not in ku and c not in units: units[c] = max(2, round(ink[c] / p + m)); est[c] = 'ink'
+    for a, b in ('[]', '<>', '()'):   # a pair of brackets alike: the wider
+        if a in units and b in units: units[a] = units[b] = max(units[a], units[b])
+    print(f'{face}Typed: unit {p:.2f} px (1/{esc} inch at {dpi} dpi: {dpi / esc:.2f}), rms {rms:.2f} px over'
+          f' {int(keep.sum())} pairs; new widths:', {c: (units[c], est[c] if est[c] == 'ink' else round(float(np.median(est[c])), 2))
+                                                      for c in sorted(units)})
+    json.dump(dict(pitch=p, escapement=esc, units=units, offset={}, rule={c: 'typed' for c in units}, rms=rms),
+              open(os.path.join(R.BUILD, f'units-{face}Typed.json'), 'w'), indent=1, ensure_ascii=False)
+
 if __name__ == '__main__':
-    faces = [a for a in sys.argv[1:] if a in R.FACES] or R.FACES
+    faces = [a for a in sys.argv[1:] if a in R.FACES + R.TYPED] or R.FACES + R.TYPED
     (p32, fi), std = run('ModernFI'), run('Modern')[1]       # the 1/32 calibration, and the machine's table
     for face in faces:
         if face == 'Keyboard': run_keyboard({**fi, **std})
+        elif face in R.TYPED: pass
         elif face not in ('Modern', 'ModernFI'): run(face, std, p32)
+    for face in faces:              # after the faces' own tables
+        if face in R.TYPED: run_typed(face[:-len('Typed')])

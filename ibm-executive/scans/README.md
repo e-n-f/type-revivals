@@ -12,6 +12,9 @@ directory under these names.
 | `type-designs-ibm-executive-0001.jp2`, `-0002.jp2` | "Type designs for the IBM 'Executive' Typewriter", two sheets of printed samples of seventeen faces | Identifying the faces |
 | `typed-keyboard-pairs.jpg` | Keyboard sheet typed on a 1950s Executive, identified as Modern [on r/typewriters](https://www.reddit.com/r/typewriters/comments/199axah/1950s_ibm_executive_middle_keyboard_lowercase/) | Modern: `@ # ¢ _` (shapes; scaled to the Jowa figures) |
 | `typed-bold-face-1-units.jpg` | Sample typed on an Executive in Bold Face #1, listing the characters of each width in 1/32-inch units | Modern: the widths of `# ¢ _` (3 units); a check of the fitted tables |
+| `midcentury-asa-letter-0027.jpg` | Letter of the American Standards Association, 28 May 1962 (ISO/TC97/WGB document USA-4), typed in Mid-Century; 300 dpi | Mid-Century: `w W : ; " # *`; the 1/36-inch unit checked (8.42 px against 8.33 at 300 dpi) |
+| `midcentury-asa-footnotes-0038.jpg` | The same document's footnotes page | Not used: the page is curved and turned on the scanner |
+| `charter-bcd-code-0046.jpg`, `-0047.jpg` | "Standard BCD Interchange Code" (1962), typed in Charter: the code table and its figures; a photocopy at about 90 % | Charter: `W [ ] < > ; : * ' # @ ! \` from the table's Graphics column; the unit from page 47's captions |
 | `model-a-1951-modern-angled.jpg` | Sample typed on a 1951 Model A Executive (Modern, serial 20142) | Modern: checks |
 
 The face behind Jowa's and the Science Museum's "602" is IBM's Modern: the same letterforms as the 1951 Model A
