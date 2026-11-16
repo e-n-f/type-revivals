@@ -19,8 +19,8 @@ keep those widths exactly, so text set in them falls where the machine would hav
 | Executive Charter | Charter | 1/45 inch | Finnish brochure; BCD code table of 1962 | `ExecutiveCharter-Regular` |
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
-[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Executive Modern and Mid-Century 1.003;
-Doric, Bold Face 2 and Charter 1.004; Documentary, Bold Face 1 and Arcadia 1.005. Every face takes its w and W
+[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Executive Modern and Mid-Century 1.004;
+Doric, Bold Face 2 and Charter 1.005; Documentary, Bold Face 1 and Arcadia 1.006. Every face takes its w and W
 (where nothing better has them) and its letters' widths from IBM's 1972 catalogue. The sources are listed in
 [`scans/README.md`](scans/README.md).
 
@@ -35,7 +35,9 @@ justified foundry type, so its spaces vary.) The line spacing is the Executive's
 inch (1067 font units).
 
 There is no kerning, because the machine had none. Each glyph sits in its slug where the scans put it: the fit
-gives every character an offset from the centre of its slug, as well as its width.
+gives every character an offset from the centre of its slug, as well as its width. A character seen in fewer
+than four neighbour pairs (most signs, which the brochure types once each, beside other signs) is centred
+instead: with so few pairs its offset trades against its width and can come out a whole unit off.
 
 ## Character set
 
@@ -51,12 +53,13 @@ The chart shows each font's printable ASCII (0x21–0x7E) in code order. A chara
   `! $ " ` ´`). Documentary's `` ` `` and Arcadia's `´` printed too faintly to trace.
 - **Executive Mid-Century** also has `w W : ; " *` from a letter typed in it,
   and **Executive Charter** has `W [ ] < > ; : * ' # @ ! \` from a code table typed in it.
-- **Executive Arcadia** has the two-storey a, w and `: ; ' " @ # $ ¢ * _` from IBM's 1955 newsletter that announced
+- **Executive Arcadia** has the two-storey a, w, W and `: ; ' " @ # $ ¢ * _` from IBM's 1955 newsletter that announced
   the face, typed in it. Its **`ss01`** (also in `salt`) gives the brochure's one-storey a, with à ä å.
 - **w and W from IBM's catalogue.** The brochure comes from a Finnish alphabet, without w or W. Documentary,
-  Arcadia's W, Doric, Bold Face 1 and 2 and Charter's w take theirs from IBM's 1972 catalogue. Each is scaled
-  so the catalogue's letters are as tall as the brochure's, and thickened by the difference between the two
-  sources' n m h u stems, because the catalogue is a crisp print and the brochure's halftone spreads the ink.
+  Doric, Bold Face 1 and 2 and Charter's w take theirs from IBM's 1972 catalogue. Each is scaled so the
+  catalogue's letters are as tall as the brochure's, and thickened by the difference between the two sources'
+  n m h u stems, because the catalogue is a crisp print and the brochure's halftone spreads the ink. The
+  thickening is kept to the strokes: the glyph is scaled back to its height and width.
 - **Accented letters are put together** from the face's own letters and accents, for every accent the scans show.
   Each accent is averaged over all the letters that carry it, and placed at its average offset from the
   letter's centre. Modern composes à á â ã ä å è é ê ë ì í î ï ñ ò ó ô õ ö ù ú û ü ý ÿ and their capitals. The

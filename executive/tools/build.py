@@ -27,8 +27,8 @@ ROOT = os.path.join(HERE, '..')
 BUILD = os.path.join(ROOT, 'build')
 # Each font's version, in the head table and the name table.  Raise a font's version with every change to
 # that font, or font managers treat the new file as a duplicate of the installed one (see CONTRIBUTING.md).
-VERSIONS = {'Modern': '1.003', 'Documentary': '1.005', 'MidCentury': '1.003', 'Arcadia': '1.005',
-            'Doric': '1.004', 'BoldFace1': '1.005', 'BoldFace2': '1.004', 'Charter': '1.004'}
+VERSIONS = {'Modern': '1.004', 'Documentary': '1.006', 'MidCentury': '1.004', 'Arcadia': '1.006',
+            'Doric': '1.005', 'BoldFace1': '1.006', 'BoldFace2': '1.005', 'Charter': '1.005'}
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
          'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter'}
 BOLD = {'BoldFace1', 'BoldFace2'}
@@ -41,7 +41,7 @@ SOURCES['Modern'] = [('Modern', None), ('ModernFI', '`´§&'), ('Keyboard', '@#�
 SOURCES['MidCentury'] = [('MidCenturyTyped', 'wW'), ('MidCentury', None), ('MidCenturyTyped', ':;"*')]
 # Arcadia's a: the two-storey one of the 1955 newsletter that announced the face (and of IBM's catalogue);
 # the brochure's machine had the one-storey alternate, which is ss01
-SOURCES['Arcadia'] = [('ArcadiaTyped', 'aw'), ('Arcadia', None), ('ArcadiaTyped', ':;\'"@#$¢*_')]
+SOURCES['Arcadia'] = [('ArcadiaTyped', 'awW'), ('Arcadia', None), ('ArcadiaTyped', ':;\'"@#$¢*_')]
 SOURCES['Charter'] = [('CharterTyped', 'W'), ('Charter', None), ('CharterTyped', ';:*\'#@!\\')]
 # IBM's 1972 "Type Available" catalogue (tools/catalog.py): a real w and W for every face that has no other
 # source of them, the characters chosen from its other cells (catalog.CHOSEN; Mid-Century's # among them, in
@@ -93,6 +93,10 @@ class Source:
         if os.path.exists(path):
             u = json.load(open(path))
             self.esc = u['escapement']; self.p = u['pitch']; self.units = u['units']; self.offset = u['offset']
+            # a character seen in few neighbour pairs (a sign typed once, beside other signs): its fitted offset
+            # trades against its width and can be off by a unit, so it is centred in its slug instead
+            cnt = u.get('count', {})
+            self.offset = {c: v for c, v in self.offset.items() if cnt.get(c, 0) >= 4}
             self.unit = PER_INCH / self.esc              # font units per typewriter unit
             self.k = self.unit / self.p                  # font units per scan pixel
         else:       # a printed sheet: no units of its own; its scale is set by MATCH_HEIGHTS
@@ -244,6 +248,14 @@ def match_weight(img, src, ref, chars='nmhu'):
     if r <= 0: return img, 0
     k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1))
     ink = cv2.dilate(np.pad(img.ink, r), k)
+    # thickening grows the glyph by r on every side: scale it back to its height and width about its middle, so
+    # only its strokes are heavier (a catalogue W was 5 % taller than the capitals beside it)
+    m = img.ink > 0.5; ys = np.nonzero(m.any(1))[0]; xs = np.nonzero(m.any(0))[0]
+    h, w = ys[-1] - ys[0] + 1, xs[-1] - xs[0] + 1
+    sy, sx = h / (h + 2 * r), w / (w + 2 * r)
+    cy, cx = r + (ys[0] + ys[-1]) / 2, r + (xs[0] + xs[-1]) / 2       # the ink's middle in the padded image
+    M = np.float32([[sx, 0, cx * (1 - sx)], [0, sy, cy * (1 - sy)]])
+    ink = cv2.warpAffine(ink, M, (ink.shape[1], ink.shape[0]), flags=cv2.INTER_LINEAR)
     return Img(ink, img.x0 - r, img.top + r), 2 * r
 
 
