@@ -23,7 +23,8 @@ one. The fonts are monospaced to match, so text set in them lines up as it did o
 
 The files are `fonts/otf/Selectric<Face>-Regular.otf` (cubic outlines, unhinted) and `fonts/ttf/Selectric<Face>-Regular.ttf`
 (quadratic, hinted with [ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px), with `-Italic` for Courier
-12 Italic, Light Italic and Script. The text faces are at version 1.002, the two OCR faces at 1.001. The sources are listed in
+12 Italic, Light Italic and Script. The text faces are at version 1.002 (Bookface Academic 72 and Large Elite 72 at 1.003), ANSI OCR at 1.002 and
+AN3 360 at 1.001. The sources are listed in
 [`scans/README.md`](scans/README.md).
 
 ## Size and spacing
@@ -44,7 +45,9 @@ Each face has what its brochure line shows: A–Z, a–z, the figures, and `! @ 
 - **Selectric ANSI OCR** is OCR-A (the American National Standards Institute's font A, size 1), with its own signs in
   place of the usual ones: the hook ⑁, chair ⑂ and fork ⑃ (on `!`, `@` and `#`, as OCR-A puts them, and also at
   their own code points U+2441–2443), the long bar `|`, braces `{ }`, the solid block █ (on `^` and at U+2588), an
-  upright `"` and `'`, and `¬`. It has no `( ) ¢ ½ ¼ ,`; the `-` and `_` are its short and long dashes.
+  upright `"` and `'`, and `¬`. It has no `( ) ¢ ½ ¼ ,`; the `-` and `_` are its short and long dashes. The
+  specimen shows its `:` and `;` the wrong way round (OCR-A's two-dot colon in the `;` place); here they are swapped
+  back.
 - **Selectric AN3 360** matches IBM's AN3 chain and train printer type of System/360. Its lower case is small capitals,
   like Orator's, and its signs are `‡ @ # $ % ¤ & * ( ) - _ = + < > ? / ° ' : ; , .` (no `!`, `"` or `¢`).
 

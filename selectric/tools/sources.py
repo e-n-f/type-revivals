@@ -146,7 +146,8 @@ for _f, (_scan, (_y0, _y1), _subs) in SECOND.items():
 # #, the long bar for |, the long dash for _, the block █ for ^).  AN3/360's lower case is small capitals.
 A5, C4 = 'selectric-a-0005.jp2', 'selectric-c-0004.jp2'
 OCR_SYM = {
-    'ANSIOCR': '⑁⑂⑃$%|&*{}-_=+█/?\'":;.¬',
+    # the specimen shows its : and ; the wrong way round (the two-dot colon on the ; key): put right here
+    'ANSIOCR': '⑁⑂⑃$%|&*{}-_=+█/?\'";:.¬',
     'AN3360': '‡@#$%¤&*()-_=+<>?/°\':;,.',
 }
 FACES['ANSIOCR'] = [(A5, X + (1250, 1869), 10, para(

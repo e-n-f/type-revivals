@@ -28,7 +28,7 @@ BUILD = os.path.join(ROOT, 'build')
 # Each font's version, in the head table and the name table.  Raise a font's version with every change to
 # that font, or font managers treat the new file as a duplicate of the installed one (see CONTRIBUTING.md).
 VERSIONS = {f: '1.002' for f in S.FACES}
-VERSIONS.update(ANSIOCR='1.001', AN3360='1.001')
+VERSIONS.update(ANSIOCR='1.002', AN3360='1.001', BookfaceAcademic72='1.003', LargeElite72='1.003')
 NAMES = {'Advocate': 'Advocate', 'BookfaceAcademic72': 'Bookface Academic 72', 'Courier72': 'Courier 72',
          'Delegate': 'Delegate', 'Pica72': 'Pica 72', 'PrestigePica72': 'Prestige Pica 72', 'Adjutant': 'Adjutant',
          'Artisan12': 'Artisan 12', 'Courier12': 'Courier 12', 'Courier12Italic': 'Courier 12 Italic',
