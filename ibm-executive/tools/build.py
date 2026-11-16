@@ -28,7 +28,7 @@ BUILD = os.path.join(ROOT, 'build')
 # Each font's version, in the head table and the name table.  Raise a font's version with every change to
 # that font, or font managers treat the new file as a duplicate of the installed one (see CONTRIBUTING.md).
 VERSIONS = {'Modern': '1.001', 'Documentary': '1.003', 'MidCentury': '1.002', 'Arcadia': '1.004',
-            'Doric': '1.003', 'BoldFace1': '1.003', 'BoldFace2': '1.003', 'Charter': '1.002'}
+            'Doric': '1.003', 'BoldFace1': '1.004', 'BoldFace2': '1.003', 'Charter': '1.002'}
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
          'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter'}
 BOLD = {'BoldFace1', 'BoldFace2'}

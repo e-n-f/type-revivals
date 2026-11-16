@@ -98,13 +98,15 @@ def half(ink, line, cell, lower):
     H = y1 - y0
     # not a sliver of a cell's rule (as tall as the region), nor the tick that ends a row (a short dash)
     cand = [i for i in range(1, n) if st[i][4] >= 12 and st[i][3] < 0.9 * H
-            and not (st[i][3] < 10 and st[i][2] > 12 and st[i][1] > 0.5 * H)]
+            and not (st[i][3] < 10 and st[i][2] > 12 and st[i][1] > 0.5 * H
+                     and st[i][0] + st[i][2] > region.shape[1] - 12)]
     if not cand: return digit, None, None
     big = max(cand, key=lambda i: st[i][4])
     bx, by, bw, bh = st[big][:4]
-    # the glyph: the largest piece and the pieces near it (an i's dot, a j's), not specks of the paper
+    # the glyph: the largest piece and the pieces near it (an i's dot, a j's), not specks of the paper nor the
+    # italic codes printed at a cell's foot (J4, D2: 35 px or more below a glyph)
     keep = [i for i in cand if i == big or (st[i][4] >= 40 and st[i][0] < bx + bw + 15 and st[i][0] + st[i][2] > bx - 15
-                                            and st[i][1] < by + bh + 40 and st[i][1] + st[i][3] > by - 60)]
+                                            and st[i][1] < by + bh + 25 and st[i][1] + st[i][3] > by - 60)]
     m = np.isin(lab, keep)
     return digit, m, (x0, y0)
 
@@ -259,8 +261,8 @@ def candidates(face, cells, want, out, n=4):
     sheet.save(out)
 
 
-# Cells chosen by eye from the candidates (catalog-<Face>-candidates.png, made by `catalog.py survey`): the
-# characters each font lacks, as (page, line, cell, half).  Their width is the cell's.  Characters with no clear
+# Cells chosen by eye from the candidates (catalog-<Face>-candidates.png, made by `catalog.py survey`), or by
+# IBM part number: the characters each font lacks, as (page, line, cell, half) or (part number, half).  Their width is the cell's.  Characters with no clear
 # cell are left out: \ and | in every face, { } and ~ but in Mid-Century, < > but in Arcadia and Charter.
 U, L = 'upper', 'lower'
 CHOSEN = {
@@ -277,7 +279,11 @@ CHOSEN = {
               ':': (539, 2, 7, U), ';': (538, 4, 8, U), '[': (539, 2, 1, U), ']': (539, 2, 1, L), '^': (539, 6, 7, U)},
     'BoldFace1': {'"': (371, 5, 18, U), '#': (370, 13, 12, U), '$': (351, 12, 8, U), "'": (371, 6, 18, U),
                   '*': (351, 9, 16, U), ':': (352, 2, 18, L), ';': (371, 4, 17, L), '@': (371, 1, 3, U),
-                  '^': (351, 6, 1, U)},
+                  '^': (351, 6, 1, U),
+                  # by IBM part number
+                  '|': ('1085831', U), '[': ('1086232', U), ']': ('1088372', U), '_': ('1097370', L),
+                  '{': ('1094192', U), '}': ('1094192', L), '>': ('1086154', U), '<': ('1086154', L),
+                  '~': ('1102251', L)},
     'BoldFace2': {'!': (466, 9, 14, U), '"': (466, 6, 11, L), "'": (466, 4, 13, U), '*': (480, 3, 12, U),
                   ':': (480, 4, 13, U), ';': (466, 3, 11, U), '[': (466, 5, 13, U), ']': (466, 10, 13, U),
                   '^': (480, 11, 13, U)},
@@ -299,6 +305,58 @@ WIDTHS = {
     'Charter': {'!': 3, '%': 4, '/': 3, '?': 3, '<': 3, '>': 3, '[': 2, ']': 2},
 }
 
+# ------------------------------------------------------------------------------------------- part numbers
+# Every cell ends with IBM's part number for the type slug, printed in one condensed style on every page.  The
+# digits are read against templates taken from Bold Face No. 1 cells whose numbers were read by eye.
+PART_SAMPLES = {(372, 9, 14): '1097758', (372, 12, 15): '1097205', (372, 12, 9): '1094191',
+                (372, 9, 8): '1094058', (372, 2, 19): '1085522', (372, 7, 5): '1087341', (371, 9, 8): '1093359',
+                (352, 4, 4): '1130224', (370, 2, 15): '1097897', (372, 1, 5): '1114279', (373, 9, 6): '1168651',
+                (373, 8, 8): '1097193', (371, 11, 5): '1122463'}
+
+def part_digits(ink, line, cell):
+    (t, b), (l, r) = line, cell
+    s = ink[b - 52:b - 4, l + 4:r - 4].astype(np.uint8)
+    n, lab, st, _ = cv2.connectedComponentsWithStats(s, 8)
+    comps = sorted([i for i in range(1, n) if st[i][3] > 25 and st[i][4] > 30], key=lambda i: st[i][0])
+    out = []
+    for i in comps:
+        x, y, w, h = st[i][:4]
+        out.append(cv2.resize((lab[y:y + h, x:x + w] == i).astype(np.float32), (12, 24),
+                              interpolation=cv2.INTER_AREA).ravel())
+    return out
+
+_part_templates = {}
+def parts(face):
+    """{part number: (page, line, cell)} for every cell of a face whose number reads as seven digits"""
+    path = os.path.join(R.BUILD, f'parts-{face}.json')
+    if os.path.exists(path): return {k: tuple(v) for k, v in json.load(open(path)).items()}
+    if not _part_templates:
+        for (pg, li, k), num in PART_SAMPLES.items():
+            ink = page('BoldFace1', pg); lines, cells = grid(ink)
+            ds = part_digits(ink, lines[li - 1], cells[k - 1])
+            if len(ds) == 7:
+                for d, c in zip(ds, num): _part_templates.setdefault(c, []).append(d)
+    T = _part_templates; out = {}
+    for pg in ALL_PAGES[face]:
+        ink = page(face, pg); lines, cells = grid(ink)
+        for li, line in enumerate(lines):
+            for k, cell in enumerate(cells):
+                ds = part_digits(ink, line, cell)
+                if len(ds) != 7: continue
+                num = ''.join(min(T, key=lambda c: min(float(np.sum((d - t) ** 2)) for t in T[c])) for d in ds)
+                out[num] = (pg, li + 1, k + 1)
+    json.dump(out, open(path, 'w'))
+    return out
+
+def where(face, cell):
+    """a CHOSEN entry: (page, line, cell, half), or (part number, half)"""
+    if len(cell) == 2:
+        number, half_ = cell
+        found = parts(face).get(number)
+        if found is None: raise SystemExit(f'{face}: part {number} not found on its pages')
+        return found + (half_,)
+    return cell
+
 def chosen_cells(face, templates):
     """the chosen cells as occurrences of their characters, with their widths"""
     want = CHOSEN.get(face, {})
@@ -306,7 +364,7 @@ def chosen_cells(face, templates):
     by = {o['cell']: o for o in all_cells(face)}
     occ, units = [], {}
     for ch, cell in want.items():
-        o = dict(by[cell], ch=ch); occ.append(o)
+        o = dict(by[where(face, cell)], ch=ch); occ.append(o)
         units[ch] = read_digit(o['digit'], templates)
     return occ, units
 
