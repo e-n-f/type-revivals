@@ -222,3 +222,71 @@ TYPED['Arcadia'] = [
     (NL55, (1030, 2490, 2320, 2595), 'abcdefghijklmnopqrstuvwxyz'),
     (NL55, (1030, 2595, 2560, 2700), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'),
 ]
+
+# ------------------------------------------------------------------------------- Secretarial and Registry
+# Faces with no brochure line: a typed page is the main source, IBM's 1972 catalogue (tools/catalog.py) the
+# widths and the characters the page lacks.
+#
+# Secretarial: R. W. Bemer's memo of 7 November 1961 on the X3.2 code, typed in it (a faint photocopy, 300 dpi).
+MEMO = 'secretarial-bemer-memo-1961.jpg'
+TYPED['Secretarial'] = [
+    (MEMO, (290, 530, 2240, 850), ['Four characters of the 4-bit subset have been available to IBM customers',
+                                   'for use in ordering keys. They are . , - / . The * is also used and is',
+                                   'to be paired (for keyboard convenience) with the +. Of these characters',
+                                   '- and / have, according to our surveys, high frequency usage in keys.',
+                                   'The usage of * is small and that of . and , are negligible.']),
+    (MEMO, (290, 885, 2240, 1650), ['The presently agreed code of X3.2 was specifically structured so that',
+                                    '- and / were not in the same stick as the decimal digits. I refused to',
+                                    'agree upon a code for IBM unless this condition were met. The reason',
+                                    'for this is that with the present X3.2 code the numeric stick can be rotated',
+                                    'high with a simple EXCLUSIVE OR element and collate for the 6-bit',
+                                    'set effectively identical to the present IBM collating sequence (the changed',
+                                    'order among the special characters has been shown to have a trivial',
+                                    'effect). The six characters which exist in the numeric stick would not',
+                                    'be used in keys, nor do they have relevant ordering properties. This',
+                                    'was agreed to by J.R. Auwaerter by Teletype, realizing that the normal',
+                                    'keyboard arrangement for these keys would have to be reversed or else',
+                                    'the shift bit would have to be inverted for these keys only. Apparently',
+                                    'this is not too great a hardship.']),
+    (MEMO, (290, 1690, 2240, 2050), ['Howard Smith, meeting with DS and GP, has now proposed a variation',
+                                     'which was accepted at the 3 November meeting of the CSTC. I am in',
+                                     'agreement with all of these changes except those pertaining to the above',
+                                     'situation! . and / are now in the numeric stick and a transformation',
+                                     'much fancier than an EXCLUSIVE OR would be required to get a',
+                                     'collating sequence suitable to IBM.']),
+    (MEMO, (290, 2085, 2240, 2450), ['I realize that with an 8-bit set (and upper and lower case alphabets) some',
+                                     'extra logic is required to effect the collating of somewhere near 256',
+                                     'characters. However, I think it reasonable to demand that the 6-bit',
+                                     'set operate very simply. I suspect that GS and DP might not have known',
+                                     'what they were agreeing to. I suggest that you do not propose this',
+                                     'particular change to X3.2 on 8 November.']),
+]
+# Registry: IBM's E. T. News Letter No. 16 (1955), page 6, announcing the face: a paragraph and the keyboard.
+NL55_6 = 'et-newsletter-16-1955-p6.png'
+TYPED['Registry'] = [
+    (NL55_6, (280, 1330, 2700, 2390), ['IBM Electric Typewriters bring quality, ease, and speed to',
+                                       "today's typing. With only a feather-light touch required to",
+                                       'release the electrically-powered keys, unnecessary hand',
+                                       'and arm motion has been eliminated. All operating keys -',
+                                       'the carriage return, tabulator, shift, and back spacer - are',
+                                       'located on the nearly level keyboard and are released with',
+                                       'the same light touch. Better quality of typewritten work, in-',
+                                       'creased speed and ease of operation, and the ability to pro-',
+                                       'duce many legible carbon copies are only a few of the advan-',
+                                       'tages of IBM Electric Typewriters.']),
+    # (the keyboard's _ didn't print: the line has a gap where it is)
+    (NL55_6, (680, 2440, 2320, 2880), ["234567890-1';/.,", '@#$%¢&*()!":?', 'abcdefghijklmnopqrstuvwxyz',
+                                       'ABCDEFGHIJKLMNOPQRSTUVWXYZ']),
+]
+
+# characters a typed page prints as more than one group side by side, besides MULTI's: Registry's % (a slash
+# and a small o)
+TYPED_MULTI = {'Registry': {'%': 2}}
+
+# A typed line whose signs are read by hand-listed columns (character, first, last column, in pixels from the
+# box's left edge), as the brochure's symbol lines are: Registry's keyboard line of signs, whose @# and *( touch
+# and whose % prints in two pieces, so counting groups goes wrong
+TYPED_COLUMNS = {'Registry': [(NL55_6, (680, 2570, 2320, 2690),
+                               [('@', 28, 93), ('#', 93, 140), ('$', 158, 199), ('%', 208, 270), ('¢', 279, 315),
+                                ('&', 319, 375), ('*', 379, 425), ('(', 425, 447), (')', 460, 484), ('!', 547, 560),
+                                ('"', 577, 605), (':', 625, 640), ('?', 658, 694)])]}

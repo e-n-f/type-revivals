@@ -17,10 +17,13 @@ keep those widths exactly, so text set in them falls where the machine would hav
 | Executive Bold Face 1 | Bold Face #1 | 1/32 inch | Finnish brochure | `ExecutiveBoldFace1-Regular` |
 | Executive Bold Face 2 | Bold Face #2 | 1/36 inch | Finnish brochure | `ExecutiveBoldFace2-Regular` |
 | Executive Charter | Charter | 1/45 inch | Finnish brochure; BCD code table of 1962 | `ExecutiveCharter-Regular` |
+| Executive Secretarial | Secretarial | 1/32 inch | 1972 catalogue; R. W. Bemer's memo of 1961 | `ExecutiveSecretarial-Regular` |
+| Executive Registry | Registry | 1/36 inch | E. T. News Letter of 1955; 1972 catalogue | `ExecutiveRegistry-Regular` |
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
 [ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Executive Modern and Mid-Century 1.005;
-Doric, Bold Face 2 and Charter 1.006; Documentary, Bold Face 1 and Arcadia 1.007. Every face takes its w and W
+Doric, Bold Face 2 and Charter 1.006; Documentary, Bold Face 1 and Arcadia 1.007; Secretarial and Registry
+1.000. Every face takes its w and W
 (where nothing better has them) and its letters' widths from IBM's 1972 catalogue. The sources are listed in
 [`scans/README.md`](scans/README.md).
 
@@ -71,6 +74,14 @@ The chart shows each font's printable ASCII (0x21–0x7E) in code order. A chara
   Modern `= ^`; Documentary `! # ' * : ; = [ ] _`; Mid-Century `! ' # @ [ ] { } ^ ~`; Arcadia `< > [ ] ^`;
   Doric `! " ' * : ; [ ] ^`; Bold Face 1 `" # $ ' * : ; @ ^`; Bold Face 2 `! " ' * : ; [ ] ^`; Charter `" ^ _`.
   The catalogue has no `\` or `|` for any of the faces, and `{ } ~` and `< >` only where listed.
+- **Executive Secretarial and Registry** have no brochure line. Secretarial's letters and signs are the 1972
+  catalogue's single prints (`CHOSEN` in `tools/catalog.py`), because the memo typed in it is a faint photocopy
+  whose letters are broken; the memo gives its unit, 1/32 inch, and its word space. It has no 1 or 0 (its
+  keyboard had none: the `1` and `0` keys type the l and the O, as typists did). Registry's characters are the
+  1955 newsletter's typed prints, which give its unit, 1/36 inch, with the catalogue filling in `= + [ ] < ½ ¼`.
+  The newsletter's line of signs is read by hand-listed columns (`TYPED_COLUMNS`): its `@#` and `*(` touch, its
+  `%` prints in two pieces, and its `_` didn't print. Both faces take their letters' widths from the catalogue.
+  Neither has accented letters, which none of their sources show.
 - `)` is the `(` turned round in Modern, whose card has only the `(`. The typographic quotes ‘ ’ “ ” map to the
   typewriter's straight `'` and `"`.
 
@@ -138,12 +149,12 @@ two-storey one, and the brochure's is `ss01`.
 
 - The catalogue shows every face's alternates too (other forms of letters, figures and signs, fractions,
   accented capitals); only what ASCII needs is taken from it so far.
-- A memo by R. W. Bemer (7 November 1961), offered as Arcadia, is in IBM's
-  **Secretarial**. It has the same wide monoline slab serif as the sheet's Secretarial sample: the
-  ball-terminal r and c, the two-storey a with a curved tail, the curve-tailed y, the open one-storey g and
-  the plain slab-footed f (Patron's f is curled). It would be a source for an Executive Secretarial.
+- A memo by R. W. Bemer (7 November 1961), offered as Arcadia, is in IBM's **Secretarial**: the same wide
+  monoline slab serif as the "Type designs" sheet's Secretarial sample (ball-terminal r and c, curve-tailed y,
+  plain slab-footed f). It is one of Executive Secretarial's sources.
+- The 1972 catalogue also shows Text, Bold Face Italic, Heritage, Directory, Testimonial, Copperplate Gothic 2,
+  Patron and Registry No. 2, one print of each character, and Copperplate Gothic 1's signs.
 - The brochure is a halftone print at about 13 px to the unit, so the brochure faces are softer than Modern,
   which is traced from a 9983-px photograph of the Jowa card (36 px to the unit).
 - Modern's `† [ ] =` and em dash, shown on the Science Museum's 602 specimen, are in tiles too small to trace.
-- Other Executive faces (Heritage, Secretarial, Directory, Bold Face Italic, …), shown on the "Type designs"
-  sheets, aren't made yet.
+- The other Executive faces (Heritage, Directory, Bold Face Italic, Patron, …) aren't made yet.
