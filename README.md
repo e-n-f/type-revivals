@@ -6,7 +6,7 @@ notes on its sources.
 | Directory | Fonts | Source |
 |---|---|---|
 | [`metal-pal/`](metal-pal/) | Metal Pal Regular, Italic, Bold | D. Stempel AG specimen cards of Hermann Zapf's foundry Palatino (1950–51) |
-| [`executive/`](executive/) | Executive Modern, Documentary, Mid-Century, Arcadia, Doric, Bold Face 1, Bold Face 2, Charter | Specimens of the Executive proportional typewriter's faces (IBM, 1950s) |
+| [`executive/`](executive/) | Executive Modern, Documentary, Mid-Century, Arcadia, Doric, Bold Face 1, Bold Face 2, Charter, Secretarial, Registry | Specimens of the Executive proportional typewriter's faces (IBM, 1950s) |
 
 ![Metal Pal](metal-pal/specimen/specimen-lines.png)
 
