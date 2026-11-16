@@ -266,7 +266,11 @@ def candidates(face, cells, want, out, n=4):
 # cell are left out: \ and | in every face, { } and ~ but in Mid-Century, < > but in Arcadia and Charter.
 U, L = 'upper', 'lower'
 CHOSEN = {
-    'Modern': {'=': (399, 4, 17, U), '^': (399, 4, 12, U)},
+    'Modern': {'=': (399, 4, 17, U), '^': (399, 4, 12, U),
+               '<': ('1097876', U), '[': ('1168513', U), '>': ('1168514', U), '{': ('1140982', U),
+               '}': ('1140983', U),
+               ']': (400, 5, 11, U),        # part 1088760, whose number has touching digits
+               '\\': (421, 5, 11, L)},       # part 1199057, likewise
     'Documentary': {'!': (425, 1, 8, U), '#': (425, 3, 6, U), "'": (424, 11, 19, L), '*': (424, 6, 15, L),
                     ':': (426, 6, 3, U), ';': (426, 7, 4, U), '=': (426, 6, 12, U), '[': (424, 12, 9, U),
                     ']': (426, 3, 7, L), '_': (426, 5, 20, L)},
@@ -312,6 +316,9 @@ PART_SAMPLES = {(372, 9, 14): '1097758', (372, 12, 15): '1097205', (372, 12, 9):
                 (372, 9, 8): '1094058', (372, 2, 19): '1085522', (372, 7, 5): '1087341', (371, 9, 8): '1093359',
                 (352, 4, 4): '1130224', (370, 2, 15): '1097897', (372, 1, 5): '1114279', (373, 9, 6): '1168651',
                 (373, 8, 8): '1097193', (371, 11, 5): '1122463'}
+# more samples, on Modern's pages, for the 6, 8 and 9 the first set confused: (face, page, line, cell)
+PART_SAMPLES_MORE = {('Modern', 399, 5, 14): '1097876', ('Modern', 399, 9, 4): '1168513',
+                     ('Modern', 399, 14, 15): '1168514'}
 
 def part_digits(ink, line, cell):
     (t, b), (l, r) = line, cell
@@ -333,6 +340,11 @@ def parts(face):
     if not _part_templates:
         for (pg, li, k), num in PART_SAMPLES.items():
             ink = page('BoldFace1', pg); lines, cells = grid(ink)
+            ds = part_digits(ink, lines[li - 1], cells[k - 1])
+            if len(ds) == 7:
+                for d, c in zip(ds, num): _part_templates.setdefault(c, []).append(d)
+        for (f, pg, li, k), num in PART_SAMPLES_MORE.items():
+            ink = page(f, pg); lines, cells = grid(ink)
             ds = part_digits(ink, lines[li - 1], cells[k - 1])
             if len(ds) == 7:
                 for d, c in zip(ds, num): _part_templates.setdefault(c, []).append(d)
