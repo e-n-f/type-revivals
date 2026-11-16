@@ -19,7 +19,7 @@ keep those widths exactly, so text set in them falls where the machine would hav
 | Exec Charter | Charter | 1/45 inch | Finnish brochure; BCD code table of 1962 | `ExecCharter-Regular` |
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
-[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Exec Modern and Mid-Century 1.001;
+[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Exec Modern 1.001, Mid-Century 1.002;
 Charter 1.002; Documentary, Doric, Bold Face 1 and 2 1.003; and Arcadia 1.004. Every face takes its w and W
 (where nothing better has them) and its letters' widths from IBM's 1972 catalogue. The sources are listed in
 [`scans/README.md`](scans/README.md).
@@ -38,6 +38,10 @@ There is no kerning, because the machine had none. Each glyph sits in its slug w
 gives every character an offset from the centre of its slug, as well as its width.
 
 ## Character set
+
+![Printable ASCII in each font](specimen/ascii.png)
+
+The chart shows each font's printable ASCII (0x21–0x7E) in code order. A character a font lacks is an empty box.
 
 - **Exec Modern** has everything on the Jowa card: a–z, A–Z, ä ö ü Ä Ö Ü ß ç Ç ø Ø, the figures,
   `& . , - : ; ! ? ( ) / " » « ' * + % $ £`. It also has `` ` ´ § `` from the brochure's Modern and

@@ -89,8 +89,36 @@ def compare(face):
         out.paste(im, (10, y + 30)); y += im.height + 40
     out.save(os.path.join(OUT, f'compare-{face}.png'))
 
+def ascii_chart():
+    """ascii.png: every font's printable ASCII (0x21-0x7E) in code order, three rows of 32, each character in
+    a cell of its own; a character the font lacks is an empty outlined box"""
+    chars = [chr(c) for c in range(0x21, 0x7F)]
+    rows = [chars[:31], chars[31:63], chars[63:]]
+    cw, ch, size = 72, 96, 64
+    lab = ImageFont.truetype(LABEL, 26); small = ImageFont.truetype(LABEL, 13)
+    W = 40 + 32 * cw + 20
+    block = 44 + 3 * ch + 30
+    H = 30 + block * len(VERSIONS)
+    im = Image.new('L', (W, H), 255); d = ImageDraw.Draw(im); y = 30
+    for face in VERSIONS:
+        f = ImageFont.truetype(fontpath(face), size)
+        cmap = TTFont(fontpath(face)).getBestCmap()
+        have = sum(ord(c) in cmap for c in chars)
+        d.text((40, y), f'Exec {NAMES[face]}  ({have} of {len(chars)})', font=lab, fill=90); y += 44
+        for r, row in enumerate(rows):
+            for i, c in enumerate(row):
+                x = 40 + (i + (1 if r == 0 else 0)) * cw; top = y + r * ch
+                d.text((x + 3, top), f'{ord(c):02X}', font=small, fill=150)
+                if ord(c) in cmap:
+                    d.text((x + cw / 2, top + ch - 22), c, font=f, fill=0, anchor='ms')
+                else:
+                    d.rectangle((x + 14, top + 22, x + cw - 14, top + ch - 14), outline=170, width=2)
+        y += 3 * ch + 30
+    im.save(os.path.join(OUT, 'ascii.png'))
+
 if __name__ == '__main__':
     os.makedirs(OUT, exist_ok=True)
     lines()
+    ascii_chart()
     for face in [a for a in sys.argv[1:] if a in VERSIONS] or VERSIONS:
         compare(face)
