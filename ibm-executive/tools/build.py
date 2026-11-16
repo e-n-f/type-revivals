@@ -27,8 +27,8 @@ ROOT = os.path.join(HERE, '..')
 BUILD = os.path.join(ROOT, 'build')
 # Each font's version, in the head table and the name table.  Raise a font's version with every change to
 # that font, or font managers treat the new file as a duplicate of the installed one (see CONTRIBUTING.md).
-VERSIONS = {'Modern': '1.000', 'Documentary': '1.001', 'MidCentury': '1.000', 'Arcadia': '1.002',
-            'Doric': '1.001', 'BoldFace1': '1.001', 'BoldFace2': '1.001', 'Charter': '1.001'}
+VERSIONS = {'Modern': '1.000', 'Documentary': '1.002', 'MidCentury': '1.000', 'Arcadia': '1.003',
+            'Doric': '1.002', 'BoldFace1': '1.002', 'BoldFace2': '1.002', 'Charter': '1.001'}
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
          'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter'}
 BOLD = {'BoldFace1', 'BoldFace2'}
@@ -127,9 +127,10 @@ class Source:
 
 def clean(occs):
     """drop occurrences much wider or narrower than the median (a mismatched or damaged print), and touching
-    ones that were split from a neighbour if enough whole ones remain"""
+    ones that were split from a neighbour if there is a whole one: the split clips them (Documentary's X in its
+    capitals line lost a serif), and a clipped copy averaged with a whole one smears it"""
     whole = [o for o in occs if not o.get('touching')]
-    if len(whole) >= 2: occs = whole
+    if whole: occs = whole
     if len(occs) < 3: return occs
     w = np.median([o['w'] for o in occs]); h = np.median([o['bottom'] - o['top'] for o in occs])
     keep = [o for o in occs if abs(o['w'] - w) < 0.2 * w + 2 and abs(o['bottom'] - o['top'] - h) < 0.2 * h + 2]
