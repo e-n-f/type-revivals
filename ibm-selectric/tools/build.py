@@ -73,6 +73,31 @@ def clean(occs):
     return [o for o, x in zip(occs, d) if x <= cut] or occs
 
 
+def register(occs, k):
+    """shift each occurrence to fit the character's alphabet-line print (sharper to align to than a blurred
+    mean): by phase correlation of the two, placed in font units, on a common canvas"""
+    from glyphs import place
+    import cv2
+    refs = [o for o in occs if o.get('ref')]
+    if not refs or len(occs) < 2: return occs
+    r = place(refs[0], k)
+    out = []
+    for o in occs:
+        if o is refs[0]: out.append(o); continue
+        im = place(o, k)
+        x0 = min(r.x0, im.x0); top = max(r.top, im.top)
+        W = int(max(r.x0 + r.ink.shape[1], im.x0 + im.ink.shape[1]) - x0) + 40
+        H = int(top - min(r.top - r.ink.shape[0], im.top - im.ink.shape[0])) + 40
+        def put(a):
+            M = np.float32([[1, 0, a.x0 - x0 + 20], [0, 1, top - a.top + 20]])
+            return cv2.warpAffine(a.ink, M, (W, H), flags=cv2.INTER_LINEAR)
+        (dx, dy), resp = cv2.phaseCorrelate(put(im), put(r), cv2.createHanningWindow((W, H), cv2.CV_32F))
+        if abs(dx) > 0.25 * W or abs(dy) > 0.25 * H: out.append(o); continue
+        # move the occurrence by (dx, dy) font units: X0 and Y0 are in scan pixels, y down
+        out.append(dict(o, X0=o['X0'] + dx / k, Y0=o['Y0'] + dy / k))
+    return out
+
+
 def build(face):
     data = pickle.load(open(os.path.join(BUILD, f'occ-{face}.pkl'), 'rb'))
     p = float(np.median([q for q, _ in data['pitches']])); pitch = data['pitches'][0][1]
@@ -81,7 +106,7 @@ def build(face):
     for o in data['occ']: by.setdefault(o['ch'], []).append(o)
     glyphs, adv, counts = {}, {}, {}
     for ch, occs in by.items():
-        occs = clean(occs); counts[ch] = len(occs)
+        occs = register(clean(occs), k); counts[ch] = len(occs)
         im = average(occs, k)
         segs = trace.trace(im.ink, SIGMA * k)
         glyphs[gname(ch)] = [[(s[0],) + tuple((q[0] + im.x0 + ADV / 2, q[1] + im.top) for q in s[1:]) for s in c]

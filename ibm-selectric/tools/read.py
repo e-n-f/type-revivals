@@ -167,6 +167,20 @@ def read_block(scan, box, pitch, texts):
         cs, c0 = cells(L, p, lab, ink)
         runs = runs_of(cs)
         pairs, cost = align(text.split(), runs)
+        # the baseline: a straight line through the feet of the characters that sit on it (the scans are a
+        # little skewed, so one height for the whole line would be off by several pixels at its ends)
+        feet = []
+        for ch, k in pairs:
+            if ch in BASE:
+                m = np.any(cs[k], axis=0); ys, xs = np.nonzero(m)
+                feet.append((c0 + k * p, ys.max() + 1))
+        a, b = L['base'], 0.0
+        if len(feet) >= 4:
+            fx, fy = np.array(feet, float).T; keep = np.ones(len(fx), bool)
+            for _ in range(3):
+                b, a = np.polyfit(fx[keep], fy[keep], 1)
+                r = fy - (a + b * fx); keep = np.abs(r) < max(3.0, 2.5 * np.median(np.abs(r[keep])))
+        base_at = lambda x: a + b * x
         report.append((text, len(pairs), sum(len(w) for w in text.split()), cost))
         for ch, k in pairs:
             if ch == SKIP: continue
@@ -180,7 +194,8 @@ def read_block(scan, box, pitch, texts):
             Y0, Y1 = max(0, ys.min() - 4), min(ink.shape[0], ys.max() + 5)
             X0, X1 = max(0, xs.min() - 4), min(ink.shape[1], xs.max() + 5)
             crop = np.where(m[Y0:Y1, X0:X1], ink[Y0:Y1, X0:X1], 0).astype(np.float32)
-            occ.append(dict(ch=ch, ink=crop, ref=li >= len(texts) - 2, X0=X0, Y0=Y0, x0=c0 + k * p, base=L['base'], w=int(xs.max() - xs.min() + 1),
+            occ.append(dict(ch=ch, ink=crop, ref=li >= len(texts) - 2, X0=X0, Y0=Y0, x0=c0 + k * p,
+                            base=float(base_at(c0 + k * p)), w=int(xs.max() - xs.min() + 1),
                             top=int(ys.min()), bottom=int(ys.max() + 1), line=(scan, box, li), cell=k,
                             scan=scan, off=(x0, y0)))
     return occ, p, report
