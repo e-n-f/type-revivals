@@ -97,8 +97,15 @@ rough to measure them, so it is used only for their shapes, scaled so its figure
 
 ## Not yet done
 
-- Arcadia has no real w or W. A memo by R. W. Bemer (7 November 1961) offered for it is in another face: a
-  slab serif with a two-storey a, not the brochure's monoline Arcadia with its one-storey a.
+- **Arcadia's a.** The brochure's Arcadia has a one-storey a. IBM's own "Type designs" sheet
+  (`type-designs-ibm-executive-0001.jp2`) shows Arcadia with a two-storey a, and every other letter the two
+  share matches: the slab-serifed I B M, E C T V, k o n e s i and the straight-tailed y. So the brochure shows
+  Arcadia with an alternate a. These sources don't say why (an option for some market, a later revision, or
+  a change for that brochure). Exec Arcadia follows the brochure. The sheet is printed, not typed ("not
+  representative of typewritten material", its note says), but it could give the two-storey a as an alternate.
+- Arcadia has no real w or W. A memo by R. W. Bemer (7 November 1961), offered for it, is in IBM's
+  **Patron**, as its curled f, ball-terminal r, spurred two-storey a and one-storey g show against the
+  sheet's Patron sample. It would be a source for an Exec Patron.
 - The brochure is a halftone print at about 13 px to the unit, so the brochure faces are softer than Modern,
   which is traced from a 9983-px photograph of the Jowa card (36 px to the unit).
 - Modern's `† [ ] =` and em dash, shown on the Science Museum's 602 specimen, are in tiles too small to trace.
