@@ -337,7 +337,8 @@ for _k, _box in _SETBOX.items():
 SHEAR = {'typesetting-boldfaceitalic-1.png': 0.32}
 OPEN = {}
 # GAMMA darkens a soft page's mid-tones (g ** gamma), so thin strokes stay joined to their letters
-GAMMA = {'typesetting-boldfaceitalic-1.png': 3.0, 'typesetting-boldface2-1.png': 2.0}
+GAMMA = {'typesetting-boldfaceitalic-1.png': 3.0, 'typesetting-boldface2-1.png': 2.0, 'typesetting-testimonial-1.png': 3.0,
+         'typesetting-testimonial-3.png': 2.0, 'typesetting-secretarial-1.png': 2.0}
 
 # More pages of 'Typesetting with the IBM Executive', at other ratchet spacings and reductions: each its own
 # source (<Face>Set<n>), since each is at its own scale.  Pages whose lines run together, or that are cut off,

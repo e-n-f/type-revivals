@@ -65,8 +65,6 @@ for _f in OLD_FACES: SOURCES[_f].append((f'Catalog{_f}', 'wW' + ''.join(_CHOSEN.
 # 'Typesetting with the IBM Executive': § ‡ ¶ † ‘, which no other source of these faces shows
 for _f in OLD_FACES:
     if _f in _S0.TYPESET: SOURCES[_f].append((f'{_f}Set', '§‡¶†‘'))   # (Doric has no page)
-# Secretarial's 1 and 0, which the catalogue and the memo lack: its 'Typesetting' page has them
-SOURCES['Secretarial'].insert(0, ('SecretarialSet', '10'))
 # The new faces: their 'Typesetting' page, the catalogue filling in.  Bold Face Italic's page is soft (read
 # darkened, which thickens it), so its letters are the catalogue's and the page gives the rest.
 for _f in NEW_FACES: SOURCES[_f] = [(f'{_f}Set', None), (f'Catalog{_f}', None)]
@@ -75,8 +73,12 @@ SOURCES['Copperplate1'] = [('Copperplate1Set', None)]           # its catalogue 
 # Faces with no brochure line (tools/units.py CATALOG_FACES): Secretarial's letters from the catalogue (the memo
 # typed in it is a faint photocopy), its signs and figures from the memo; Registry's from the newsletter typed in
 # it, the catalogue filling in.  MAIN: the source the others are scaled, thickened and levelled to.
-SOURCES['Secretarial'] = [('CatalogSecretarial', None), ('SecretarialTyped', None)]
+# Secretarial's 1 and 0, which the catalogue and the memo lack, are its 'Typesetting' page's; that page also
+# fills in what the others don't show (§ ‡ ¶ † ‘, and Secretarial's & and #), as Registry's does for it
+SOURCES['Secretarial'] = [('SecretarialSet', '10'), ('CatalogSecretarial', None), ('SecretarialTyped', None)]
 SOURCES['Registry'] = [('RegistryTyped', None), ('CatalogRegistry', None)]
+for _f in ('Secretarial', 'Registry'):
+    if _f in _S0.TYPESET: SOURCES[_f].append((f'{_f}Set', None))
 MAIN = {'Secretarial': 'CatalogSecretarial', 'Registry': 'RegistryTyped',
         **{f: f'{f}Set' for f in NEW_FACES}, 'BoldFaceItalic': 'CatalogBoldFaceItalic'}
 # A source scaled so its letters are as tall as another's: the keyboard photograph's figures to the Jowa
@@ -92,7 +94,8 @@ MATCH_HEIGHTS = {'Keyboard': ('Modern', '0123456789'), 'MidCenturyTyped': ('MidC
                  'CatalogBoldFaceItalic': ('BoldFaceItalicSet', 'EFHILTZxzvnmu')}
 # printed sources, crisper than the typed ones: thickened to the face's weight (match_weight)
 REWEIGHT = ({f'Catalog{f}' for f in VERSIONS} - {'CatalogSecretarial', 'CatalogBoldFaceItalic'}
-            | {f'{f}Set' for f in OLD_FACES} | {'BoldFaceItalicSet'})
+            | {f'{f}Set' for f in OLD_FACES} | {'BoldFaceItalicSet'}) - {'SecretarialSet'}
+# (Secretarial's page is as heavy as its catalogue letters already: matching would erode its thin strokes away)
 # Stylistic alternates: (source, character, feature, name).  Arcadia's one-storey a (IBM part 1112308), as the
 # Finnish brochure's machine had it; it has the a's width and place in its slug, and the accented a's get it
 # too.  Each alternate is also offered by salt.
@@ -250,6 +253,12 @@ def glyph_images(face):
             if not os.path.exists(os.path.join(BUILD, f'units-{name}.json')): continue
             t = Source(name)
             if len(t.occ) < 300: continue                 # a page that read poorly
+            # its scale: by the heights of the letters both pages show (a fitted unit can be some way off on a
+            # small, soft page; drawn to the wrong size, its prints blur the first page's)
+            hs, ht = s.by_char(), t.by_char()
+            h = lambda os_: float(np.median([o['bottom'] - o['top'] for o in os_]))
+            fs = [h(hs[c]) / h(ht[c]) for c in 'EFHILTZxzvnmu' if c in hs and c in ht]
+            if fs: t.k = s.k * float(np.median(fs))         # (level() moves it at this scale too)
             for ch, os_ in t.by_char().items():
                 extra.setdefault(ch, []).extend(rescale(o, t.k / s.k) for o in level(clean(os_), t, s))
         for ch, occs in s.by_char().items():
@@ -407,8 +416,9 @@ def build(face):
     if large:
         subs = []
         for c in large:
-            base = chr(ord(c) - 0xFEE0); G[f'{base}.ss01'] = G.pop(c)
-            if base in G: subs.append((gname(base), gname(f'{base}.ss01')))
+            base = chr(ord(c) - 0xFEE0)
+            if base not in G: G[base] = G.pop(c); continue      # a sign printed only large: its only form
+            G[f'{base}.ss01'] = G.pop(c); subs.append((gname(base), gname(f'{base}.ss01')))
         features.append(('ss01', 'Large figures and signs', sorted(subs)))
         notes.append(f'ss01: {len(subs)} large figures and signs')
     for src, ch, feat, label in ALTERNATES.get(face, []):
