@@ -104,8 +104,9 @@ rough to measure them, so it is used only for their shapes, scaled so its figure
   a change for that brochure). Exec Arcadia follows the brochure. The sheet is printed, not typed ("not
   representative of typewritten material", its note says), but it could give the two-storey a as an alternate.
 - Arcadia has no real w or W. A memo by R. W. Bemer (7 November 1961), offered for it, is in IBM's
-  **Patron**, as its curled f, ball-terminal r, spurred two-storey a and one-storey g show against the
-  sheet's Patron sample. It would be a source for an Exec Patron.
+  **Secretarial**. It has the same wide monoline slab serif as the sheet's Secretarial sample: the
+  ball-terminal r and c, the two-storey a with a curved tail, the curve-tailed y, the open one-storey g and
+  the plain slab-footed f (Patron's f is curled). It would be a source for an Exec Secretarial.
 - The brochure is a halftone print at about 13 px to the unit, so the brochure faces are softer than Modern,
   which is traced from a 9983-px photograph of the Jowa card (36 px to the unit).
 - Modern's `† [ ] =` and em dash, shown on the Science Museum's 602 specimen, are in tiles too small to trace.
