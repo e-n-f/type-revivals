@@ -94,8 +94,9 @@ class Line:
         return np.where(mask > 0, self.ink[Y0:Y1, X0:X1], 0), (X0, Y0)
 
 def block_lines(scan, box, minarea):
-    """the lines of a block of text: lines from the tall components, and every small one (a dot, ring, accent,
-    comma) given to the line of the tall component it sits over, or else to the nearest line"""
+    """the lines of a block of text: lines from the tall components; a small one (comma, full stop, hyphen) in
+    a line's band goes to that line, and one outside every band (a dot, ring, accent) to the line of the
+    letter it sits over, or else to the nearest line"""
     x0, y0, x1, y1 = box; g = gray(scan)
     ink = ink_of(g[y0:y1, x0:x1]); comps, lab = components(ink, minarea)
     H = np.median([c['h'] for c in comps if c['h'] > 0.4 * max(c['h'] for c in comps)])
@@ -108,11 +109,27 @@ def block_lines(scan, box, minarea):
         rows[k].append(c)
     keep = [k for k, r in enumerate(rows) if len(r) > 2]
     rows = [rows[k] for k in keep]
+    # a 'tall' component that starts below its line's foot is a mark of the next line (a ring over a capital)
+    for r in rows:
+        foot = np.median([c['y'] + c['h'] for c in r])
+        r[:] = [c for c in r if c['y'] < foot - 0.1 * H]
     span = [(min(c['y'] for c in r), max(c['y'] + c['h'] for c in r)) for r in rows]
     members = [list(r) for r in rows]
     tall_ids = {id(c) for r in rows for c in r}
+    # a line's band: from its letters' (median) top to a little below their (median) foot, where commas hang
+    band = [(np.median([c['y'] for c in r]), np.median([c['y'] + c['h'] for c in r]) + 0.15 * H) for r in rows]
     for c in comps:
         if id(c) in tall_ids: continue
+        inside = [k for k, (t, b) in enumerate(band) if t <= c['cy'] <= b]
+        if inside:          # a comma, full stop or hyphen on the line
+            members[inside[0]].append(c); continue
+        # an accent or dot: the line of the letter it sits over (the lines are close: a ring over a capital
+        # can be nearer the line above's comma than its own letter's top)
+        over = [(t['y'] - (c['y'] + c['h']), k) for k, r in enumerate(rows) for t in r
+                if min(t['x'] + t['w'], c['x'] + c['w']) - max(t['x'], c['x']) > 0
+                and -0.3 * t['h'] <= t['y'] - (c['y'] + c['h']) < 0.5 * H]
+        if over:
+            members[min(over)[1]].append(c); continue
         def dist(t):
             dx = max(t['x'] - (c['x'] + c['w']), c['x'] - (t['x'] + t['w']), 0)
             dy = max(t['y'] - (c['y'] + c['h']), c['y'] - (t['y'] + t['h']), 0)
@@ -320,9 +337,40 @@ def read_finnish(face):
     for _ in range(3):   # widths from what matched, then match the rest with them
         res = [(t, match(ln, t, S.MULTI, lid=k, model=model)) for k, (t, ln) in enumerate(zip(S.LINES_FI[face], lines))]
         for k, t in enumerate(texts[npara:]):
-            res.append((t, match(lines[npara + k], t, S.MULTI, lid=npara + k, model=model)))
+            lid = npara + k
+            if k == 0: res.append((t, symbols(lines[lid], t, S.SYMBOL_COLUMNS[face], lid, model)))
+            else: res.append((t, match(lines[lid], t, S.MULTI, lid=lid, model=model)))
         model = width_model(res)
     return res, lines
+
+def columns(line, x0, x1):
+    """the groups of a line in the columns x0..x1: a group mostly inside is taken whole, one that runs on into a
+    neighbour's columns (touching it) is cut at the edge"""
+    out = []
+    for G in line.groups:
+        a, _, b, _ = bbox(G)
+        ov = min(b, x1) - max(a, x0)
+        if ov <= 0 or (ov < 0.5 * (b - a) and ov < 0.5 * (x1 - x0)): continue
+        if a >= x0 - 2 and b <= x1 + 2: out.append(G); continue
+        _, y0, _, y1 = bbox(G)
+        out.append(dict(x=max(a, x0), y=y0, w=min(b, x1) - max(a, x0), h=y1 - y0, a=0, cut=(max(a, x0), min(b, x1)),
+                        parent=G))
+    return out
+
+def symbols(line, text, cols, lid, model):
+    """the figures matched as a word, and the symbols from their columns (sources.SYMBOL_COLUMNS)"""
+    figs = text.split()[0]
+    allg = line.groups; line.groups = [G for G in allg if bbox(G)[2] < cols[0][1]]
+    occ = match(line, figs, S.MULTI, lid=lid, model=model) or []
+    line.groups = allg
+    for k, (ch, x0, x1) in enumerate(cols):
+        gs = columns(line, x0, x1)
+        o = occurrence(line, ch, gs, (lid, 1), k) if gs else None
+        if o is not None:
+            o['touching'] = any(isinstance(G, dict) for G in gs); occ.append(o)
+    a, b = baseline(occ)
+    for o in occ: o['base'] = a + b * (o['x0'] + o['w'] / 2)
+    return occ
 
 def read_jowa():
     res = []; lines = []
