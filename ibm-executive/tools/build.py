@@ -165,7 +165,11 @@ def glyph_images(face):
                  or max(2, int(round(np.median([o['w'] for o in occs]) / s.p + 0.5))))
             img = average(occs, s.k)
             if s.name in REWEIGHT: img, _ = match_weight(img, s, main)
-            G[ch] = dict(img=img, units=u, off=s.offset.get(ch, 0) * s.k, src=s, n=len(occs))
+            # the fitted offset in the slug holds only with the fitted width: where IBM's width differs (a
+            # period fitted at 2 units, printed at 3), the glyph is centred
+            fitted = next((t.units[ch] for t in srcs if ch in t.units), None)
+            off = s.offset.get(ch, 0) * s.k if fitted in (None, u) else 0.0
+            G[ch] = dict(img=img, units=u, off=off, src=s, n=len(occs))
     return G, srcs
 
 
