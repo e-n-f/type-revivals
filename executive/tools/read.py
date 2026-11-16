@@ -26,7 +26,16 @@ BASE = set('abdefhiklmnrtuvxzABDEFHIKLMNPRTUVXZ1247äüåÄÜÅ')
 _cache = {}
 def gray(name):
     if name not in _cache:
-        _cache[name] = np.asarray(Image.open(os.path.join(SCANS, name)).convert('L'), np.float32) / 255
+        g = np.asarray(Image.open(os.path.join(SCANS, name)).convert('L'), np.float32) / 255
+        if S.GAMMA.get(name):
+            g = g ** S.GAMMA[name]
+        if S.OPEN.get(name):
+            k = S.OPEN[name]; g = cv2.morphologyEx(g, cv2.MORPH_OPEN, np.ones((k, k), np.uint8))
+        if S.SHEAR.get(name):
+            sh = S.SHEAR[name]; M = np.float32([[1, sh, 0], [0, 1, 0]])
+            g = cv2.warpAffine(g, M, (g.shape[1] + int(abs(sh) * g.shape[0]) + 2, g.shape[0]),
+                               borderMode=cv2.BORDER_CONSTANT, borderValue=float(np.median(g)))
+        _cache[name] = g
     return _cache[name]
 
 def ink_of(region):
@@ -100,7 +109,14 @@ def block_lines(scan, box, minarea):
     letter it sits over, or else to the nearest line"""
     x0, y0, x1, y1 = box; g = gray(scan)
     ink = ink_of(g[y0:y1, x0:x1]); comps, lab = components(ink, minarea)
-    H = np.median([c['h'] for c in comps if c['h'] > 0.4 * max(c['h'] for c in comps)])
+    hs = sorted(c['h'] for c in comps if c['a'] > 4 * minarea)
+    top = hs[int(0.9 * (len(hs) - 1))] if hs else max(c['h'] for c in comps)   # not a page edge's height
+    H = np.median([c['h'] for c in comps if 0.4 * top < c['h'] <= 1.5 * top])
+    edges = [c for c in comps if c['h'] >= 3 * H]                 # a page edge or gutter line
+    if edges:
+        ink = ink.copy()
+        for c in edges: ink[lab == c['id']] = 0
+    comps = [c for c in comps if c['h'] < 3 * H]
     tall = [c for c in comps if c['h'] > 0.55 * H]
     # the lines are the bands of the ink's row profile; each tall component goes to the band holding its centre
     bs = bands(ink, 0.6 * H)
@@ -199,7 +215,8 @@ def fit_word(gs, chars, multi, lab, model):
             if j + 2 <= m and X0[j + 1] - X1[j] <= 4:  # one character in two pieces
                 c = c0 + ((X1[j + 1] - X0[j] - e(chars[i])) / sig(e(chars[i]))) ** 2 + 8
                 if c < C[i + 1, j + 2]: C[i + 1, j + 2] = c; B[(i + 1, j + 2)] = ('one', i, j, 2)
-    if C[n, m] >= INF or C[n, m] / n > 4: return None
+    # (an alphabet is one long word: a few touching or broken letters in it shouldn't lose all 26)
+    if C[n, m] >= INF or C[n, m] / n > (8 if n >= 20 else 4): return None
     plan = []; i, j = n, m
     while (i, j) != (0, 0):
         b = B[(i, j)]; plan.append(b)
@@ -394,6 +411,23 @@ def read_keyboard():
     ln = Line(scan, box, 30)
     return [(text, match(ln, text, S.KEYBOARD_MULTI, S.KEYBOARD_SPLIT))], [ln]
 
+def trim_capitals(res):
+    """the capitals of each block's alphabet line without what reaches above them: the keyboard's underscore,
+    typed on the line above, often prints low, over one of them"""
+    for t, oc in res:
+        if not oc or 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' not in t.replace(' ', ''): continue
+        caps = [o for o in oc if o['ch'] in 'ABDEHIKLMNPRTUVWXZ']
+        if len(caps) < 5: continue
+        top = float(np.median([o['top'] for o in caps]))
+        for o in oc:
+            if not o['ch'].isupper(): continue
+            cut = int(round(top - 3 - o['Y0']))
+            if cut > 0 and o['top'] < top - 3:
+                o['ink'][:cut] = 0
+                m = o['ink'] > 0.5
+                if not m.any(): continue
+                rows = np.nonzero(m.any(1))[0]; o['top'] = o['Y0'] + rows[0]
+
 def read_typed(entries, multi=None, name=None):
     """documents typed in a face (sources.TYPED): single lines, table rows, and blocks of lines"""
     lines, items, rows = [], [], []
@@ -431,13 +465,17 @@ def read_typed(entries, multi=None, name=None):
                 for o in oc: o['base'] = base
     return res, lines
 
-TYPED = [f + 'Typed' for f in S.TYPED]
+TYPED = [f + 'Typed' for f in S.TYPED] + [f + 'Set' for f in S.TYPESET]
 FACES = ['Modern', 'ModernFI', 'Keyboard', 'Documentary', 'MidCentury', 'Arcadia', 'Doric', 'BoldFace1', 'BoldFace2', 'Charter']
 
 def read(face):
     """occurrences of every character of a face, and the brochure's Modern for the unit calibration"""
     if face == 'Modern':
         return read_jowa()
+    if face.endswith('Set'):  # the face's page of 'Typesetting with the IBM Executive'
+        res, lines = read_typed(S.TYPESET[face[:-3]], S.MULTI, face)
+        trim_capitals(res)
+        return res, lines
     if face in TYPED:         # documents typed in the face, for the characters the brochure lacks
         name = face[:-len('Typed')]
         return read_typed(S.TYPED[name], {**S.MULTI, **S.TYPED_MULTI.get(name, {})}, name)

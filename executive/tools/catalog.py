@@ -16,7 +16,9 @@ HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import read as R
 
 PAGES = {'Modern': 399, 'Documentary': 424, 'MidCentury': 459, 'Arcadia': 533, 'Doric': 538,
-         'BoldFace1': 351, 'BoldFace2': 466, 'Charter': 464, 'Secretarial': 374, 'Registry': 527}
+         'BoldFace1': 351, 'BoldFace2': 466, 'Charter': 464, 'Secretarial': 374, 'Registry': 527,
+         'Text': 439, 'BoldFaceItalic': 523, 'Heritage': 525, 'Directory': 529, 'Testimonial': 531,
+         'Copperplate2': 535, 'Patron': 536}
 UPPER = ['ABCDEFGHIJKLMNOPQRST', 'UVWXYZ']
 LOWER = ['abcdefghijklmnopqrst', 'uvwxyz']
 # Arcadia's widths as printed (read from the scan), to make the digit templates
@@ -32,7 +34,9 @@ READ_BY_EYE = {'Arcadia': {'!': 3, ':': 2, ';': 2, '"': 3, '?': 4, '/': 3, '£':
 ALL_PAGES = {'BoldFace1': [351, 352, 370, 371, 372, 373], 'Modern': [399, 400, 401, 402, 421, 422, 423],
              'Documentary': [424, 425, 426, 427], 'MidCentury': [459, 460, 461, 462], 'Charter': [464, 465],
              'BoldFace2': [466, 480, 501], 'Arcadia': [533, 534], 'Doric': [538, 539],
-             'Secretarial': [374, 375, 376, 388], 'Registry': [527, 528]}
+             'Secretarial': [374, 375, 376, 388], 'Registry': [527, 528], 'Text': [439, 440],
+             'BoldFaceItalic': [523, 524], 'Heritage': [525, 526], 'Directory': [529, 530],
+             'Testimonial': [531, 532], 'Copperplate2': [535], 'Patron': [536], 'Copperplate1': [438]}
 
 def page(face, number=None):
     n = number or PAGES[face]

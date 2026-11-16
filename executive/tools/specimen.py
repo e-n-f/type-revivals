@@ -52,6 +52,8 @@ for _f in VERSIONS:
     if _f != 'Modern': COMPARE[_f] = (_f, list(range(12)), 1.0)
 COMPARE['Secretarial'] = ('SecretarialTyped', list(range(8)), 0.6)        # the memo's first paragraphs
 COMPARE['Registry'] = ('RegistryTyped', list(range(10)), 0.5)             # the newsletter's paragraph
+from build import NEW_FACES
+for _f in NEW_FACES: COMPARE[_f] = (f'{_f}Set', list(range(9)), 0.6)      # its 'Typesetting' page
 
 def compare(face):
     src, lids, scale = COMPARE[face]

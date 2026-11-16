@@ -290,3 +290,51 @@ TYPED_COLUMNS = {'Registry': [(NL55_6, (680, 2570, 2320, 2690),
                                [('@', 28, 93), ('#', 93, 140), ('$', 158, 199), ('%', 208, 270), ('¢', 279, 315),
                                 ('&', 319, 375), ('*', 379, 425), ('(', 425, 447), (')', 460, 484), ('!', 547, 560),
                                 ('"', 577, 605), (':', 625, 640), ('?', 658, 694)])]}
+
+# ------------------------------------------------------------------------------ Typesetting with the IBM...
+# "Typesetting with the IBM Executive" (archive.org typesettingwithi0000gard): a page per face typed on the
+# Executive, all with the same paragraph, then the signs and the two alphabets.  Screenshots of the book's page
+# images (typesetting-<face>-<n>.png).  The keyboard's underscore is left out of the signs: it often prints a
+# line low, over a capital of the alphabet line (read.py trims what reaches above the capitals there).
+def _set_para(of='of', quotes=True):
+    q = '"color"' if quotes else 'color'
+    return ['The purpose of this paragraph is to show the various IBM Executive',
+            'types when set on different ratchet spacings and with different',
+            'percentages of reduction. These lines have purposely been set',
+            f'without right hand margination so that the true {q} of the type',
+            'will show. Consult the separate charts in this book to find out how',
+            f'wide to set a line to achieve a given reduction {of} the width you',
+            'want the final printed job to be.']
+_SIGNS = "§1234567890%‡='-.,#*¶/$†?!¢()@&+‘;:"
+_ALPHA = 'abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+_SETBOX = {'arcadia': (0, 238, 2090, 855), 'boldface1': (0, 295, 2114, 994), 'boldface2': (0, 242, 1982, 857),
+           'boldfaceitalic': (0, 225, 2400, 848), 'charter': (0, 273, 2032, 930),
+           'copperplate1': (0, 331, 2352, 1065), 'copperplate2': (0, 309, 2382, 1045),
+           'directory': (0, 372, 2520, 1372), 'documentary': (0, 329, 2552, 1064), 'heritage': (31, 322, 2426, 1115),
+           'midcentury': (0, 333, 2286, 1071), 'modern': (18, 272, 2594, 1013), 'patron': (0, 326, 2400, 1066),
+           'registry': (0, 305, 2350, 1059), 'secretarial': (0, 306, 2567, 1040),
+           'testimonial': (0, 290, 2538, 1041), 'text': (0, 261, 1864, 890)}
+_AT = {'modern', 'boldfaceitalic', 'copperplate1', 'copperplate2'}
+_SETSIGNS = {'boldfaceitalic': "§234567890-=1';/.,¶@#$%¢&*()+!\":?.,",
+             'patron': "1234567890-=';/.,!@#$%¢&*()+\":?.,",
+             # Copperplate: the small figures and signs (unshifted keys), then the large ones (shifted), which
+             # are named by their full-width forms here and in the font's ss01
+             # (one word: the gap between the sets is no wider than Copperplate's letter spacing)
+             'copperplate1': '1234567890()*$?-+.１２３４５６７８９０（）＊＄？－＋．',
+             'copperplate2': '1234567890()*$?-+.１２３４５６７８９０（）＊＄？－＋．'}
+_FACE = {'arcadia': 'Arcadia', 'boldface1': 'BoldFace1', 'boldface2': 'BoldFace2', 'boldfaceitalic': 'BoldFaceItalic',
+         'charter': 'Charter', 'copperplate1': 'Copperplate1', 'copperplate2': 'Copperplate2', 'directory': 'Directory',
+         'documentary': 'Documentary', 'heritage': 'Heritage', 'midcentury': 'MidCentury', 'modern': 'Modern',
+         'patron': 'Patron', 'registry': 'Registry', 'secretarial': 'Secretarial', 'testimonial': 'Testimonial',
+         'text': 'Text'}
+TYPESET = {}
+for _k, _box in _SETBOX.items():
+    _para = _set_para('at' if _k in _AT else 'of', quotes=not _k.startswith('copperplate'))
+    TYPESET[_FACE[_k]] = [(f'typesetting-{_k}-1.png', _box, _para + [_SETSIGNS.get(_k, _SIGNS), _ALPHA])]
+
+# Scans read through a correction: SHEAR un-slants an italic page (x + s*y) so its letters stand apart; OPEN
+# closes the small breaks in a faint print (a grey opening of k px)
+SHEAR = {'typesetting-boldfaceitalic-1.png': 0.32}
+OPEN = {}
+# GAMMA darkens a soft page's mid-tones (g ** gamma), so thin strokes stay joined to their letters
+GAMMA = {'typesetting-boldfaceitalic-1.png': 3.0, 'typesetting-boldface2-1.png': 2.0}

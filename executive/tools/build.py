@@ -30,10 +30,21 @@ BUILD = os.path.join(ROOT, 'build')
 VERSIONS = {'Modern': '1.005', 'Documentary': '1.007', 'MidCentury': '1.005', 'Arcadia': '1.007',
             'Doric': '1.006', 'BoldFace1': '1.007', 'BoldFace2': '1.006', 'Charter': '1.006',
             'Secretarial': '1.000', 'Registry': '1.000'}
+OLD_FACES = list(VERSIONS)
+# the faces whose main source is their page of 'Typesetting with the IBM Executive' (tools/units.py SET_FACES)
+NEW_FACES = ['Text', 'Directory', 'Testimonial', 'BoldFaceItalic', 'Copperplate1', 'Copperplate2', 'Patron']
+VERSIONS.update({f: '1.000' for f in NEW_FACES})
+# Raised for the signs § ‡ ¶ † ‘ from the 'Typesetting' pages
+VERSIONS.update(Modern='1.006', Documentary='1.008', MidCentury='1.006', Arcadia='1.008', Doric='1.006',
+                BoldFace1='1.008', BoldFace2='1.007', Charter='1.007', Secretarial='1.001', Registry='1.001')
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
          'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter',
-         'Secretarial': 'Secretarial', 'Registry': 'Registry'}
-BOLD = {'BoldFace1', 'BoldFace2'}
+         'Secretarial': 'Secretarial', 'Registry': 'Registry', 'Text': 'Text', 'Directory': 'Directory',
+         'Testimonial': 'Testimonial', 'BoldFaceItalic': 'Bold Face 1', 'Copperplate1': 'Copperplate Gothic 1',
+         'Copperplate2': 'Copperplate Gothic 2', 'Patron': 'Patron'}
+# Bold Face Italic is the italic of Bold Face 1 (IBM's 1972 catalogue: "Boldface Italic No. 1"): the same family
+ITALIC = {'BoldFaceItalic': -14.0}
+BOLD = {'BoldFace1', 'BoldFace2', 'BoldFaceItalic'}
 # where each face's glyphs come from, in order of preference: a character missing from the first source is
 # taken from the next.  Modern: the Jowa card (large, sharp) and the Finnish brochure for ` ´ §.
 # (source, the characters taken from it; None for all)
@@ -49,13 +60,21 @@ SOURCES['Charter'] = [('CharterTyped', 'W'), ('Charter', None), ('CharterTyped',
 # source of them, the characters chosen from its other cells (catalog.CHOSEN; Mid-Century's # among them, in
 # place of the letter's small raised one), and IBM's own widths
 from catalog import CHOSEN as _CHOSEN
-for _f in VERSIONS: SOURCES[_f].append((f'Catalog{_f}', 'wW' + ''.join(_CHOSEN.get(_f, {}))))
+for _f in OLD_FACES: SOURCES[_f].append((f'Catalog{_f}', 'wW' + ''.join(_CHOSEN.get(_f, {}))))
+# 'Typesetting with the IBM Executive': § ‡ ¶ † ‘, which no other source of these faces shows
+for _f in OLD_FACES: SOURCES[_f].append((f'{_f}Set', '§‡¶†‘'))
+# The new faces: their 'Typesetting' page, the catalogue filling in.  Bold Face Italic's page is soft (read
+# darkened, which thickens it), so its letters are the catalogue's and the page gives the rest.
+for _f in NEW_FACES: SOURCES[_f] = [(f'{_f}Set', None), (f'Catalog{_f}', None)]
+SOURCES['BoldFaceItalic'] = [('CatalogBoldFaceItalic', None), ('BoldFaceItalicSet', None)]
+SOURCES['Copperplate1'] = [('Copperplate1Set', None)]           # its catalogue page shows signs only
 # Faces with no brochure line (tools/units.py CATALOG_FACES): Secretarial's letters from the catalogue (the memo
 # typed in it is a faint photocopy), its signs and figures from the memo; Registry's from the newsletter typed in
 # it, the catalogue filling in.  MAIN: the source the others are scaled, thickened and levelled to.
 SOURCES['Secretarial'] = [('CatalogSecretarial', None), ('SecretarialTyped', None)]
 SOURCES['Registry'] = [('RegistryTyped', None), ('CatalogRegistry', None)]
-MAIN = {'Secretarial': 'CatalogSecretarial', 'Registry': 'RegistryTyped'}
+MAIN = {'Secretarial': 'CatalogSecretarial', 'Registry': 'RegistryTyped',
+        **{f: f'{f}Set' for f in NEW_FACES}, 'BoldFaceItalic': 'CatalogBoldFaceItalic'}
 # A source scaled so its letters are as tall as another's: the keyboard photograph's figures to the Jowa
 # card's (its unit fit is too rough to set the scale by), and the typed documents' letters to the brochure's
 # (the brochure's halftone thins the ink, so its letters print a few per cent smaller than typed ones).
@@ -63,15 +82,19 @@ MATCH_HEIGHTS = {'Keyboard': ('Modern', '0123456789'), 'MidCenturyTyped': ('MidC
                  'CharterTyped': ('Charter', 'EFHILTZxzvnmu'), 'ArcadiaTyped': ('Arcadia', 'EFHILTZxzvnmu'),
                  **{f'Catalog{f}': (f, 'EFHILTZxzvnmu') for f in VERSIONS},
                  'CatalogSecretarial': ('SecretarialTyped', 'EFHILTxzvnmu'),
-                 'CatalogRegistry': ('RegistryTyped', 'EFHILTZxzvnmu')}
+                 'CatalogRegistry': ('RegistryTyped', 'EFHILTZxzvnmu'),
+                 **{f'{f}Set': (MAIN.get(f, f), 'EFHILTZxzvnmu') for f in OLD_FACES},
+                 **{f'Catalog{f}': (f'{f}Set', 'EFHILTZxzvnmu') for f in NEW_FACES},
+                 'CatalogBoldFaceItalic': ('BoldFaceItalicSet', 'EFHILTZxzvnmu')}
 # printed sources, crisper than the typed ones: thickened to the face's weight (match_weight)
-REWEIGHT = {f'Catalog{f}' for f in VERSIONS} - {'CatalogSecretarial'}
+REWEIGHT = ({f'Catalog{f}' for f in VERSIONS} - {'CatalogSecretarial', 'CatalogBoldFaceItalic'}
+            | {f'{f}Set' for f in OLD_FACES} | {'BoldFaceItalicSet'})
 # Stylistic alternates: (source, character, feature, name).  Arcadia's one-storey a (IBM part 1112308), as the
 # Finnish brochure's machine had it; it has the a's width and place in its slug, and the accented a's get it
 # too.  Each alternate is also offered by salt.
 ALTERNATES = {'Arcadia': [('Arcadia', 'a', 'ss01', 'One-storey a')]}
 SPACE_FROM = {'Modern': 'ModernFI'}      # the Jowa text is justified foundry type: its word spaces vary
-SPACE_FROM.update(Secretarial='SecretarialTyped', Registry='RegistryTyped')
+SPACE_FROM.update(Secretarial='SecretarialTyped', Registry='RegistryTyped', **{f: f'{f}Set' for f in NEW_FACES})
 UPM = 1000
 PER_INCH = 6400                          # 200 font units to the 1/32 inch
 LINE = PER_INCH / 6                      # single spacing, six lines to the inch
@@ -163,6 +186,19 @@ def mask_rows(im, keep):
 def top_of(im): return im.bbox()[3]
 
 
+# sources read from an un-slanted scan (sources.SHEAR): their glyphs slanted back
+import sources as _S
+UNSHEAR = {'BoldFaceItalicSet': _S.SHEAR['typesetting-boldfaceitalic-1.png']}
+
+
+def slant(img, sh):
+    """img leaned right by sh (x + sh * height above its bottom), undoing the shear the scan was read with"""
+    H, W = img.ink.shape; pad = int(np.ceil(sh * H)) + 2
+    M = np.float32([[1, -sh, sh * (H - 1)], [0, 1, 0]])
+    ink = cv2.warpAffine(img.ink, M, (W + pad, H), flags=cv2.INTER_LINEAR)
+    return Img(ink, img.x0, img.top)
+
+
 def height(o):
     """an occurrence's ink's centre of mass, in pixels above its line's baseline"""
     a = o['ink']; return (o['base'] - o['Y0']) - float((a.sum(1) * np.arange(a.shape[0])).sum() / a.sum())
@@ -201,6 +237,7 @@ def glyph_images(face):
             u = (cat.get(ch) or next((t.units[ch] for t in srcs if ch in t.units), None)
                  or max(2, int(round(np.median([o['w'] for o in occs]) / s.p + 0.5))))
             img = average(occs, s.k)
+            if s.name in UNSHEAR: img = slant(img, UNSHEAR[s.name])
             if s.name in REWEIGHT: img, _ = match_weight(img, s, main)
             # the fitted offset in the slug holds only with the fitted width: where IBM's width differs (a
             # period fitted at 2 units, printed at 3), the glyph is centred
@@ -277,19 +314,22 @@ def match_weight(img, src, ref, chars='nmhu'):
         a, b = average(clean(src.by_char()[c]), src.k), average(clean(ref.by_char()[c]), ref.k)
         xh = top_of(b); sa, sb = stems(a, xh / 2), stems(b, xh / 2)
         if len(sa) == len(sb): diffs += [y - x for x, y in zip(sa, sb)]
-    r = int(round(np.median(diffs) / 2))
-    if r <= 0: return img, 0
+    if not diffs: return img, 0
+    d = int(round(np.median(diffs) / 2))                         # positive: thicken; negative: thin
+    if d == 0: return img, 0
+    r = abs(d)
     k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1))
-    ink = cv2.dilate(np.pad(img.ink, r), k)
-    # thickening grows the glyph by r on every side: scale it back to its height and width about its middle, so
-    # only its strokes are heavier (a catalogue W was 5 % taller than the capitals beside it)
+    ink = (cv2.dilate if d > 0 else cv2.erode)(np.pad(img.ink, r), k)
+    # thickening grows the glyph by r on every side (thinning shrinks it): scale it back to its height and width
+    # about its middle, so only its strokes change (a catalogue W was 5 % taller than the capitals beside it)
     m = img.ink > 0.5; ys = np.nonzero(m.any(1))[0]; xs = np.nonzero(m.any(0))[0]
+    if not len(ys) or min(len(ys), len(xs)) <= max(0, -2 * d) + 1: return img, 0   # too faint or small to change
     h, w = ys[-1] - ys[0] + 1, xs[-1] - xs[0] + 1
-    sy, sx = h / (h + 2 * r), w / (w + 2 * r)
+    sy, sx = h / (h + 2 * d), w / (w + 2 * d)
     cy, cx = r + (ys[0] + ys[-1]) / 2, r + (xs[0] + xs[-1]) / 2       # the ink's middle in the padded image
     M = np.float32([[sx, 0, cx * (1 - sx)], [0, sy, cy * (1 - sy)]])
     ink = cv2.warpAffine(ink, M, (ink.shape[1], ink.shape[0]), flags=cv2.INTER_LINEAR)
-    return Img(ink, img.x0 - r, img.top + r), 2 * r
+    return Img(ink, img.x0 - r, img.top + r), 2 * d
 
 
 def on_s(dollar, s):
@@ -337,6 +377,14 @@ def build(face):
                       src=srcs[0], n=0)
     # an accented letter printed but not composable (its accent found on no other letter) stays as printed
     features = []
+    large = [c for c in G if len(c) == 1 and 0xFF01 <= ord(c) <= 0xFF5E]   # Copperplate's shifted figures and signs
+    if large:
+        subs = []
+        for c in large:
+            base = chr(ord(c) - 0xFEE0); G[f'{base}.ss01'] = G.pop(c)
+            if base in G: subs.append((gname(base), gname(f'{base}.ss01')))
+        features.append(('ss01', 'Large figures and signs', sorted(subs)))
+        notes.append(f'ss01: {len(subs)} large figures and signs')
     for src, ch, feat, label in ALTERNATES.get(face, []):
         s = Source(src); alt = average(clean(s.by_char()[ch]), s.k)
         alt, thick = match_weight(alt, s, Source(MAIN.get(face, face)))
@@ -374,6 +422,7 @@ def build(face):
         if fig not in G and letter in G: cmap[ord(fig)] = gname(letter)
     cmap[0x20] = 'space'
     for u, ch in ALIAS.items():
+        if chr(u) in G: continue                       # the face has its own (a ‘ from 'Typesetting')
         if ch == ' ' or ch in G: cmap[u] = 'space' if ch == ' ' else gname(ch)
     print(f'{face}: {len(G)} characters ({len(composed)} composed), space {su} units from {n} gaps;'
           f' {"; ".join(notes)}')
@@ -383,7 +432,7 @@ def build(face):
 
 def font(face, otf=True, data=None):
     glyphs, adv, cmap, info = data or build(face)
-    family = 'Executive ' + NAMES[face]; style = 'Regular'
+    family = 'Executive ' + NAMES[face]; style = 'Italic' if face in ITALIC else 'Regular'
     psname = family.replace(' ', '').replace('-', '') + '-' + style
     VERSION = VERSIONS[face]
     order = ['.notdef', 'space'] + sorted(n for n in glyphs if n not in ('.notdef', 'space'))
@@ -415,7 +464,7 @@ def font(face, otf=True, data=None):
     fb.setupHorizontalHeader(ascent=asc, descent=desc, lineGap=gap)
     fb.setupNameTable({
         'familyName': family, 'styleName': style,
-        'uniqueFontIdentifier': f'{psname};{VERSION}', 'fullName': family,
+        'uniqueFontIdentifier': f'{psname};{VERSION}', 'fullName': family if style == 'Regular' else f'{family} {style}',
         'psName': psname, 'version': f'Version {VERSION}',
         'copyright': 'Traced from printed specimens of the Executive typewriter faces (1950s).',
         'description': f'A revival of the Executive proportional typewriter face {NAMES[face]} '
@@ -426,8 +475,9 @@ def font(face, otf=True, data=None):
                 usWinAscent=int(np.ceil(max(ymax, asc))), usWinDescent=int(np.ceil(max(-ymin, -desc))),
                 sxHeight=int(round(info['xh'])), sCapHeight=int(round(info['cap'])),
                 usWeightClass=700 if bold else 400, achVendID='NONE', fsType=0,
-                fsSelection=0x40 | 0x80, version=4)   # regular, use the typo metrics (OS/2 version 4)
-    fb.setupPost()
+                fsSelection=(0x01 if face in ITALIC else 0x40) | 0x80, version=4)   # use the typo metrics (OS/2 v4)
+    fb.setupPost(italicAngle=ITALIC.get(face, 0))
+    if face in ITALIC: fb.font['head'].macStyle = 2
     fb.font['head'].fontRevision = float(VERSION)
     if info.get('features'):
         fea = 'languagesystem DFLT dflt;\nlanguagesystem latn dflt;\n'
