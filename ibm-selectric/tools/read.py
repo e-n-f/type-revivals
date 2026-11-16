@@ -65,13 +65,22 @@ def lines_of(comps):
     for g, L in zip(groups, lines): L['comps'] = list(g['c'])
     for c in comps:
         if id(c) in ids: continue
-        inside = [L for L in lines if L['top'] - 0.15 * H <= c['cy'] <= L['base']]
+        # inside a line: within its height (a flat bar, such as an = bar, well inside it; an underscore just
+        # above the next line's capitals belongs to the line above)
+        flat = c['h'] < 0.3 * H and c['w'] > 0.5 * H
+        if flat:
+            # a crossbar or arm broken off its letter (T, E, F in a light print): over the top of a tall piece
+            # of a line, overlapping it
+            on = [L for L in lines for t in L['comps'] if t['h'] > 0.75 * H and
+                  min(t['x'] + t['w'], c['x'] + c['w']) - max(t['x'], c['x']) > 0 and abs(c['cy'] - t['y']) < 0.35 * H]
+            if on: on[0]['comps'].append(c); continue
+        inside = [L for L in lines if L['top'] + (0.25 if flat else -0.15) * H <= c['cy'] <= L['base']]
         if inside: inside[0]['comps'].append(c); continue
         def cost(L):
             # an underscore: wide and flat, below its line's baseline by up to about a cap height
-            if c['h'] < 0.3 * H and c['w'] > 0.5 * H and L['base'] < c['cy'] < L['base'] + 1.1 * H: return 0.0
-            if c['cy'] > L['base']: return (c['cy'] - L['base']) / H          # comma, underscore: below
-            return 1.5 * (L['top'] - c['cy']) / H                              # an accent: above
+            if flat and L['base'] < c['cy'] < L['base'] + 1.1 * H: return -1.0
+            if c['cy'] > L['base']: return (c['cy'] - L['base']) / H          # comma: below
+            return 1.5 * max(0.0, L['top'] - c['cy']) / H                     # an accent: above
         best = min(lines, key=cost)
         if cost(best) < 0.9: best['comps'].append(c)
     return lines, H
