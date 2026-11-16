@@ -61,11 +61,15 @@ python3 tools/specimen.py    # specimen/
    lines, fits the block's pitch and each line's phase (the lattice that puts the most character centres in
    the middle of a cell), and puts every piece of ink in the cell of its centre. A piece wider than a cell
    (touching characters) is cut at the cells' edges, unless the slice is only the tail of a stroke (Script).
-   The occupied cells fall into runs, which are matched to the text's words by their lengths.
+   The occupied cells fall into runs, which are matched to the text's words by their lengths. Each line then
+   fits its own pitch and phase to its characters, and its baseline as a sloped line (the scans are a little
+   skewed).
 2. **Averaging and tracing** (`build.py`, `common/glyphs.py`, `common/trace.py`). Every occurrence of a
    character, measured from the centre of its cell, is scaled to font units and aligned to the others by
    phase correlation. Occurrences of the wrong size or shape are dropped, the rest averaged, and the 50 % ink
-   contour traced into Bézier curves.
+   contour traced into Bézier curves. A print is dropped if it has much less ink than the character's fullest
+   print (one printing's Scribe figures are broken), if it lies far from where the others sit in their cells, or
+   (from a paragraph) if it doesn't look like the character's alphabet-line print.
 
 ## Not yet done
 
