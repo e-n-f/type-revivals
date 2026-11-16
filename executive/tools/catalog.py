@@ -16,7 +16,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import read as R
 
 PAGES = {'Modern': 399, 'Documentary': 424, 'MidCentury': 459, 'Arcadia': 533, 'Doric': 538,
-         'BoldFace1': 351, 'BoldFace2': 466, 'Charter': 464}
+         'BoldFace1': 351, 'BoldFace2': 466, 'Charter': 464, 'Secretarial': 374, 'Registry': 527}
 UPPER = ['ABCDEFGHIJKLMNOPQRST', 'UVWXYZ']
 LOWER = ['abcdefghijklmnopqrst', 'uvwxyz']
 # Arcadia's widths as printed (read from the scan), to make the digit templates
@@ -31,7 +31,8 @@ READ_BY_EYE = {'Arcadia': {'!': 3, ':': 2, ';': 2, '"': 3, '?': 4, '/': 3, '£':
 # all of each face's pages in the catalogue
 ALL_PAGES = {'BoldFace1': [351, 352, 370, 371, 372, 373], 'Modern': [399, 400, 401, 402, 421, 422, 423],
              'Documentary': [424, 425, 426, 427], 'MidCentury': [459, 460, 461, 462], 'Charter': [464, 465],
-             'BoldFace2': [466, 480, 501], 'Arcadia': [533, 534], 'Doric': [538, 539]}
+             'BoldFace2': [466, 480, 501], 'Arcadia': [533, 534], 'Doric': [538, 539],
+             'Secretarial': [374, 375, 376, 388], 'Registry': [527, 528]}
 
 def page(face, number=None):
     n = number or PAGES[face]
@@ -137,7 +138,9 @@ def identify(face, row, lower):
     from fontTools.ttLib import TTFont
     from PIL import ImageFont
     from scipy.optimize import linear_sum_assignment
-    font = ImageFont.truetype(os.path.join(R.ROOT, 'fonts', 'otf', f'Executive{face}-Regular.otf'), 200)
+    path = os.path.join(R.ROOT, 'fonts', 'otf', f'Executive{face}-Regular.otf')
+    if not os.path.exists(path): return {i: o['ch'] for i, o in enumerate(row)}     # no font yet: the grid's order
+    font = ImageFont.truetype(path, 200)
     def norm(a):
         ys, xs = np.nonzero(a > 0.5)
         c = a[ys.min():ys.max() + 1, xs.min():xs.max() + 1].astype(np.float32)
@@ -320,6 +323,16 @@ CHOSEN = {
     # Charter's < > [ ]: IBM parts 1199012, 1199008, 1122702 and 1122704, cleaner than the BCD table's
     'Charter': {'"': (464, 4, 6, U), '^': (464, 4, 16, U), '_': (464, 11, 20, L), '<': (465, 7, 12, U),
                 '>': (464, 7, 8, U), '[': (464, 6, 12, U), ']': (464, 11, 11, U)},
+    'Secretarial': {'!': (388, 1, 1, L), '"': (388, 3, 10, U), '$': (388, 3, 1, U), '%': (376, 3, 4, L),
+                    '@': (376, 3, 2, U), "'": (374, 10, 19, L), '(': (375, 7, 15, L), ')': (375, 9, 1, U),
+                    '*': (375, 1, 11, U), '+': (374, 13, 14, U), ',': (376, 10, 9, L), '-': (376, 11, 9, L),
+                    '.': (376, 9, 1, U), '/': (376, 12, 17, L), '2': (374, 8, 1, L), '3': (374, 9, 3, U),
+                    '4': (374, 11, 11, L), '5': (374, 13, 7, L), '6': (375, 2, 14, L), '7': (375, 4, 17, L),
+                    '8': (375, 6, 15, L), '9': (375, 8, 17, U), ':': (375, 8, 19, L), ';': (376, 6, 7, L),
+                    '=': (375, 2, 4, U), '?': (375, 1, 18, U), '_': (376, 11, 7, U), '|': (388, 8, 4, U)},
+    # Registry's figures and most signs are on the newsletter page typed in it
+    'Registry': {'=': (527, 5, 12, U), '+': (527, 5, 10, U), ']': (528, 1, 11, U), '[': (528, 1, 12, U),
+                 '<': (528, 8, 5, U), '½': (527, 4, 4, U), '¼': (527, 6, 3, U)},
 }
 # The widths of characters the fonts have, where the catalogue's cells agree (read from the same sheets).
 # The period and comma are 3 units where the fits gave 2: a period is nearly always followed by a space, so the
@@ -415,8 +428,10 @@ def digit_templates():
         if dig.get(ch) is not None: templates.setdefault(u, []).append(dig[ch])
     first = {}
     for face in PAGES:
+        path = os.path.join(R.BUILD, f'units-{face}.json')
+        if not os.path.exists(path): continue            # a face with no brochure fit (Secretarial, Registry)
         occ, dig, units = read_face(face, templates)
-        fit = json.load(open(os.path.join(R.BUILD, f'units-{face}.json')))['units']
+        fit = json.load(open(path))['units']
         for ch, u in units.items():
             if fit.get(ch) == u and dig.get(ch) is not None: first.setdefault(u, []).append(dig[ch])
     return first

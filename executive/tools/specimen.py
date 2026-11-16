@@ -50,6 +50,8 @@ def lines():
 COMPARE = {'Modern': ('Modern', [0, 1, 2, 3, 4, 5, 6, 7], 0.3)}
 for _f in VERSIONS:
     if _f != 'Modern': COMPARE[_f] = (_f, list(range(12)), 1.0)
+COMPARE['Secretarial'] = ('SecretarialTyped', list(range(8)), 0.6)        # the memo's first paragraphs
+COMPARE['Registry'] = ('RegistryTyped', list(range(10)), 0.5)             # the newsletter's paragraph
 
 def compare(face):
     src, lids, scale = COMPARE[face]

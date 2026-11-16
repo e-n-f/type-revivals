@@ -28,9 +28,11 @@ BUILD = os.path.join(ROOT, 'build')
 # Each font's version, in the head table and the name table.  Raise a font's version with every change to
 # that font, or font managers treat the new file as a duplicate of the installed one (see CONTRIBUTING.md).
 VERSIONS = {'Modern': '1.005', 'Documentary': '1.007', 'MidCentury': '1.005', 'Arcadia': '1.007',
-            'Doric': '1.006', 'BoldFace1': '1.007', 'BoldFace2': '1.006', 'Charter': '1.006'}
+            'Doric': '1.006', 'BoldFace1': '1.007', 'BoldFace2': '1.006', 'Charter': '1.006',
+            'Secretarial': '1.000', 'Registry': '1.000'}
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
-         'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter'}
+         'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter',
+         'Secretarial': 'Secretarial', 'Registry': 'Registry'}
 BOLD = {'BoldFace1', 'BoldFace2'}
 # where each face's glyphs come from, in order of preference: a character missing from the first source is
 # taken from the next.  Modern: the Jowa card (large, sharp) and the Finnish brochure for ` ´ §.
@@ -48,19 +50,28 @@ SOURCES['Charter'] = [('CharterTyped', 'W'), ('Charter', None), ('CharterTyped',
 # place of the letter's small raised one), and IBM's own widths
 from catalog import CHOSEN as _CHOSEN
 for _f in VERSIONS: SOURCES[_f].append((f'Catalog{_f}', 'wW' + ''.join(_CHOSEN.get(_f, {}))))
+# Faces with no brochure line (tools/units.py CATALOG_FACES): Secretarial's letters from the catalogue (the memo
+# typed in it is a faint photocopy), its signs and figures from the memo; Registry's from the newsletter typed in
+# it, the catalogue filling in.  MAIN: the source the others are scaled, thickened and levelled to.
+SOURCES['Secretarial'] = [('CatalogSecretarial', None), ('SecretarialTyped', None)]
+SOURCES['Registry'] = [('RegistryTyped', None), ('CatalogRegistry', None)]
+MAIN = {'Secretarial': 'CatalogSecretarial', 'Registry': 'RegistryTyped'}
 # A source scaled so its letters are as tall as another's: the keyboard photograph's figures to the Jowa
 # card's (its unit fit is too rough to set the scale by), and the typed documents' letters to the brochure's
 # (the brochure's halftone thins the ink, so its letters print a few per cent smaller than typed ones).
 MATCH_HEIGHTS = {'Keyboard': ('Modern', '0123456789'), 'MidCenturyTyped': ('MidCentury', 'EFHILTZxzvnmu'),
                  'CharterTyped': ('Charter', 'EFHILTZxzvnmu'), 'ArcadiaTyped': ('Arcadia', 'EFHILTZxzvnmu'),
-                 **{f'Catalog{f}': (f, 'EFHILTZxzvnmu') for f in VERSIONS}}
+                 **{f'Catalog{f}': (f, 'EFHILTZxzvnmu') for f in VERSIONS},
+                 'CatalogSecretarial': ('SecretarialTyped', 'EFHILTxzvnmu'),
+                 'CatalogRegistry': ('RegistryTyped', 'EFHILTZxzvnmu')}
 # printed sources, crisper than the typed ones: thickened to the face's weight (match_weight)
-REWEIGHT = {f'Catalog{f}' for f in VERSIONS}
+REWEIGHT = {f'Catalog{f}' for f in VERSIONS} - {'CatalogSecretarial'}
 # Stylistic alternates: (source, character, feature, name).  Arcadia's one-storey a (IBM part 1112308), as the
 # Finnish brochure's machine had it; it has the a's width and place in its slug, and the accented a's get it
 # too.  Each alternate is also offered by salt.
 ALTERNATES = {'Arcadia': [('Arcadia', 'a', 'ss01', 'One-storey a')]}
 SPACE_FROM = {'Modern': 'ModernFI'}      # the Jowa text is justified foundry type: its word spaces vary
+SPACE_FROM.update(Secretarial='SecretarialTyped', Registry='RegistryTyped')
 UPM = 1000
 PER_INCH = 6400                          # 200 font units to the 1/32 inch
 LINE = PER_INCH / 6                      # single spacing, six lines to the inch
@@ -177,7 +188,7 @@ def level(occs, s, main):
 def glyph_images(face):
     """{char: (Img in font units, baseline at y = 0, ink placed anywhere), units, offset in font units, source}"""
     srcs = [Source(s) for s, _ in SOURCES[face]]
-    main = Source(face)                    # the face's own (brochure or Jowa) letters, for the weight
+    main = Source(MAIN.get(face, face))    # the face's own (brochure or Jowa) letters, for the weight
     cat = json.load(open(os.path.join(BUILD, 'catalog-units.json'))).get(face, {})
     G = {}
     for s, (_, only) in zip(srcs, SOURCES[face]):
@@ -328,7 +339,7 @@ def build(face):
     features = []
     for src, ch, feat, label in ALTERNATES.get(face, []):
         s = Source(src); alt = average(clean(s.by_char()[ch]), s.k)
-        alt, thick = match_weight(alt, s, Source(face))
+        alt, thick = match_weight(alt, s, Source(MAIN.get(face, face)))
         subs = [(ch, f'{ch}.{feat}')]
         G[f'{ch}.{feat}'] = dict(G[ch], img=alt, n=len(s.by_char()[ch]))
         for acc in composed:        # its accented forms, with the same accents in the same places
@@ -358,6 +369,9 @@ def build(face):
                           ('L', (340, 0), (60, 0))]]
     adv['.notdef'] = 400
     cmap = {ord(ch): gname(ch) for ch in G if len(ch) == 1}
+    # a face with no 1 or 0 (Secretarial: its keyboard had none): typed with the l and the O, as on the machine
+    for fig, letter in (('1', 'l'), ('0', 'O')):
+        if fig not in G and letter in G: cmap[ord(fig)] = gname(letter)
     cmap[0x20] = 'space'
     for u, ch in ALIAS.items():
         if ch == ' ' or ch in G: cmap[u] = 'space' if ch == ' ' else gname(ch)

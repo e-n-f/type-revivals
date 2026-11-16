@@ -176,6 +176,32 @@ def run_typed(face, dpi=300):
     json.dump(dict(pitch=p, escapement=esc, units=units, offset={}, rule={c: 'typed' for c in units}, rms=rms),
               open(os.path.join(R.BUILD, f'units-{face}Typed.json'), 'w'), indent=1, ensure_ascii=False)
 
+# Faces with no brochure line: their typed page fitted with the catalogue's widths.  The escapement from the
+# unit in pixels: the memo is scanned at 300 dpi; the newsletter's scale is that of its page 5, whose Arcadia
+# (1/32 inch) has a 17.00 px unit.
+CATALOG_FACES = {'Secretarial': 300.0, 'Registry': 32 * 17.00}
+
+def run_catalog_typed(face, dpi):
+    cat = json.load(open(os.path.join(R.BUILD, 'catalog-units.json')))[face]
+    res = pickle.load(open(os.path.join(R.BUILD, f'occ-{face}Typed.pkl'), 'rb'))
+    occ = [o for _, oc in res if oc for o in oc]
+    pr = pairs_of(occ); ink = inkw(occ)
+    S_ = np.array([(cat[a] + cat[b]) / 2 for a, b, _ in pr if a in cat and b in cat])
+    D = np.array([d for a, b, d in pr if a in cat and b in cat])
+    p = float(S_ @ D / (S_ @ S_))
+    for _ in range(3):
+        keep = np.abs(D - p * S_) < 0.6 * p
+        p = float(S_[keep] @ D[keep] / (S_[keep] @ S_[keep]))
+    esc = min((32, 36, 45), key=lambda e: abs(dpi / e - p))
+    # the characters the catalogue's alphabet doesn't give: from their pairs, as for a brochure face
+    w, d, m, cnt, rms, rej = solve(pr, ink, p, {c: cat.get(c, max(2, round(ink[c] / p + 0.5))) for c in ink})
+    units = {c: cat.get(c, max(2, round(w[c] / p)) if c in w else max(2, round(ink[c] / p + m / p))) for c in ink}
+    for c in ink: cnt.setdefault(c, 0)
+    print(f'{face}Typed: unit {p:.2f} px -> 1/{esc} inch ({dpi / esc:.2f} px), rms {rms:.2f} px over {len(pr)} pairs;'
+          f' widths not in the catalogue: {dict((c, units[c]) for c in sorted(units) if c not in cat)}')
+    json.dump(dict(pitch=p, escapement=esc, units=units, offset=d, ink=ink, count=cnt, rule={}, rms=rms, margin=m / p),
+              open(os.path.join(R.BUILD, f'units-{face}Typed.json'), 'w'), indent=1, ensure_ascii=False)
+
 if __name__ == '__main__':
     faces = [a for a in sys.argv[1:] if a in R.FACES + R.TYPED] or R.FACES + R.TYPED
     (p32, fi), std = run('ModernFI'), run('Modern')[1]       # the 1/32 calibration, and the machine's table
@@ -184,4 +210,6 @@ if __name__ == '__main__':
         elif face in R.TYPED: pass
         elif face not in ('Modern', 'ModernFI'): run(face, std, p32)
     for face in faces:              # after the faces' own tables
-        if face in R.TYPED: run_typed(face[:-len('Typed')])
+        if face in R.TYPED and face[:-len('Typed')] in CATALOG_FACES:
+            run_catalog_typed(face[:-len('Typed')], CATALOG_FACES[face[:-len('Typed')]])
+        elif face in R.TYPED: run_typed(face[:-len('Typed')])
