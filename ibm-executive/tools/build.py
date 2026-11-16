@@ -294,7 +294,7 @@ def font(face, otf=True, data=None):
                 usWinAscent=int(np.ceil(max(ymax, asc))), usWinDescent=int(np.ceil(max(-ymin, -desc))),
                 sxHeight=int(round(info['xh'])), sCapHeight=int(round(info['cap'])),
                 usWeightClass=700 if bold else 400, achVendID='NONE', fsType=0,
-                fsSelection=0x40 | 0x80)   # regular, use the typo metrics
+                fsSelection=0x40 | 0x80, version=4)   # regular, use the typo metrics (OS/2 version 4)
     fb.setupPost()
     fb.font['head'].fontRevision = float(VERSION)
     d = os.path.join(ROOT, 'fonts', 'otf' if otf else 'ttf')
