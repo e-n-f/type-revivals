@@ -19,8 +19,8 @@ keep those widths exactly, so text set in them falls where the machine would hav
 | Exec Charter | Charter | 1/45 inch | Finnish brochure; BCD code table of 1962 | `ExecCharter-Regular` |
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
-[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Exec Modern and Mid-Century 1.000;
-Documentary, Doric, Bold Face 1 and 2 and Charter 1.001; and Arcadia 1.002. Every face takes its w and W
+[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Exec Modern and Mid-Century 1.001;
+Charter 1.002; Documentary, Doric, Bold Face 1 and 2 1.003; and Arcadia 1.004. Every face takes its w and W
 (where nothing better has them) and its letters' widths from IBM's 1972 catalogue. The sources are listed in
 [`scans/README.md`](scans/README.md).
 
@@ -45,7 +45,7 @@ gives every character an offset from the centre of its slug, as well as its widt
 - **The brochure faces** have what the Finnish brochure shows: a–z and A–Z without w and W, å ä ö ü Å Ä Ö, the
   figures, `. , -` and the symbols the brochure prints for each face (`+ § = % ? & ( ) / £` and some of
   `! $ " ` ´`). Documentary's `` ` `` and Arcadia's `´` printed too faintly to trace.
-- **Exec Mid-Century** also has `w W : ; " # *` from a letter typed in it (the `#` small and raised, as typed),
+- **Exec Mid-Century** also has `w W : ; " *` from a letter typed in it,
   and **Exec Charter** has `W [ ] < > ; : * ' # @ ! \` from a code table typed in it.
 - **Exec Arcadia** has the two-storey a, w and `: ; ' " @ # $ ¢ * _` from IBM's 1955 newsletter that announced
   the face, typed in it. Its **`ss01`** (also in `salt`) gives the brochure's one-storey a, with à ä å.
@@ -59,6 +59,11 @@ gives every character an offset from the centre of its slug, as well as its widt
   brochure faces compose ä å ö ü, á à é è ë í ì ï ó ò ú ù ý ÿ, Å Ä Ö Ü and Á À É È Ó Ò Ú Ù Ý where the face shows
   the acute and grave. A capital's accent missing from a scan is the lower-case one, raised by the difference
   between the cap height and the x-height. ç Ç ø Ø ß are traced as printed. ¨ ´ ` are also spacing glyphs.
+- **More of ASCII from IBM's catalogue.** Characters a font still lacked are traced from the catalogue's
+  cells, chosen by eye among the candidates `catalog.py survey` finds (`CHOSEN` in `tools/catalog.py`):
+  Modern `= ^`; Documentary `! # ' * : ; = [ ] _`; Mid-Century `! ' # @ [ ] { } ^ ~`; Arcadia `< > [ ] ^`;
+  Doric `! " ' * : ; [ ] ^`; Bold Face 1 `" # $ ' * : ; @ ^`; Bold Face 2 `! " ' * : ; [ ] ^`; Charter `" ^ _`.
+  The catalogue has no `\` or `|` for any of the faces, and `{ } ~` and `< >` only where listed.
 - `)` is the `(` turned round in Modern, whose card has only the `(`. The typographic quotes ‘ ’ “ ” map to the
   typewriter's straight `'` and `"`.
 
@@ -99,8 +104,11 @@ in a grid, each with its width in units printed beside it. `tools/catalog.py` re
 Each cell's letter is identified against the face's font, because the grid's order varies: Documentary has T
 before S. Each cell's width digit is read against templates. Of the fitted widths, all but three agree with
 IBM's: Documentary's Y is 4, not 5; Arcadia's A is 3, not the 4 of the common table; and Charter's O is 4, not
-3. The build takes all 52 letters' widths from the catalogue. Arcadia's punctuation widths were read from its
-page by eye (`READ_BY_EYE`): `! ? / &` are 3, 4, 3 and 4 units, where the common table had 2, 3, 2 and 3.
+3. The build takes all 52 letters' widths from the catalogue. Each face's punctuation widths were read from its
+pages too (`READ_BY_EYE` for Arcadia, `WIDTHS` for the others), where the cells agree. Most often the period
+and comma are 3 units where the fits gave 2 (a period is nearly always followed by a space, so the pairs saw
+only one side of it), `/` is 3 rather than 2, and `?` 4 rather than 3. A character can appear in several cells
+with different widths, for different keyboard arrangements; the widths taken are the ones its cells agree on.
 
 The fitted widths also agree with IBM's own table, typed in Bold Face #1 on the sheet `typed-bold-face-1-units.jpg`
 ("flitj;': 2 units; qeryuopasdghkzxcvbnSJ!#$¢*"_: 3 units; …: 4 units; mWM: 5 units"). The exceptions are the `!`,
@@ -117,9 +125,8 @@ two-storey one, and the brochure's is `ss01`.
 
 ## Not yet done
 
-- The catalogue shows every face's full character set, alternates included. Only the alphabets, and Arcadia's
-  punctuation widths, are read from it so far. The other faces' punctuation widths still come from the common
-  table where the brochure shows a character too few times to fit it.
+- The catalogue shows every face's alternates too (other forms of letters, figures and signs, fractions,
+  accented capitals); only what ASCII needs is taken from it so far.
 - A memo by R. W. Bemer (7 November 1961), offered as Arcadia, is in IBM's
   **Secretarial**. It has the same wide monoline slab serif as the sheet's Secretarial sample: the
   ball-terminal r and c, the two-storey a with a curved tail, the curve-tailed y, the open one-storey g and

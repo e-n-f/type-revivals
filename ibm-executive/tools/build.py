@@ -27,8 +27,8 @@ ROOT = os.path.join(HERE, '..')
 BUILD = os.path.join(ROOT, 'build')
 # Each font's version, in the head table and the name table.  Raise a font's version with every change to
 # that font, or font managers treat the new file as a duplicate of the installed one (see CONTRIBUTING.md).
-VERSIONS = {'Modern': '1.000', 'Documentary': '1.002', 'MidCentury': '1.000', 'Arcadia': '1.003',
-            'Doric': '1.002', 'BoldFace1': '1.002', 'BoldFace2': '1.002', 'Charter': '1.001'}
+VERSIONS = {'Modern': '1.001', 'Documentary': '1.003', 'MidCentury': '1.001', 'Arcadia': '1.004',
+            'Doric': '1.003', 'BoldFace1': '1.003', 'BoldFace2': '1.003', 'Charter': '1.002'}
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
          'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter'}
 BOLD = {'BoldFace1', 'BoldFace2'}
@@ -38,14 +38,16 @@ BOLD = {'BoldFace1', 'BoldFace2'}
 SOURCES = {f: [(f, None)] for f in VERSIONS}
 SOURCES['Modern'] = [('Modern', None), ('ModernFI', '`´§&'), ('Keyboard', '@#¢_')]
 # documents typed in the faces, for what the brochure lacks (a real w and W among it)
-SOURCES['MidCentury'] = [('MidCenturyTyped', 'wW'), ('MidCentury', None), ('MidCenturyTyped', ':;"#*')]
+SOURCES['MidCentury'] = [('MidCenturyTyped', 'wW'), ('MidCentury', None), ('MidCenturyTyped', ':;"*')]
 # Arcadia's a: the two-storey one of the 1955 newsletter that announced the face (and of IBM's catalogue);
 # the brochure's machine had the one-storey alternate, which is ss01
 SOURCES['Arcadia'] = [('ArcadiaTyped', 'aw'), ('Arcadia', None), ('ArcadiaTyped', ':;\'"@#$¢*_')]
 SOURCES['Charter'] = [('CharterTyped', 'W'), ('Charter', None), ('CharterTyped', '[]<>;:*\'#@!\\')]
 # IBM's 1972 "Type Available" catalogue (tools/catalog.py): a real w and W for every face that has no other
-# source of them, and IBM's own widths for the 52 letters
-for _f in VERSIONS: SOURCES[_f].append((f'Catalog{_f}', 'wW'))
+# source of them, the characters chosen from its other cells (catalog.CHOSEN; Mid-Century's # among them, in
+# place of the letter's small raised one), and IBM's own widths
+from catalog import CHOSEN as _CHOSEN
+for _f in VERSIONS: SOURCES[_f].append((f'Catalog{_f}', 'wW' + ''.join(_CHOSEN.get(_f, {}))))
 # A source scaled so its letters are as tall as another's: the keyboard photograph's figures to the Jowa
 # card's (its unit fit is too rough to set the scale by), and the typed documents' letters to the brochure's
 # (the brochure's halftone thins the ink, so its letters print a few per cent smaller than typed ones).
