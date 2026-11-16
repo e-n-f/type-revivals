@@ -18,6 +18,7 @@ one. The fonts are monospaced to match, so text set in them lines up as it did o
 | Selectric Orator | 10 | Selectric Adjutant | 12 |
 | Selectric ANSI OCR | 10 | Selectric Artisan 12 | 12 |
 | Selectric AN3 360 | 10 | Selectric Dual Gothic | 12 |
+| Selectric Printing and Publishing 2 | 10 | | |
 | | | Selectric Light Italic | 12 |
 | | | Selectric Script | 12 |
 
@@ -48,6 +49,9 @@ Each face has what its brochure line shows: A–Z, a–z, the figures, and `! @ 
   upright `"` and `'`, and `¬`. It has no `( ) ¢ ½ ¼ ,`; the `-` and `_` are its short and long dashes. The
   specimen shows its `:` and `;` the wrong way round (OCR-A's two-dot colon in the `;` place); here they are swapped
   back.
+- **Selectric Printing and Publishing 2** is the "Perry Font" (REI-X04), for Recognition Equipment's scanners:
+  a monoline face with a hooked e and g. Its signs are `! ¶ @ $ % ⁄ & * ( ) - — { } ¤ △ ? / + = : ; , .` on the
+  keys where the text faces have `!@#$%¢&*()-_=+½¼?/"':;,.`; the long dash is also on `_`. Version 1.000.
 - **Selectric AN3 360** matches IBM's AN3 chain and train printer type of System/360. Its lower case is small capitals,
   like Orator's, and its signs are `‡ @ # $ % ¤ & * ( ) - _ = + < > ? / ° ' : ; , .` (no `!`, `"` or `¢`).
 
@@ -84,5 +88,5 @@ python3 tools/specimen.py    # specimen/
 
 - The signs and rarer letters have only two prints, one from each printing. Brochure b (about 1970, different
   texts) would give a third.
-- The other OCR faces (AN3/360 Bold, OF-2, 915, 12L2/12F2, 1403, Printing and Publishing 2 and 3; USASI and
+- The other OCR faces (AN3/360 Bold, DF-2, 915, 12L2/12F2, 1403, Printing and Publishing 2 and 3; USASI and
   Communications in brochure b) and the Symbol 10 and 12 elements aren't made yet.

@@ -163,3 +163,12 @@ _AN3 = ['IBM AN3/360 Type style lower case, alphabetic characters,',
         'AN3 style popular on IBM System/360 chain/train printers.']
 FACES['AN3360'] = [(A5, X + (1869, 2494), 10, para(*_AN3, symbols=OCR_SYM['AN3360'])),
                    (C4, XC + (1822, 2448), 10, para(*_AN3, symbols=OCR_SYM['AN3360']))]
+# Printing and Publishing 2, "also known as the Perry Font" (REI-X04): the last block of the OCR pages.  Its signs
+# are on the keys where the text faces have !@#$%¢&*()-_=+½¼?/"':;,.; the short slash on the ¢ key is ⁄ here,
+# the long dash on the _ key —.  The X04's 0 is read but not used ('·'): it could be an O.
+OCR_SYM['PrintingPublishing2'] = '!¶@$%⁄&*()-—{}¤△?/+=:;,.'
+_PP2 = ['IBM PRINTING AND PUBLISHING 2 Type is designed for applica-',
+        'tions involving REI scanners. Also known as the Perry Font,',
+        'it is identified as REI-X·4 by Recognition Equipment Inc.']
+FACES['PrintingPublishing2'] = [(A5, X + (5588, 6250), 10, para(*_PP2, symbols=OCR_SYM['PrintingPublishing2'])),
+                                (C4, XC + (5557, 6200), 10, para(*_PP2, symbols=OCR_SYM['PrintingPublishing2']))]
