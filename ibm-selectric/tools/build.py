@@ -14,7 +14,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(HERE, '..', '..', 'common'))
 import trace
 from fontio import draw, autohint
-from glyphs import average
+from glyphs import Img, place
 import sources as S
 from fontTools.fontBuilder import FontBuilder
 from fontTools.pens.t2CharStringPen import T2CharStringPen
@@ -38,6 +38,7 @@ ITALIC = {'Courier12Italic': -12.0, 'LightItalic': -12.0, 'Script': -10.0}
 CAPS_ONLY = {'Manifold72'}            # the lower-case keys type the capitals
 UPM, ADV = 1000, 600
 SIGMA = 0.6                           # smoothing of the traced ink, in pixels of the scan
+MAXSHIFT = 60                         # the largest correction registration may make, in font units (5 px)
 # typographic quotes typed with the typewriter's straight ones
 ALIAS = {0x2018: "'", 0x2019: "'", 0x201C: '"', 0x201D: '"', 0xA0: ' '}
 
@@ -92,10 +93,25 @@ def register(occs, k):
             M = np.float32([[1, 0, a.x0 - x0 + 20], [0, 1, top - a.top + 20]])
             return cv2.warpAffine(a.ink, M, (W, H), flags=cv2.INTER_LINEAR)
         (dx, dy), resp = cv2.phaseCorrelate(put(im), put(r), cv2.createHanningWindow((W, H), cv2.CV_32F))
-        if abs(dx) > 0.25 * W or abs(dy) > 0.25 * H: out.append(o); continue
+        # only small corrections: the baseline fit already places a print within a few pixels, and phase
+        # correlation can't tell a shift along a long stem (a T's crossbar would end up anywhere)
+        if abs(dx) > MAXSHIFT or abs(dy) > MAXSHIFT: out.append(o); continue
         # move the occurrence by (dx, dy) font units: X0 and Y0 are in scan pixels, y down
         out.append(dict(o, X0=o['X0'] + dx / k, Y0=o['Y0'] + dy / k))
     return out
+
+
+def average(occs, k):
+    """the occurrences, placed and registered, averaged as they are (no further alignment)"""
+    ims = [place(o, k) for o in occs]
+    if len(ims) == 1: return ims[0]
+    import cv2
+    x0 = min(i.x0 for i in ims); top = max(i.top for i in ims)
+    x1 = max(i.x0 + i.ink.shape[1] for i in ims); bot = min(i.top - i.ink.shape[0] for i in ims)
+    W, H = int(np.ceil(x1 - x0)) + 2, int(np.ceil(top - bot)) + 2
+    stack = [cv2.warpAffine(i.ink, np.float32([[1, 0, i.x0 - x0], [0, 1, top - i.top]]), (W, H),
+                            flags=cv2.INTER_LINEAR) for i in ims]
+    return Img(np.mean(stack, 0), x0, top)
 
 
 def build(face):
