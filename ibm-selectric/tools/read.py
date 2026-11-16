@@ -114,6 +114,15 @@ def cells(L, p, lab, ink):
     """{cell number: ink of that cell (in line-block coordinates)}: each component in the cell of its centre;
     one spanning more than a cell (touching characters) is cut at the cells' edges"""
     c0 = phase(L, p); out = {}
+    # the line's own pitch and phase, fitted to its characters' centres: the block's pitch is a little off for
+    # some lines, and over fifty cells a fifth of a pixel adds up to ten
+    pts = [(round((c['cx'] - c0) / p), c['cx']) for c in L['comps'] if c['a'] > 40 and c['w'] < 1.2 * p]
+    if len(pts) >= 8:
+        ks, xs = np.array(pts, float).T; keep = np.ones(len(ks), bool)
+        for _ in range(3):
+            p1, c1 = np.polyfit(ks[keep], xs[keep], 1)
+            r = xs - (c1 + p1 * ks); keep = np.abs(r) < max(3.0, 2.5 * np.median(np.abs(r[keep])))
+        if abs(p1 - p) < 0.02 * p: p, c0 = float(p1), float(c1)
     typical = float(np.median([c['a'] for c in L['comps'] if c['a'] > 40]))
     for c in L['comps']:
         ks = [int(round((c['cx'] - c0) / p))]
@@ -131,7 +140,7 @@ def cells(L, p, lab, ink):
             if len(ks) > 1 and m.sum() < 0.3 * typical:
                 if out.get(k) is None: continue
             out.setdefault(k, []).append(m)
-    return out, c0
+    return out, c0, p
 
 def runs_of(ks):
     ks = sorted(ks); out = []
@@ -180,7 +189,7 @@ def read_block(scan, box, pitch, texts):
     p = fit_pitch(lines, dpi / pitch)
     occ = []; report = []
     for li, (L, text) in enumerate(zip(lines, texts)):
-        cs, c0 = cells(L, p, lab, ink)
+        cs, c0, pl = cells(L, p, lab, ink)
         runs = runs_of(cs)
         pairs, cost = align(text.split(), runs)
         # the baseline: a straight line through the feet of the characters that sit on it (the scans are a
@@ -189,7 +198,7 @@ def read_block(scan, box, pitch, texts):
         for ch, k in pairs:
             if ch in BASE:
                 m = np.any(cs[k], axis=0); ys, xs = np.nonzero(m)
-                feet.append((c0 + k * p, ys.max() + 1))
+                feet.append((c0 + k * pl, ys.max() + 1))
         a, b = L['base'], 0.0
         if len(feet) >= 4:
             fx, fy = np.array(feet, float).T; keep = np.ones(len(fx), bool)
@@ -202,7 +211,7 @@ def read_block(scan, box, pitch, texts):
             if ch == SKIP: continue
             m = np.any(cs[k], axis=0)
             # with the faint ink around the strokes (a light print's edges, below the threshold), within the cell
-            lo, hi = int(np.floor(c0 + (k - 0.6) * p)), int(np.ceil(c0 + (k + 0.6) * p))
+            lo, hi = int(np.floor(c0 + (k - 0.6) * pl)), int(np.ceil(c0 + (k + 0.6) * pl))
             grown = cv2.dilate(m.astype(np.uint8), np.ones((5, 5), np.uint8)).astype(bool)
             cols = np.arange(m.shape[1]); grown[:, (cols < lo) | (cols >= hi)] = False
             m = m | grown
@@ -210,8 +219,8 @@ def read_block(scan, box, pitch, texts):
             Y0, Y1 = max(0, ys.min() - 4), min(ink.shape[0], ys.max() + 5)
             X0, X1 = max(0, xs.min() - 4), min(ink.shape[1], xs.max() + 5)
             crop = np.where(m[Y0:Y1, X0:X1], ink[Y0:Y1, X0:X1], 0).astype(np.float32)
-            occ.append(dict(ch=ch, ink=crop, ref=li >= len(texts) - 2, X0=X0, Y0=Y0, x0=c0 + k * p,
-                            base=float(base_at(c0 + k * p)), w=int(xs.max() - xs.min() + 1),
+            occ.append(dict(ch=ch, ink=crop, ref=li >= len(texts) - 2, X0=X0, Y0=Y0, x0=c0 + k * pl,
+                            base=float(base_at(c0 + k * pl)), w=int(xs.max() - xs.min() + 1),
                             top=int(ys.min()), bottom=int(ys.max() + 1), line=(scan, box, li), cell=k,
                             scan=scan, off=(x0, y0)))
     return occ, p, report

@@ -59,6 +59,17 @@ def clean(occs):
     occurrence must look like the character's print in the alphabet lines, whose places are certain (a word
     matched to the wrong text has the right length but other letters); then any far from the median in width,
     height or normalized shape go too"""
+    # a broken print (part of the character too faint to print) has much less ink than a whole one
+    amount = [float((o['ink'] > 0.5).sum()) for o in occs]
+    occs = [o for o, a in zip(occs, amount) if a >= 0.75 * max(amount)] or occs
+    # a print far from where the others sit in their cells (its line's cells misplaced): with three or more,
+    # drop any more than 6 px from their median place
+    if len(occs) >= 3:
+        def centre(o):
+            ys, xs = np.nonzero(o['ink'] > 0.5)
+            return (o['X0'] + xs.mean() - o['x0'], o['Y0'] + ys.mean() - o['base'])
+        cs = np.array([centre(o) for o in occs]); med = np.median(cs, 0)
+        occs = [o for o, c in zip(occs, cs) if np.hypot(*(c - med)) <= 6] or occs
     refs = [o for o in occs if o.get('ref')]
     if refs:
         r = refs[0]; rs = shape(r['ink']); rh = r['bottom'] - r['top']
