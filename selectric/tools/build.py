@@ -27,9 +27,9 @@ ROOT = os.path.join(HERE, '..')
 BUILD = os.path.join(ROOT, 'build')
 # Each font's version, in the head table and the name table.  Raise a font's version with every change to
 # that font, or font managers treat the new file as a duplicate of the installed one (see CONTRIBUTING.md).
-VERSIONS = {f: '1.002' for f in S.FACES}
-VERSIONS.update(ANSIOCR='1.002', AN3360='1.001', BookfaceAcademic72='1.003', LargeElite72='1.003',
-                PrintingPublishing2='1.000')
+VERSIONS = {f: '1.003' for f in S.FACES}
+VERSIONS.update(ANSIOCR='1.003', AN3360='1.002', BookfaceAcademic72='1.004', LargeElite72='1.004',
+                PrintingPublishing2='1.001')
 NAMES = {'Advocate': 'Advocate', 'BookfaceAcademic72': 'Bookface Academic 72', 'Courier72': 'Courier 72',
          'Delegate': 'Delegate', 'Pica72': 'Pica 72', 'PrestigePica72': 'Prestige Pica 72', 'Adjutant': 'Adjutant',
          'Artisan12': 'Artisan 12', 'Courier12': 'Courier 12', 'Courier12Italic': 'Courier 12 Italic',
@@ -41,7 +41,7 @@ ITALIC = {'Courier12Italic': -12.0, 'LightItalic': -12.0, 'Script': -10.0}
 CAPS_ONLY = {'Manifold72'}            # the lower-case keys type the capitals
 UPM, ADV = 1000, 600
 SIGMA = 0.6                           # smoothing of the traced ink, in pixels of the scan
-MAXSHIFT = 60                         # the largest correction registration may make, in font units (5 px)
+MAXSHIFT = 120                        # the largest correction registration may make, in font units (10 px)
 # typographic quotes typed with the typewriter's straight ones
 ALIAS = {0x2018: "'", 0x2019: "'", 0x201C: '"', 0x201D: '"', 0xA0: ' '}
 # OCR-A's special symbols are also on the ASCII keys OCR-A puts them on
@@ -67,7 +67,9 @@ def clean(occs):
     height or normalized shape go too"""
     # a broken print (part of the character too faint to print) has much less ink than a whole one
     amount = [float((o['ink'] > 0.5).sum()) for o in occs]
-    occs = [o for o, a in zip(occs, amount) if a >= 0.75 * max(amount)] or occs
+    # (with three or more, than the median: the heaviest may be one with a neighbour's serif caught in it)
+    most = float(np.median(amount)) if len(occs) >= 3 else max(amount)
+    occs = [o for o, a in zip(occs, amount) if a >= 0.75 * most] or occs
     # a print far from where the others sit in their cells (its line's cells misplaced): with three or more,
     # drop any more than 6 px from their median place
     if len(occs) >= 3:
@@ -76,8 +78,10 @@ def clean(occs):
             return (o['X0'] + xs.mean() - o['x0'], o['Y0'] + ys.mean() - o['base'])
         cs = np.array([centre(o) for o in occs]); med = np.median(cs, 0)
         occs = [o for o, c in zip(occs, cs) if np.hypot(*(c - med)) <= 6] or occs
+    # (with three paragraph prints or more, the median below judges the alphabet-line prints too: they may be
+    # the ones that are off, touching their neighbours in the line)
     refs = [o for o in occs if o.get('ref')]
-    if refs:
+    if refs and len(occs) - len(refs) < 3:
         r = refs[0]; rs = shape(r['ink']); rh = r['bottom'] - r['top']
         occs = [o for o in occs if o.get('ref') or
                 (float(np.sqrt(((shape(o['ink']) - rs) ** 2).mean())) < 0.3
@@ -93,29 +97,36 @@ def clean(occs):
 
 def register(occs, k):
     """shift each occurrence to fit the character's alphabet-line print (sharper to align to than a blurred
-    mean): by phase correlation of the two, placed in font units, on a common canvas"""
+    mean): by phase correlation of the two, placed in font units, on a common canvas.  A shift is kept only if
+    it makes the two prints overlap better than they did (phase correlation can jump by a stem's width on an
+    H or an m).  Then all are moved together by the median shift, so that the character sits where most of its
+    prints put it, not where its one alphabet-line print happened to fall"""
     from glyphs import place
     import cv2
-    refs = [o for o in occs if o.get('ref')]
-    if not refs or len(occs) < 2: return occs
+    refs = [o for o in occs if o.get('ref')] or occs[:1]     # (or, if clean() dropped those, any)
+    if len(occs) < 2: return occs
     r = place(refs[0], k)
-    out = []
+    shifts = []
     for o in occs:
-        if o is refs[0]: out.append(o); continue
+        if o is refs[0]: shifts.append((0.0, 0.0)); continue
         im = place(o, k)
         x0 = min(r.x0, im.x0); top = max(r.top, im.top)
         W = int(max(r.x0 + r.ink.shape[1], im.x0 + im.ink.shape[1]) - x0) + 40
         H = int(top - min(r.top - r.ink.shape[0], im.top - im.ink.shape[0])) + 40
-        def put(a):
-            M = np.float32([[1, 0, a.x0 - x0 + 20], [0, 1, top - a.top + 20]])
+        def put(a, dx=0.0, dy=0.0):
+            M = np.float32([[1, 0, a.x0 - x0 + 20 + dx], [0, 1, top - a.top + 20 + dy]])
             return cv2.warpAffine(a.ink, M, (W, H), flags=cv2.INTER_LINEAR)
         (dx, dy), resp = cv2.phaseCorrelate(put(im), put(r), cv2.createHanningWindow((W, H), cv2.CV_32F))
         # only small corrections: the baseline fit already places a print within a few pixels, and phase
         # correlation can't tell a shift along a long stem (a T's crossbar would end up anywhere)
-        if abs(dx) > MAXSHIFT or abs(dy) > MAXSHIFT: out.append(o); continue
-        # move the occurrence by (dx, dy) font units: X0 and Y0 are in scan pixels, y down
-        out.append(dict(o, X0=o['X0'] + dx / k, Y0=o['Y0'] + dy / k))
-    return out
+        if abs(dx) > MAXSHIFT or abs(dy) > MAXSHIFT: shifts.append((0.0, 0.0)); continue
+        ref = put(r)
+        def overlap(a): return float((a * ref).sum() / (np.sqrt((a * a).sum() * (ref * ref).sum()) + 1e-9))
+        if overlap(put(im, dx, dy)) <= overlap(put(im)): shifts.append((0.0, 0.0)); continue
+        shifts.append((dx, dy))
+    mx, my = np.median([d[0] for d in shifts]), np.median([d[1] for d in shifts])
+    # move each occurrence by its shift, less the median: X0 and Y0 are in scan pixels, y down
+    return [dict(o, X0=o['X0'] + (dx - mx) / k, Y0=o['Y0'] + (dy - my) / k) for o, (dx, dy) in zip(occs, shifts)]
 
 
 def average(occs, k):
@@ -128,7 +139,9 @@ def average(occs, k):
     W, H = int(np.ceil(x1 - x0)) + 2, int(np.ceil(top - bot)) + 2
     stack = [cv2.warpAffine(i.ink, np.float32([[1, 0, i.x0 - x0], [0, 1, top - i.top]]), (W, H),
                             flags=cv2.INTER_LINEAR) for i in ims]
-    return Img(np.mean(stack, 0), x0, top)
+    # the median, with three or more: a neighbour's serif caught in one print or two (the v beside the w of
+    # an alphabet line) doesn't show, as it would faintly in a mean
+    return Img((np.median if len(stack) >= 3 else np.mean)(stack, 0).astype(np.float32), x0, top)
 
 
 # Fractions whose numerator is damaged in every print, taken from another fraction of the same element (the

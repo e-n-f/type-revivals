@@ -123,6 +123,17 @@ def cells(L, p, lab, ink):
             p1, c1 = np.polyfit(ks[keep], xs[keep], 1)
             r = xs - (c1 + p1 * ks); keep = np.abs(r) < max(3.0, 2.5 * np.median(np.abs(r[keep])))
         if abs(p1 - p) < 0.02 * p: p, c0 = float(p1), float(c1)
+    # and what's left of it, cell by cell: the median offset of the characters in the six cells to either side.
+    # A straight line isn't always enough: in some specimens an alphabet drifts by a sixth of a cell from its
+    # a to its z and the figures after it start afresh (a page not quite flat on the copier)
+    res = {}
+    for c in L['comps']:
+        if c['a'] > 40 and c['w'] < 1.2 * p:
+            k = round((c['cx'] - c0) / p); res.setdefault(k, []).append(c['cx'] - (c0 + k * p))
+    rk = {k: float(np.mean(v)) for k, v in res.items()}
+    def drift(k):
+        near = [r for j, r in rk.items() if abs(j - k) <= 6]
+        return float(np.median(near)) if len(near) >= 5 else 0.0
     typical = float(np.median([c['a'] for c in L['comps'] if c['a'] > 40]))
     for c in L['comps']:
         ks = [int(round((c['cx'] - c0) / p))]
@@ -140,7 +151,7 @@ def cells(L, p, lab, ink):
             if len(ks) > 1 and m.sum() < 0.3 * typical:
                 if out.get(k) is None: continue
             out.setdefault(k, []).append(m)
-    return out, c0, p
+    return out, c0, p, drift
 
 def trim_neighbours(m, base, H, gap):
     """a character's ink without a neighbouring line's character that touches it (Bookface's ¼, whose
@@ -202,7 +213,7 @@ def read_block(scan, box, pitch, texts):
     p = fit_pitch(lines, dpi / pitch)
     occ = []; report = []
     for li, (L, text) in enumerate(zip(lines, texts)):
-        cs, c0, pl = cells(L, p, lab, ink)
+        cs, c0, pl, drift = cells(L, p, lab, ink)
         runs = runs_of(cs)
         pairs, cost = align(text.split(), runs)
         # the baseline: a straight line through the feet of the characters that sit on it (the scans are a
@@ -233,7 +244,7 @@ def read_block(scan, box, pitch, texts):
             Y0, Y1 = max(0, ys.min() - 4), min(ink.shape[0], ys.max() + 5)
             X0, X1 = max(0, xs.min() - 4), min(ink.shape[1], xs.max() + 5)
             crop = np.where(m[Y0:Y1, X0:X1], ink[Y0:Y1, X0:X1], 0).astype(np.float32)
-            occ.append(dict(ch=ch, ink=crop, ref=li >= len(texts) - 2, X0=X0, Y0=Y0, x0=c0 + k * pl,
+            occ.append(dict(ch=ch, ink=crop, ref=li >= len(texts) - 2, X0=X0, Y0=Y0, x0=c0 + k * pl + drift(k),
                             base=float(base_at(c0 + k * pl)), w=int(xs.max() - xs.min() + 1),
                             top=int(ys.min()), bottom=int(ys.max() + 1), line=(scan, box, li), cell=k,
                             scan=scan, off=(x0, y0)))
