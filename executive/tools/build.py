@@ -16,6 +16,7 @@ import trace
 from fontio import draw, autohint
 from glyphs import Img, average, average_imgs
 from fontTools.fontBuilder import FontBuilder
+import sources as _S0
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.pens.reverseContourPen import ReverseContourPen
@@ -63,6 +64,8 @@ from catalog import CHOSEN as _CHOSEN
 for _f in OLD_FACES: SOURCES[_f].append((f'Catalog{_f}', 'wW' + ''.join(_CHOSEN.get(_f, {}))))
 # 'Typesetting with the IBM Executive': § ‡ ¶ † ‘, which no other source of these faces shows
 for _f in OLD_FACES: SOURCES[_f].append((f'{_f}Set', '§‡¶†‘'))
+# Secretarial's 1 and 0, which the catalogue and the memo lack: its 'Typesetting' page has them
+SOURCES['Secretarial'].insert(0, ('SecretarialSet', '10'))
 # The new faces: their 'Typesetting' page, the catalogue filling in.  Bold Face Italic's page is soft (read
 # darkened, which thickens it), so its letters are the catalogue's and the page gives the rest.
 for _f in NEW_FACES: SOURCES[_f] = [(f'{_f}Set', None), (f'Catalog{_f}', None)]
@@ -115,7 +118,7 @@ def decompose(ch):
 
 
 def gname(ch):
-    if len(ch) > 1: base, suffix = ch.split('.', 1); return gname(base) + '.' + suffix    # an alternate
+    if len(ch) > 1: base, suffix = ch.rsplit('.', 1); return gname(base) + '.' + suffix   # an alternate
     if ch == 'ı': return 'dotlessi'
     return UV2AGL.get(ord(ch), f'uni{ord(ch):04X}')
 
@@ -136,7 +139,8 @@ class Source:
         else:       # a printed sheet: no units of its own; its scale is set by MATCH_HEIGHTS
             self.esc = self.p = None; self.units = {}; self.offset = {}
         res = pickle.load(open(os.path.join(BUILD, f'occ-{name}.pkl'), 'rb'))
-        self.occ = [o for _, oc in res if oc for o in oc]
+        drop = _S0.TYPESET_DROP.get(name, '')
+        self.occ = [o for _, oc in res if oc for o in oc if o['ch'] not in drop]
         if name in MATCH_HEIGHTS:
             ref, chars = MATCH_HEIGHTS[name]; ref = Source(ref)
             if self.esc is None: self.esc, self.unit = ref.esc, ref.unit
@@ -221,6 +225,18 @@ def level(occs, s, main):
     return out
 
 
+def rescale(o, f):
+    """an occurrence redrawn at f times its scale, so it can be averaged with another source's (place() uses only
+    its ink and its edge and baseline relative to the ink's corner)"""
+    ink = cv2.resize(o['ink'], None, fx=f, fy=f, interpolation=cv2.INTER_LINEAR)
+    return dict(o, ink=ink, X0=0.0, Y0=0.0, x0=(o['x0'] - o['X0']) * f, base=(o['base'] - o['Y0']) * f,
+                w=o['w'] * f, top=(o['top'] - o['Y0']) * f, bottom=(o['bottom'] - o['Y0']) * f)
+
+
+# a face's further 'Typesetting' pages, pooled with its first: their prints averaged in, each from its own scale
+POOL = {f'{f}Set': [f'{f}Set{n}' for n in pages] for f, pages in _S0.TYPESET_MORE.items()}
+
+
 def glyph_images(face):
     """{char: (Img in font units, baseline at y = 0, ink placed anywhere), units, offset in font units, source}"""
     srcs = [Source(s) for s, _ in SOURCES[face]]
@@ -228,9 +244,16 @@ def glyph_images(face):
     cat = json.load(open(os.path.join(BUILD, 'catalog-units.json'))).get(face, {})
     G = {}
     for s, (_, only) in zip(srcs, SOURCES[face]):
+        extra = {}
+        for name in POOL.get(s.name, []):
+            if not os.path.exists(os.path.join(BUILD, f'units-{name}.json')): continue
+            t = Source(name)
+            if len(t.occ) < 300: continue                 # a page that read poorly
+            for ch, os_ in t.by_char().items():
+                extra.setdefault(ch, []).extend(rescale(o, t.k / s.k) for o in level(clean(os_), t, s))
         for ch, occs in s.by_char().items():
             if ch in G or (only and ch not in only): continue
-            occs = level(clean(occs), s, main)
+            occs = level(clean(occs + extra.get(ch, [])), s, main)
             # a character with no neighbour to fit (the last of a line): its ink and half a unit of margin
             # (IBM's own width comes first, where the catalogue prints one; then a width fitted from another
             # source of the face: Modern's & from the brochure)
@@ -243,6 +266,8 @@ def glyph_images(face):
             # period fitted at 2 units, printed at 3), the glyph is centred
             fitted = next((t.units[ch] for t in srcs if ch in t.units), None)
             off = s.offset.get(ch, 0) * s.k if fitted in (None, u) else 0.0
+            if not (img.ink > 0.5).any():          # too faint to trace: leave it for a later source
+                print(f'  {face}: {ch!r} from {s.name} too faint, skipped'); continue
             G[ch] = dict(img=img, units=u, off=off, src=s, n=len(occs))
     return G, srcs
 

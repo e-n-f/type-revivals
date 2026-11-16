@@ -231,6 +231,7 @@ def references(face):
     fonts = []
     for f in [face] + [f for f in FALLBACK if f != face]:
         path = os.path.join(R.ROOT, 'fonts', 'otf', f'Executive{f}-Regular.otf') if f else GENERIC
+        if not os.path.exists(path): continue            # a face with no font yet
         tt = TTFont(path)
         cap = getattr(tt['OS/2'], 'sCapHeight', 0) or 0.73 * tt['head'].unitsPerEm
         fonts.append((f, path, set(tt.getBestCmap()), cap, tt['head'].unitsPerEm, ImageFont.truetype(path, 400)))
@@ -259,6 +260,7 @@ def classify(face, cells, refs, cap):
     return cells
 
 def cap_height(face):
+    if face not in PAGES: return 400.0                     # no alphabet page (Copperplate 1)
     occ, _, _ = read_face(face)
     return float(np.median([o['bottom'] - o['top'] for o in occ if o['ch'] in 'EFHILT']))
 
@@ -334,6 +336,7 @@ CHOSEN = {
                     '4': (374, 11, 11, L), '5': (374, 13, 7, L), '6': (375, 2, 14, L), '7': (375, 4, 17, L),
                     '8': (375, 6, 15, L), '9': (375, 8, 17, U), ':': (375, 8, 19, L), ';': (376, 6, 7, L),
                     '=': (375, 2, 4, U), '?': (375, 1, 18, U), '_': (376, 11, 7, U), '|': (388, 8, 4, U)},
+    'Directory': {'0': (529, 14, 4, L), '‡': (530, 2, 2, U)},
     # Registry's figures and most signs are on the newsletter page typed in it
     'Registry': {'=': (527, 5, 12, U), '+': (527, 5, 10, U), ']': (528, 1, 11, U), '[': (528, 1, 12, U),
                  '<': (528, 8, 5, U), '½': (527, 4, 4, U), '¼': (527, 6, 3, U)},

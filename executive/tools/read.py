@@ -6,7 +6,7 @@ line's baseline, and its neighbour in the same word, for the unit fit and the gl
     python3 tools/read.py            # build/occ-<Face>.pkl, and a summary of what matched
     python3 tools/read.py contact    # build/contact-<Face>.png: every matched character, labelled
 """
-import sys, os, pickle, numpy as np, cv2
+import sys, os, re, pickle, numpy as np, cv2
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(HERE, '..', '..', 'common'))
 from segment import group, bbox as _bbox
@@ -411,6 +411,80 @@ def read_keyboard():
     ln = Line(scan, box, 30)
     return [(text, match(ln, text, S.KEYBOARD_MULTI, S.KEYBOARD_SPLIT))], [ln]
 
+_REF = {}
+def sign_ref(ch):
+    """a character's shape (24 x 32, in its own box) and its box (width, top, bottom) in x-heights, from a
+    generic serif"""
+    if ch in _REF: return _REF[ch]
+    from PIL import ImageFont
+    font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf', 300)
+    im = Image.new('L', (800, 700), 0); ImageDraw.Draw(im).text((200, 500), ch, font=font, fill=255, anchor='ls')
+    a = np.asarray(im) / 255.0; ys, xs = np.nonzero(a > 0.5)
+    xh = 300 * 0.519
+    c = a[ys.min():ys.max() + 1, xs.min():xs.max() + 1].astype(np.float32)
+    _REF[ch] = (cv2.resize(c, (24, 32), interpolation=cv2.INTER_AREA).ravel(),
+                np.array([(xs.max() - xs.min() + 1) / xh, (500 - ys.min()) / xh, (500 - ys.max() - 1) / xh]))
+    return _REF[ch]
+
+def align_signs(line, text, lid, xh):
+    """a line of signs typed solid: each character takes one to three pieces (a % or @ printed in parts), or
+    shares one with its neighbour (two touching), whichever looks most like it; a piece may be noise"""
+    gs = sorted(line.groups, key=lambda G: bbox(G)[0])
+    chars = list(text.replace(' ', ''))
+    n, m = len(chars), len(gs)
+    def look(G_list, ch):
+        ink, (X0, Y0) = line.crop(G_list[0]) if len(G_list) == 1 else (None, (0, 0))
+        boxes = [bbox(G) for G in G_list]
+        x0, y0 = min(b[0] for b in boxes), min(b[1] for b in boxes)
+        x1, y1 = max(b[2] for b in boxes), max(b[3] for b in boxes)
+        mask = np.zeros((y1 - y0, x1 - x0), np.float32)
+        for G in G_list:
+            k, (X, Y) = line.crop(G, pad=0)
+            sub = mask[max(0, Y - y0):, max(0, X - x0):]
+            h, w = min(sub.shape[0], k.shape[0]), min(sub.shape[1], k.shape[1])
+            sub[:h, :w] = np.maximum(sub[:h, :w], k[:h, :w])
+        if not (mask > 0.5).any(): return 9.0
+        ys, xs = np.nonzero(mask > 0.5)
+        c = mask[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
+        sh = cv2.resize(c, (24, 32), interpolation=cv2.INTER_AREA).ravel()
+        ref, geo = sign_ref(ch)
+        g = np.array([(xs.max() - xs.min() + 1) / xh, (base - (y0 + ys.min())) / xh, (base - (y0 + ys.max() + 1)) / xh])
+        return float(np.mean((sh - ref) ** 2)) + 0.5 * float(np.sum((g - geo) ** 2))
+    base = float(np.median([bbox(G)[3] for G in gs if bbox(G)[3] - bbox(G)[1] > 0.6 * xh]))
+    INF = 1e9; C = np.full((n + 1, m + 1), INF); B = {}; C[0, 0] = 0
+    for i in range(n + 1):
+        for j in range(m + 1):
+            c0 = C[i, j]
+            if c0 >= INF: continue
+            if j < m and c0 + 0.6 < C[i, j + 1]: C[i, j + 1] = c0 + 0.6; B[(i, j + 1)] = ('skip', i, j)
+            if i == n: continue
+            if c0 + 2.0 < C[i + 1, j]: C[i + 1, j] = c0 + 2.0; B[(i + 1, j)] = ('miss', i, j)
+            for k in (1, 2, 3):
+                if j + k > m: break
+                if k > 1 and bbox(gs[j + k - 1])[0] - bbox(gs[j + k - 2])[2] > 0.6 * xh: break
+                c = c0 + look(gs[j:j + k], chars[i]) + 0.1 * (k - 1)
+                if c < C[i + 1, j + k]: C[i + 1, j + k] = c; B[(i + 1, j + k)] = ('take', i, j, k)
+            if i + 2 <= n and j < m:                  # two characters touching, in one piece
+                a, b2 = split_group(gs[j], line.lab, 2)
+                c = c0 + look([a], chars[i]) + look([b2], chars[i + 1]) + 0.3
+                if c < C[i + 2, j + 1]: C[i + 2, j + 1] = c; B[(i + 2, j + 1)] = ('share', i, j, (a, b2))
+    plan = []; i, j = n, m
+    while (i, j) != (0, 0):
+        b = B[(i, j)]; plan.append(b); i, j = b[1], b[2]
+    occ = []
+    for b in plan[::-1]:
+        if b[0] == 'take':
+            _, i, j, k = b
+            pieces = [(chars[i], gs[j:j + k], False)]
+        elif b[0] == 'share':
+            _, i, j, (a, b2) = b
+            pieces = [(chars[i], [a], True), (chars[i + 1], [b2], True)]
+        else: continue
+        for q, (ch, G, touching) in enumerate(pieces):
+            o = occurrence(line, ch, G, (lid, 0), i + q)
+            if o is not None: o['touching'] = touching; occ.append(o)
+    return occ, C[n, m] / max(n, 1)
+
 def trim_capitals(res):
     """the capitals of each block's alphabet line without what reaches above them: the keyboard's underscore,
     typed on the line above, often prints low, over one of them"""
@@ -465,16 +539,28 @@ def read_typed(entries, multi=None, name=None):
                 for o in oc: o['base'] = base
     return res, lines
 
-TYPED = [f + 'Typed' for f in S.TYPED] + [f + 'Set' for f in S.TYPESET]
+TYPED = ([f + 'Typed' for f in S.TYPED] + [f + 'Set' for f in S.TYPESET]
+         + [f'{f}Set{n}' for f, pages in S.TYPESET_MORE.items() for n in pages])
 FACES = ['Modern', 'ModernFI', 'Keyboard', 'Documentary', 'MidCentury', 'Arcadia', 'Doric', 'BoldFace1', 'BoldFace2', 'Charter']
 
 def read(face):
     """occurrences of every character of a face, and the brochure's Modern for the unit calibration"""
     if face == 'Modern':
         return read_jowa()
-    if face.endswith('Set'):  # the face's page of 'Typesetting with the IBM Executive'
-        res, lines = read_typed(S.TYPESET[face[:-3]], S.MULTI, face)
+    m = re.match(r'(.+)Set(\d*)$', face)
+    if m:                     # the face's page of 'Typesetting with the IBM Executive'
+        f, n = m.group(1), m.group(2)
+        entries = S.TYPESET[f] if not n else S.TYPESET_MORE[f][int(n)]
+        res, lines = read_typed(entries, S.MULTI, face)
         trim_capitals(res)
+        # the line of signs, aligned by shape (see align_signs)
+        k = len(res) - 2; text = res[k][0]
+        xh = float(np.median([o['bottom'] - o['top'] for _, oc in res[:7] if oc for o in oc if o['ch'] in 'xzvnmu']))
+        occ, cost = align_signs(lines[k], text, k, xh)
+        if occ:
+            a, b = baseline(occ)
+            for o in occ: o['base'] = a + b * (o['x0'] + o['w'] / 2)
+            res[k] = (text, occ)
         return res, lines
     if face in TYPED:         # documents typed in the face, for the characters the brochure lacks
         name = face[:-len('Typed')]
@@ -499,7 +585,10 @@ def contact(face, res, out):
 if __name__ == '__main__':
     os.makedirs(BUILD, exist_ok=True)
     for face in [a for a in sys.argv[1:] if a in FACES + TYPED] or FACES + TYPED:
-        res, _ = read(face)
+        try:
+            res, _ = read(face)
+        except (Exception, SystemExit) as e:   # a page that can't be read (its lines run together): reported, left out
+            print(f'{face}: not read ({type(e).__name__}: {e})'); continue
         bad = [(t, ) for t, oc in res if oc is None]
         n = sum(len(oc) for _, oc in res if oc)
         print(f'{face}: {len(res) - len(bad)}/{len(res)} lines matched, {n} characters')

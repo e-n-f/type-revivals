@@ -9,7 +9,7 @@ characters (i, l, j, f, t, ., ', the punctuation) 2 units, as on every Executive
 
 The keyboard sheet (Modern's @ # ¢ _) is one line typed key after key, fitted with Modern's widths fixed.
 """
-import sys, os, json, pickle, numpy as np
+import sys, os, re, json, pickle, numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import read as R
 
@@ -224,9 +224,10 @@ if __name__ == '__main__':
         elif face in R.TYPED: pass
         elif face not in ('Modern', 'ModernFI'): run(face, std, p32)
     for face in faces:              # after the faces' own tables
-        if face.endswith('Set') and face[:-3] in SET_FACES:
-            run_catalog_typed(face[:-3], src='Set', esc=SET_FACES[face[:-3]])
-        elif face.endswith('Set'): run_typed(face[:-3], src='Set')
+        m = re.match(r'(.+)(Set\d*)$', face)
+        if m and m.group(1) in SET_FACES:
+            run_catalog_typed(m.group(1), src=m.group(2), esc=SET_FACES[m.group(1)])
+        elif m: run_typed(m.group(1), src=m.group(2))
         elif face in R.TYPED and face[:-len('Typed')] in CATALOG_FACES:
             run_catalog_typed(face[:-len('Typed')], CATALOG_FACES[face[:-len('Typed')]])
         elif face in R.TYPED: run_typed(face[:-len('Typed')])
