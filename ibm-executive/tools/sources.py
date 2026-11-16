@@ -202,12 +202,23 @@ TYPED['Charter'] = [_row(k, t) for k, t in CH_CALIBRATION] + [_row(k, t) for k, 
     (CH_LABELS, (562, 2789, 1170, 2833), 'Figure 5. Code Summary Comparison'),
 ]
 
-# ----------------------------------------------------------------------------------- printed sheets (alternates)
-# IBM's "Type designs for the IBM 'Executive' Typewriter", sheet 1: Arcadia with a two-storey a, where the
-# Finnish brochure's Arcadia has a one-storey one.  Printed, not typed; read for that a alone.
-SHEETS = {
-    'ArcadiaSheet': [('type-designs-ibm-executive-0001.jp2', (2450, 2480, 8400, 3140),
-                      ['This is a sample of IBM Arcadia Type. Designed for all-',
-                       'purpose use, its distinctive appearance enhances finished',
-                       'copy in a variety of applications.'])],
-}
+# Arcadia: IBM's E. T. News Letter No. 16 (1955), page 5, announcing the face: a paragraph and the whole
+# keyboard, typed with the two-storey a (the one-storey a is an alternate, IBM part 1112308).
+NL55 = 'et-newsletter-16-1955-p5.png'
+TYPED['Arcadia'] = [
+    (NL55, (565, 1050, 3045, 2200), ['IBM Electric Typewriters bring quality, ease, and speed',
+                                     "to today's typing. With only a feather-light touch re-",
+                                     'quired to release the electrically-powered keys, un-',
+                                     'necessary hand and arm motion has been eliminated.',
+                                     'All operating keys - the carriage return, tabulator, shift,',
+                                     'and back spacer - are located on the nearly level key-',
+                                     'board and are released with the same light touch. Better',
+                                     'quality of typewritten work, increased speed and ease',
+                                     'of operation, and the ability to produce many legible',
+                                     'carbon copies are only a few of the advantages of IBM',
+                                     'Electric Typewriters.']),
+    (NL55, (1030, 2290, 2200, 2385), "234567890-1';/.,"),
+    (NL55, (1030, 2385, 1760, 2490), '@#$%¢&*()_!":?'),
+    (NL55, (1030, 2490, 2320, 2595), 'abcdefghijklmnopqrstuvwxyz'),
+    (NL55, (1030, 2595, 2560, 2700), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'),
+]

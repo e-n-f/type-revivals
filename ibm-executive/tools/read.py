@@ -395,8 +395,7 @@ def read_keyboard():
     return [(text, match(ln, text, S.KEYBOARD_MULTI, S.KEYBOARD_SPLIT))], [ln]
 
 def read_typed(entries):
-    """documents typed in a face (sources.TYPED), or a printed sheet (sources.SHEETS): single lines, table
-    rows, and blocks of lines"""
+    """documents typed in a face (sources.TYPED): single lines, table rows, and blocks of lines"""
     lines, items, rows = [], [], []
     for scan, box, text, *kind in entries:
         if isinstance(text, str):
@@ -421,15 +420,13 @@ def read_typed(entries):
                 for o in oc: o['base'] = base
     return res, lines
 
-TYPED = [f + 'Typed' for f in S.TYPED] + list(S.SHEETS)
+TYPED = [f + 'Typed' for f in S.TYPED]
 FACES = ['Modern', 'ModernFI', 'Keyboard', 'Documentary', 'MidCentury', 'Arcadia', 'Doric', 'BoldFace1', 'BoldFace2', 'Charter']
 
 def read(face):
     """occurrences of every character of a face, and the brochure's Modern for the unit calibration"""
     if face == 'Modern':
         return read_jowa()
-    if face in S.SHEETS:      # a printed sheet, for an alternate
-        return read_typed(S.SHEETS[face])
     if face in TYPED:         # documents typed in the face, for the characters the brochure lacks
         return read_typed(S.TYPED[face[:-len('Typed')]])
     if face == 'Keyboard':    # Modern's @ # ¢ _, from the typed keyboard sheet

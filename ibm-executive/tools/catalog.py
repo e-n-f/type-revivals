@@ -23,6 +23,11 @@ LOWER = ['abcdefghijklmnopqrst', 'uvwxyz']
 KNOWN = {'Arcadia': dict(zip('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
                              map(int, '33443344223354434333435333' '33333233223243333232334333')))}
 
+# Widths read by eye from the catalogue's other lines (the punctuation's places vary from face to face).
+# Arcadia, page 533: where it lists a character twice, the plain form (its ¢ is 3 units, the barred one 4).
+READ_BY_EYE = {'Arcadia': {'!': 3, ':': 2, ';': 2, '"': 3, '?': 4, '/': 3, '£': 3, '§': 3, '+': 3, '*': 3, '@': 4,
+                           '$': 3, '¢': 3, '=': 3, '#': 3, '%': 4, '(': 2, ')': 2, '&': 4, '-': 3, "'": 2, '_': 3}}
+
 def page(face):
     return np.asarray(Image.open(os.path.join(R.SCANS, f'catalog-1972-{PAGES[face]}.png')).convert('L')) < 128
 
@@ -163,7 +168,7 @@ if __name__ == '__main__':
     allunits = {}
     for face in [a for a in sys.argv[1:] if a in PAGES] or PAGES:
         occ, _, units = read_face(face, templates)
-        allunits[face] = units
+        allunits[face] = {**units, **READ_BY_EYE.get(face, {})}
         pickle.dump([(f'catalogue {face}', occ)], open(os.path.join(R.BUILD, f'occ-Catalog{face}.pkl'), 'wb'))
         contact(face, occ, units, os.path.join(R.BUILD, f'catalog-{face}.png'))
         print(face, len(occ), 'letters;', ''.join(str(units.get(c, '?')) for c in ''.join(UPPER)), ''.join(str(units.get(c, '?')) for c in ''.join(LOWER)))

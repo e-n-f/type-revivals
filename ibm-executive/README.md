@@ -12,15 +12,16 @@ keep those widths exactly, so text set in them falls where the machine would hav
 | Exec Modern | Modern (Monotype series 602) | 1/32 inch | Jowa "IBM Executive 602" card; Finnish brochure; typed keyboard sheet | `ExecModern-Regular` |
 | Exec Documentary | Documentary | 1/32 inch | Finnish brochure | `ExecDocumentary-Regular` |
 | Exec Mid-Century | Mid-Century | 1/36 inch | Finnish brochure; ASA letter of 1962 | `ExecMidCentury-Regular` |
-| Exec Arcadia | Arcadia | 1/32 inch | Finnish brochure | `ExecArcadia-Regular` |
+| Exec Arcadia | Arcadia | 1/32 inch | Finnish brochure; E. T. News Letter of 1955 | `ExecArcadia-Regular` |
 | Exec Doric | Doric | 1/32 inch | Finnish brochure | `ExecDoric-Regular` |
 | Exec Bold Face 1 | Bold Face #1 | 1/32 inch | Finnish brochure | `ExecBoldFace1-Regular` |
 | Exec Bold Face 2 | Bold Face #2 | 1/36 inch | Finnish brochure | `ExecBoldFace2-Regular` |
 | Exec Charter | Charter | 1/45 inch | Finnish brochure; BCD code table of 1962 | `ExecCharter-Regular` |
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
-[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The fonts are at version 1.000, except Exec
-Arcadia at 1.001 (its two-storey a). The sources are listed in
+[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Exec Modern and Mid-Century 1.000;
+Documentary, Doric, Bold Face 1 and 2 and Charter 1.001; and Arcadia 1.002. Every face takes its w and W
+(where nothing better has them) and its letters' widths from IBM's 1972 catalogue. The sources are listed in
 [`scans/README.md`](scans/README.md).
 
 ## Size and spacing
@@ -46,19 +47,18 @@ gives every character an offset from the centre of its slug, as well as its widt
   `! $ " ` ´`). Documentary's `` ` `` and Arcadia's `´` printed too faintly to trace.
 - **Exec Mid-Century** also has `w W : ; " # *` from a letter typed in it (the `#` small and raised, as typed),
   and **Exec Charter** has `W [ ] < > ; : * ' # @ ! \` from a code table typed in it.
-- **w and W are stand-ins** where no typed page shows them: in Documentary, Arcadia, Doric, Bold Face 1 and 2,
-  and Charter's w. The brochure comes from a Finnish alphabet. Each stand-in is two overlapped v's (V's), spaced
-  so the letter is as much wider than the v as Modern's w is (Modern: v 3, w 4, V 4, W 5 units).
+- **Exec Arcadia** has the two-storey a, w and `: ; ' " @ # $ ¢ * _` from IBM's 1955 newsletter that announced
+  the face, typed in it. Its **`ss01`** (also in `salt`) gives the brochure's one-storey a, with à ä å.
+- **w and W from IBM's catalogue.** The brochure comes from a Finnish alphabet, without w or W. Documentary,
+  Arcadia's W, Doric, Bold Face 1 and 2 and Charter's w take theirs from IBM's 1972 catalogue. Each is scaled
+  so the catalogue's letters are as tall as the brochure's, and thickened by the difference between the two
+  sources' n m h u stems, because the catalogue is a crisp print and the brochure's halftone spreads the ink.
 - **Accented letters are put together** from the face's own letters and accents, for every accent the scans show.
   Each accent is averaged over all the letters that carry it, and placed at its average offset from the
   letter's centre. Modern composes à á â ã ä å è é ê ë ì í î ï ñ ò ó ô õ ö ù ú û ü ý ÿ and their capitals. The
   brochure faces compose ä å ö ü, á à é è ë í ì ï ó ò ú ù ý ÿ, Å Ä Ö Ü and Á À É È Ó Ò Ú Ù Ý where the face shows
   the acute and grave. A capital's accent missing from a scan is the lower-case one, raised by the difference
   between the cap height and the x-height. ç Ç ø Ø ß are traced as printed. ¨ ´ ` are also spacing glyphs.
-- **Exec Arcadia's `ss01`** (also in `salt`) gives the two-storey a of IBM's own "Type designs" sheet, with
-  à ä å, in place of the brochure's one-storey a. The sheet is a crisp print: its a is averaged over its 13
-  occurrences, scaled so the sheet's letters are as tall as the brochure's, and thickened by the difference
-  between the two sources' n m h u stems (16 units), so that it has the brochure's weight.
 - `)` is the `(` turned round in Modern, whose card has only the `(`. The typographic quotes ‘ ’ “ ” map to the
   typewriter's straight `'` and `"`.
 
@@ -94,22 +94,33 @@ python3 tools/specimen.py    # specimen/
    scaled to font units and aligned to the others by phase correlation. The occurrences are averaged, which
    cancels most of the ribbon's and the paper's noise, and the 50 % ink contour is traced into Bézier curves.
 
-The fitted widths agree with IBM's own table, typed in Bold Face #1 on the sheet `typed-bold-face-1-units.jpg`
+**IBM's widths.** IBM's "Type Available" catalogue of January 1972 (form 1268416) shows every face's characters
+in a grid, each with its width in units printed beside it. `tools/catalog.py` reads each face's alphabet from it.
+Each cell's letter is identified against the face's font, because the grid's order varies: Documentary has T
+before S. Each cell's width digit is read against templates. Of the fitted widths, all but three agree with
+IBM's: Documentary's Y is 4, not 5; Arcadia's A is 3, not the 4 of the common table; and Charter's O is 4, not
+3. The build takes all 52 letters' widths from the catalogue. Arcadia's punctuation widths were read from its
+page by eye (`READ_BY_EYE`): `! ? / &` are 3, 4, 3 and 4 units, where the common table had 2, 3, 2 and 3.
+
+The fitted widths also agree with IBM's own table, typed in Bold Face #1 on the sheet `typed-bold-face-1-units.jpg`
 ("flitj;': 2 units; qeryuopasdghkzxcvbnSJ!#$¢*"_: 3 units; …: 4 units; mWM: 5 units"). The exceptions are the `!`,
 fitted at 2 units, and the `I`, which the sheet lists among the 4-unit capitals of its keyboard row but which is
 2 units in every face here. The sheet gives the widths of `# ¢ _` (3 units). The keyboard sheet's own positions are too
 rough to measure them, so it is used only for their shapes, scaled so its figures are as tall as the Jowa card's.
 
+## Arcadia's a
+
+The brochure's Arcadia has a one-storey a, but the face was announced in 1955 (IBM's E. T. News Letter No.
+16) with a two-storey a. IBM's "Type designs" sheet and its 1972 catalogue show the two-storey a too, and the
+catalogue lists the one-storey a among Arcadia's alternates (part 1112308). So Exec Arcadia's a is the
+two-storey one, and the brochure's is `ss01`.
+
 ## Not yet done
 
-- **Arcadia's a.** The brochure's Arcadia has a one-storey a. IBM's own "Type designs" sheet
-  (`type-designs-ibm-executive-0001.jp2`) shows Arcadia with a two-storey a, and every other letter the two
-  share matches: the slab-serifed I B M, E C T V, k o n e s i and the straight-tailed y. So the brochure shows
-  Arcadia with an alternate a. These sources don't say why (an option for some market, a later revision, or
-  a change for that brochure). Exec Arcadia follows the brochure, and has the sheet's a as a stylistic
-  alternate (`ss01`), although the sheet is printed, not typed ("not representative of typewritten
-  material", its note says).
-- Arcadia has no real w or W. A memo by R. W. Bemer (7 November 1961), offered for it, is in IBM's
+- The catalogue shows every face's full character set, alternates included. Only the alphabets, and Arcadia's
+  punctuation widths, are read from it so far. The other faces' punctuation widths still come from the common
+  table where the brochure shows a character too few times to fit it.
+- A memo by R. W. Bemer (7 November 1961), offered as Arcadia, is in IBM's
   **Secretarial**. It has the same wide monoline slab serif as the sheet's Secretarial sample: the
   ball-terminal r and c, the two-storey a with a curved tail, the curve-tailed y, the open one-storey g and
   the plain slab-footed f (Patron's f is curled). It would be a source for an Exec Secretarial.

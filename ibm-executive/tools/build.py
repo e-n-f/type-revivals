@@ -39,6 +39,9 @@ SOURCES = {f: [(f, None)] for f in VERSIONS}
 SOURCES['Modern'] = [('Modern', None), ('ModernFI', '`´§&'), ('Keyboard', '@#¢_')]
 # documents typed in the faces, for what the brochure lacks (a real w and W among it)
 SOURCES['MidCentury'] = [('MidCenturyTyped', 'wW'), ('MidCentury', None), ('MidCenturyTyped', ':;"#*')]
+# Arcadia's a: the two-storey one of the 1955 newsletter that announced the face (and of IBM's catalogue);
+# the brochure's machine had the one-storey alternate, which is ss01
+SOURCES['Arcadia'] = [('ArcadiaTyped', 'aw'), ('Arcadia', None), ('ArcadiaTyped', ':;\'"@#$¢*_')]
 SOURCES['Charter'] = [('CharterTyped', 'W'), ('Charter', None), ('CharterTyped', '[]<>;:*\'#@!\\')]
 # IBM's 1972 "Type Available" catalogue (tools/catalog.py): a real w and W for every face that has no other
 # source of them, and IBM's own widths for the 52 letters
@@ -47,14 +50,14 @@ for _f in VERSIONS: SOURCES[_f].append((f'Catalog{_f}', 'wW'))
 # card's (its unit fit is too rough to set the scale by), and the typed documents' letters to the brochure's
 # (the brochure's halftone thins the ink, so its letters print a few per cent smaller than typed ones).
 MATCH_HEIGHTS = {'Keyboard': ('Modern', '0123456789'), 'MidCenturyTyped': ('MidCentury', 'EFHILTZxzvnmu'),
-                 'CharterTyped': ('Charter', 'EFHILTZxzvnmu'), 'ArcadiaSheet': ('Arcadia', 'EFHILTZxzvnmu'),
+                 'CharterTyped': ('Charter', 'EFHILTZxzvnmu'), 'ArcadiaTyped': ('Arcadia', 'EFHILTZxzvnmu'),
                  **{f'Catalog{f}': (f, 'EFHILTZxzvnmu') for f in VERSIONS}}
 # printed sources, crisper than the typed ones: thickened to the face's weight (match_weight)
-REWEIGHT = {'ArcadiaSheet'} | {f'Catalog{f}' for f in VERSIONS}
-# Stylistic alternates: (source, character, feature, name).  IBM's own sheet shows Arcadia with a two-storey a
-# where the Finnish brochure has a one-storey one; the alternate has the a's width and place in its slug, and
-# the accented a's get it too.  Each alternate is also offered by salt.
-ALTERNATES = {'Arcadia': [('ArcadiaSheet', 'a', 'ss01', "Two-storey a (IBM's type designs sheet)")]}
+REWEIGHT = {f'Catalog{f}' for f in VERSIONS}
+# Stylistic alternates: (source, character, feature, name).  Arcadia's one-storey a (IBM part 1112308), as the
+# Finnish brochure's machine had it; it has the a's width and place in its slug, and the accented a's get it
+# too.  Each alternate is also offered by salt.
+ALTERNATES = {'Arcadia': [('Arcadia', 'a', 'ss01', 'One-storey a')]}
 SPACE_FROM = {'Modern': 'ModernFI'}      # the Jowa text is justified foundry type: its word spaces vary
 UPM = 1000
 PER_INCH = 6400                          # 200 font units to the 1/32 inch

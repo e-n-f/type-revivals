@@ -184,4 +184,4 @@ if __name__ == '__main__':
         elif face in R.TYPED: pass
         elif face not in ('Modern', 'ModernFI'): run(face, std, p32)
     for face in faces:              # after the faces' own tables
-        if face in R.TYPED and face.endswith('Typed'): run_typed(face[:-len('Typed')])
+        if face in R.TYPED: run_typed(face[:-len('Typed')])
