@@ -54,8 +54,16 @@ def shape(a):
 
 
 def clean(occs):
-    """drop occurrences of the wrong size or shape (a cell misread, a character damaged): far from the median
-    in width, height or normalized shape"""
+    """drop occurrences of the wrong size or shape (a cell misread, a character damaged).  A paragraph's
+    occurrence must look like the character's print in the alphabet lines, whose places are certain (a word
+    matched to the wrong text has the right length but other letters); then any far from the median in width,
+    height or normalized shape go too"""
+    refs = [o for o in occs if o.get('ref')]
+    if refs:
+        r = refs[0]; rs = shape(r['ink']); rh = r['bottom'] - r['top']
+        occs = [o for o in occs if o.get('ref') or
+                (float(np.sqrt(((shape(o['ink']) - rs) ** 2).mean())) < 0.3
+                 and abs(o['bottom'] - o['top'] - rh) < 0.25 * rh + 2)]
     if len(occs) < 3: return occs
     w = np.median([o['w'] for o in occs]); h = np.median([o['bottom'] - o['top'] for o in occs])
     occs = [o for o in occs if abs(o['w'] - w) < 0.25 * w + 2 and abs(o['bottom'] - o['top'] - h) < 0.25 * h + 2] or occs

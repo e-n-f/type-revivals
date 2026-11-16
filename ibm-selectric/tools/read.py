@@ -39,7 +39,7 @@ def components(ink):
         x, y, w, h, a = st[i]
         if a < 6: continue
         if w > 300 and h < 20: continue                    # a rule
-        if ink[lab == i].max() < 0.8: continue             # a grey footnote mark
+        if ink[lab == i].max() < 0.55: continue            # a grey footnote mark
         out.append(dict(id=i, x=int(x), y=int(y), w=int(w), h=int(h), a=int(a), cx=float(cen[i][0]),
                         cy=float(cen[i][1])))
     return out, lab
@@ -65,10 +65,11 @@ def lines_of(comps):
     for g, L in zip(groups, lines): L['comps'] = list(g['c'])
     for c in comps:
         if id(c) in ids: continue
+        inside = [L for L in lines if L['top'] - 0.15 * H <= c['cy'] <= L['base']]
+        if inside: inside[0]['comps'].append(c); continue
         def cost(L):
             # an underscore: wide and flat, below its line's baseline by up to about a cap height
             if c['h'] < 0.3 * H and c['w'] > 0.5 * H and L['base'] < c['cy'] < L['base'] + 1.1 * H: return 0.0
-            if L['top'] - 0.15 * H <= c['cy'] <= L['base']: return 0.0
             if c['cy'] > L['base']: return (c['cy'] - L['base']) / H          # comma, underscore: below
             return 1.5 * (L['top'] - c['cy']) / H                              # an accent: above
         best = min(lines, key=cost)
@@ -170,11 +171,16 @@ def read_block(scan, box, pitch, texts):
         for ch, k in pairs:
             if ch == SKIP: continue
             m = np.any(cs[k], axis=0)
+            # with the faint ink around the strokes (a light print's edges, below the threshold), within the cell
+            lo, hi = int(np.floor(c0 + (k - 0.6) * p)), int(np.ceil(c0 + (k + 0.6) * p))
+            grown = cv2.dilate(m.astype(np.uint8), np.ones((5, 5), np.uint8)).astype(bool)
+            cols = np.arange(m.shape[1]); grown[:, (cols < lo) | (cols >= hi)] = False
+            m = m | grown
             ys, xs = np.nonzero(m)
             Y0, Y1 = max(0, ys.min() - 4), min(ink.shape[0], ys.max() + 5)
             X0, X1 = max(0, xs.min() - 4), min(ink.shape[1], xs.max() + 5)
             crop = np.where(m[Y0:Y1, X0:X1], ink[Y0:Y1, X0:X1], 0).astype(np.float32)
-            occ.append(dict(ch=ch, ink=crop, X0=X0, Y0=Y0, x0=c0 + k * p, base=L['base'], w=int(xs.max() - xs.min() + 1),
+            occ.append(dict(ch=ch, ink=crop, ref=li >= len(texts) - 2, X0=X0, Y0=Y0, x0=c0 + k * p, base=L['base'], w=int(xs.max() - xs.min() + 1),
                             top=int(ys.min()), bottom=int(ys.max() + 1), line=(scan, box, li), cell=k,
                             scan=scan, off=(x0, y0)))
     return occ, p, report
