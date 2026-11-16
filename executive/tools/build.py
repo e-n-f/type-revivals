@@ -41,7 +41,7 @@ SOURCES['Modern'] = [('Modern', None), ('ModernFI', '`´§&'), ('Keyboard', '@#�
 SOURCES['MidCentury'] = [('MidCenturyTyped', 'wW'), ('MidCentury', None), ('MidCenturyTyped', ':;"*')]
 # Arcadia's a: the two-storey one of the 1955 newsletter that announced the face (and of IBM's catalogue);
 # the brochure's machine had the one-storey alternate, which is ss01
-SOURCES['Arcadia'] = [('ArcadiaTyped', 'aw'), ('Arcadia', None), ('ArcadiaTyped', ':;\'"@#$¢*_')]
+SOURCES['Arcadia'] = [('ArcadiaTyped', 'awW'), ('Arcadia', None), ('ArcadiaTyped', ':;\'"@#$¢*_')]
 SOURCES['Charter'] = [('CharterTyped', 'W'), ('Charter', None), ('CharterTyped', ';:*\'#@!\\')]
 # IBM's 1972 "Type Available" catalogue (tools/catalog.py): a real w and W for every face that has no other
 # source of them, the characters chosen from its other cells (catalog.CHOSEN; Mid-Century's # among them, in
@@ -248,6 +248,14 @@ def match_weight(img, src, ref, chars='nmhu'):
     if r <= 0: return img, 0
     k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1))
     ink = cv2.dilate(np.pad(img.ink, r), k)
+    # thickening grows the glyph by r on every side: scale it back to its height and width about its middle, so
+    # only its strokes are heavier (a catalogue W was 5 % taller than the capitals beside it)
+    m = img.ink > 0.5; ys = np.nonzero(m.any(1))[0]; xs = np.nonzero(m.any(0))[0]
+    h, w = ys[-1] - ys[0] + 1, xs[-1] - xs[0] + 1
+    sy, sx = h / (h + 2 * r), w / (w + 2 * r)
+    cy, cx = r + (ys[0] + ys[-1]) / 2, r + (xs[0] + xs[-1]) / 2       # the ink's middle in the padded image
+    M = np.float32([[sx, 0, cx * (1 - sx)], [0, sy, cy * (1 - sy)]])
+    ink = cv2.warpAffine(ink, M, (ink.shape[1], ink.shape[0]), flags=cv2.INTER_LINEAR)
     return Img(ink, img.x0 - r, img.top + r), 2 * r
 
 
