@@ -81,3 +81,18 @@ FACES_FI = {
     'BoldFace2':   ((1193, 540, 1578, 727), 6, 'ü+§=%?&()/`£´$'),
     'Charter':     ((1193, 765, 1578, 890), 5, 'ü+§=%?&()/`£´$'),
 }
+
+# ------------------------------------------------------------------------------------- keyboard sheet (Modern)
+# Typed on a 1950s Executive in Modern: the shifted top row, for the characters neither card shows.  The 8
+# printed too faintly to read; its slug is still there (KEYBOARD_GHOST: character, units, after which
+# character), so the positions of the others can be fitted.
+KEYBOARD = 'typed-keyboard-pairs.jpg'
+KEYBOARD_LINE = (KEYBOARD, (200, 1520, 2200, 1760), '@2#3$4%5¢6&7*(9)0_-+')
+KEYBOARD_SPLIT = {'4%': 2}
+KEYBOARD_MULTI = {'*': 3, '%': 2}
+KEYBOARD_GHOST = ('8', 3, '*')
+KEYBOARD_SKIP = '(4%'     # inked over by the faint 8, or split from one another: their centres are unreliable
+# The positions on this photograph are too rough (a few pixels to the unit's 27) to tell 3 units from 4, so
+# the widths of # ¢ _ are IBM's own: the typed sheet typed-bold-face-1-units.jpg lists them at 3 units of
+# 1/32 inch ("qeryuopasdghkzxcvbnSJ!#$¢*"_ : 3 units"), as the fitted tables have the other characters.
+KEYBOARD_UNITS = {'#': 3, '¢': 3, '_': 3}

@@ -6,6 +6,8 @@ squares fit of w and l in pixels; the unit is the pitch that makes the widths wh
 characters (i, l, j, f, t, ., ', the punctuation) 2 units, as on every Executive.
 
     python3 tools/units.py      # build/units-<Face>.json
+
+The keyboard sheet (Modern's @ # ¢ _) is one line typed key after key, fitted with Modern's widths fixed.
 """
 import sys, os, json, pickle, numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
@@ -108,8 +110,38 @@ def run(face, standard=None, p32=None):
               open(os.path.join(R.BUILD, f'units-{face}.json'), 'w'), indent=1, ensure_ascii=False)
     return p, units
 
+def run_keyboard(standard):
+    """the keyboard sheet: one line typed key after key.  Each slug's centre is at  s + p (U + u/2),  U the units
+    of the slugs before it; with Modern's widths, IBM's for # ¢ _ (sources.KEYBOARD_UNITS) and the faint 8's
+    slug, a straight line fit gives the unit p in pixels, for the scale.  The first character's width is not
+    seen in the positions: it comes from its ink, as for a rare character."""
+    import sources as S
+    res = pickle.load(open(os.path.join(R.BUILD, 'occ-Keyboard.pkl'), 'rb'))
+    occ = sorted(res[0][1], key=lambda o: o['idx'])
+    ghost, gu, after = S.KEYBOARD_GHOST
+    u = dict(standard); u.update(S.KEYBOARD_UNITS); u[ghost] = gu
+    seq = []
+    for o in occ:
+        seq.append((o['ch'], o))
+        if o['ch'] == after: seq.append((ghost, None))
+    U = 0; V, Y = [], []
+    for i, (c, o) in enumerate(seq):
+        if i and o is not None and c not in S.KEYBOARD_SKIP: V.append(U + u[c] / 2); Y.append(o['x0'] + o['w'] / 2)
+        if i: U += u[c]
+    V, Y = np.array(V), np.array(Y)
+    p, s = np.polyfit(V, Y, 1); rms = float(np.sqrt(np.mean((Y - (s + p * V)) ** 2)))
+    units = {c: u[c] for c, o in seq if o is not None and c in u}
+    first = seq[0][0]
+    if first not in units: units[first] = max(2, round((seq[0][1]['w'] + 0.5 * p) / p))
+    rule = {c: 'IBM table' for c in S.KEYBOARD_UNITS}; rule[first] = rule.get(first, 'ink')
+    print(f'Keyboard: unit {p:.2f} px, rms {rms:.2f} px; widths of the characters Modern lacks:',
+          {c: units[c] for c in units if c not in standard})
+    json.dump(dict(pitch=float(p), escapement=32, units=units, offset={}, rule=rule, rms=rms),
+              open(os.path.join(R.BUILD, 'units-Keyboard.json'), 'w'), indent=1, ensure_ascii=False)
+
 if __name__ == '__main__':
     faces = [a for a in sys.argv[1:] if a in R.FACES] or R.FACES
-    p32, std = run('ModernFI')[0], run('Modern')[1]       # the 1/32 calibration, and the machine's table
+    (p32, fi), std = run('ModernFI'), run('Modern')[1]       # the 1/32 calibration, and the machine's table
     for face in faces:
-        if face not in ('Modern', 'ModernFI'): run(face, std, p32)
+        if face == 'Keyboard': run_keyboard({**fi, **std})
+        elif face not in ('Modern', 'ModernFI'): run(face, std, p32)

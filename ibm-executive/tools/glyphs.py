@@ -54,7 +54,12 @@ def place(o, k):
 
 def average(occs, k):
     """occurrences of one character, scaled, aligned to their mean by phase correlation, and averaged"""
-    ims = [place(o, k) for o in occs]
+    return average_imgs([place(o, k) for o in occs])
+
+
+def average_imgs(ims):
+    """images in font units aligned to their mean by phase correlation and averaged; the mean of the shifts
+    is kept at zero, so a measured edge and baseline stay put"""
     if len(ims) == 1: return ims[0]
     x0 = min(i.x0 for i in ims); top = max(i.top for i in ims)
     x1 = max(i.x0 + i.ink.shape[1] for i in ims); bot = min(i.top - i.ink.shape[0] for i in ims)

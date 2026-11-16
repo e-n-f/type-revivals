@@ -340,12 +340,19 @@ def read_jowa():
             lid += 1
     return res, lines
 
-FACES = ['Modern', 'ModernFI', 'Documentary', 'MidCentury', 'Arcadia', 'Doric', 'BoldFace1', 'BoldFace2', 'Charter']
+def read_keyboard():
+    scan, box, text = S.KEYBOARD_LINE
+    ln = Line(scan, box, 30)
+    return [(text, match(ln, text, S.KEYBOARD_MULTI, S.KEYBOARD_SPLIT))], [ln]
+
+FACES = ['Modern', 'ModernFI', 'Keyboard', 'Documentary', 'MidCentury', 'Arcadia', 'Doric', 'BoldFace1', 'BoldFace2', 'Charter']
 
 def read(face):
     """occurrences of every character of a face, and the brochure's Modern for the unit calibration"""
     if face == 'Modern':
         return read_jowa()
+    if face == 'Keyboard':    # Modern's @ # ¢ _, from the typed keyboard sheet
+        return read_keyboard()
     if face == 'ModernFI':    # the brochure's Modern: for the unit calibration and the characters Jowa lacks
         return read_finnish('Modern')
     return read_finnish(face)
