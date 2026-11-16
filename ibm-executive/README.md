@@ -19,8 +19,8 @@ keep those widths exactly, so text set in them falls where the machine would hav
 | Exec Charter | Charter | 1/45 inch | Finnish brochure; BCD code table of 1962 | `ExecCharter-Regular` |
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
-[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Exec Modern 1.001, Mid-Century 1.002;
-Charter 1.002; Documentary, Doric, Bold Face 1 and 2 1.003; and Arcadia 1.004. Every face takes its w and W
+[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Exec Modern 1.002, Mid-Century 1.002;
+Charter 1.003; Doric and Bold Face 2 1.003; Documentary, Bold Face 1 and Arcadia 1.004. Every face takes its w and W
 (where nothing better has them) and its letters' widths from IBM's 1972 catalogue. The sources are listed in
 [`scans/README.md`](scans/README.md).
 
