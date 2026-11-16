@@ -19,8 +19,8 @@ keep those widths exactly, so text set in them falls where the machine would hav
 | Executive Charter | Charter | 1/45 inch | Finnish brochure; BCD code table of 1962 | `ExecutiveCharter-Regular` |
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
-[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Executive Modern and Mid-Century 1.003;
-Doric, Bold Face 2 and Charter 1.004; Documentary, Bold Face 1 and Arcadia 1.005. Every face takes its w and W
+[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Executive Modern and Mid-Century 1.004;
+Doric, Bold Face 2 and Charter 1.005; Documentary, Bold Face 1 and Arcadia 1.006. Every face takes its w and W
 (where nothing better has them) and its letters' widths from IBM's 1972 catalogue. The sources are listed in
 [`scans/README.md`](scans/README.md).
 
@@ -35,7 +35,9 @@ justified foundry type, so its spaces vary.) The line spacing is the Executive's
 inch (1067 font units).
 
 There is no kerning, because the machine had none. Each glyph sits in its slug where the scans put it: the fit
-gives every character an offset from the centre of its slug, as well as its width.
+gives every character an offset from the centre of its slug, as well as its width. A character seen in fewer
+than four neighbour pairs (most signs, which the brochure types once each, beside other signs) is centred
+instead: with so few pairs its offset trades against its width and can come out a whole unit off.
 
 ## Character set
 

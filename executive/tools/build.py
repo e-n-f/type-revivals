@@ -27,8 +27,8 @@ ROOT = os.path.join(HERE, '..')
 BUILD = os.path.join(ROOT, 'build')
 # Each font's version, in the head table and the name table.  Raise a font's version with every change to
 # that font, or font managers treat the new file as a duplicate of the installed one (see CONTRIBUTING.md).
-VERSIONS = {'Modern': '1.003', 'Documentary': '1.005', 'MidCentury': '1.003', 'Arcadia': '1.005',
-            'Doric': '1.004', 'BoldFace1': '1.005', 'BoldFace2': '1.004', 'Charter': '1.004'}
+VERSIONS = {'Modern': '1.004', 'Documentary': '1.006', 'MidCentury': '1.004', 'Arcadia': '1.006',
+            'Doric': '1.005', 'BoldFace1': '1.006', 'BoldFace2': '1.005', 'Charter': '1.005'}
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
          'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter'}
 BOLD = {'BoldFace1', 'BoldFace2'}
@@ -93,6 +93,10 @@ class Source:
         if os.path.exists(path):
             u = json.load(open(path))
             self.esc = u['escapement']; self.p = u['pitch']; self.units = u['units']; self.offset = u['offset']
+            # a character seen in few neighbour pairs (a sign typed once, beside other signs): its fitted offset
+            # trades against its width and can be off by a unit, so it is centred in its slug instead
+            cnt = u.get('count', {})
+            self.offset = {c: v for c, v in self.offset.items() if cnt.get(c, 0) >= 4}
             self.unit = PER_INCH / self.esc              # font units per typewriter unit
             self.k = self.unit / self.p                  # font units per scan pixel
         else:       # a printed sheet: no units of its own; its scale is set by MATCH_HEIGHTS
