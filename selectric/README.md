@@ -150,10 +150,15 @@ Elite's j reaching into the i's cell or the gap between Courier 12 Italic's 7 an
 Everything is under `tools/` and runs from this directory (`selectric/`). The scans aren't in the
 repository: see [`scans/README.md`](scans/README.md) for where to get them.
 
+It needs Python 3 with the packages in `requirements.txt`, and the DejaVu fonts (`fonts-dejavu` on Debian and
+Ubuntu) at `/usr/share/fonts/truetype/dejavu/`, which label the specimens.
+
 ```bash
+pip install -r requirements.txt
 python3 tools/read.py        # build/occ-<Face>.pkl: every character of every source line, in its cell
-python3 tools/build.py       # fonts/otf, fonts/ttf
+python3 tools/build.py       # fonts/otf, fonts/ttf (about ten minutes)
 python3 tools/specimen.py    # specimen/
+python3 ../scripts/font_links.py   # the download lists and their specimen lines
 ```
 
 1. **Reading** (`read.py`, with the faces' blocks and texts in `sources.py`). Each face appears in both printings
