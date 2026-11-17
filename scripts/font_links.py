@@ -34,8 +34,9 @@ def fonts(family):
     for p in glob.glob(os.path.join(ROOT, family, 'fonts', 'otf', '*.otf')):
         stem = os.path.splitext(os.path.basename(p))[0]
         name = TTFont(p)['name'].getDebugName(4) or stem
-        at = readme.find(stem)
-        out.append((at if at >= 0 else len(readme), stem, name))
+        # (by its file's name, its own name, or its name without the family's: "Courier 72" for Selectric's)
+        found = [i for i in (readme.find(stem), readme.find(name), readme.find(name.split(' ', 1)[-1])) if i >= 0]
+        out.append((min(found) if found else len(readme), stem, name))
     return [(name, stem) for _, stem, name in sorted(out)]
 
 
