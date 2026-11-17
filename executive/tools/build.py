@@ -61,6 +61,7 @@ VERSIONS.update(Arcadia='1.011', BoldFaceItalic='1.003', BoldFace1='1.012', Bold
                 Copperplate1='1.004', Copperplate2='1.004', Directory='1.004', Documentary='1.011', Doric='1.008',
                 MidCentury='1.010', Modern='1.009', Patron='1.004', Registry='1.004', Secretarial='1.005',
                 Testimonial='1.004', Text='1.005')
+VERSIONS.update(BoldFace1='1.013', BoldFace2='1.011')   # their catalogue W no darker than 1.25 times their V
 
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
          'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter',
