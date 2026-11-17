@@ -194,7 +194,10 @@ SET_FACES = {'Text': 45, 'BoldFaceItalic': 32, 'Directory': 32, 'Testimonial': 3
              'Copperplate2': 36, 'Patron': 36}
 
 def run_catalog_typed(face, dpi=None, src='Typed', esc=None):
-    cat = json.load(open(os.path.join(R.BUILD, 'catalog-units.json'))).get(face, {})
+    path = os.path.join(R.BUILD, 'catalog-units.json')
+    if not os.path.exists(path):        # the first run, before catalog.py (which needs the brochure faces' fits)
+        print(f'{face}{src}: waits for the catalogue (tools/catalog.py, then this again)'); return
+    cat = json.load(open(path)).get(face, {})
     res = pickle.load(open(os.path.join(R.BUILD, f'occ-{face}{src}.pkl'), 'rb'))
     occ = [o for _, oc in res if oc for o in oc]
     pr = pairs_of(occ); ink = inkw(occ)

@@ -108,12 +108,16 @@ Everything is under `tools/` and runs from this directory (`metal-pal/`). The sc
 5. **Assembly** (`tools/build.py`). The script builds the accented letters, derived glyphs and OpenType features,
    then writes the OTF and TTF files with fontTools and hints the TTFs with ttfautohint.
 
+The specimens' labels need the DejaVu fonts (`fonts-dejavu` on Debian and Ubuntu) at
+`/usr/share/fonts/truetype/dejavu/`.
+
 ```
 pip install -r requirements.txt
 python3 tools/extract.py      # build/raster-<Style>.pkl (about 10 s)
 python3 tools/spacing.py      # build/spacing-<Style>.json
 python3 tools/build.py        # fonts/otf, fonts/ttf (a few minutes)
 python3 tools/specimen.py     # specimen/
+python3 ../scripts/font_links.py   # the download lists and their specimen lines
 ```
 
 Each font's version is in `VERSIONS` in `tools/build.py`. Raise it whenever that font changes, as
