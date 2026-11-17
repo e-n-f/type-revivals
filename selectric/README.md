@@ -57,6 +57,10 @@ Each face has what its brochure line shows: A–Z, a–z, the figures, and `! @ 
 
 ![Printable ASCII in each font](specimen/ascii.png)
 
+Each face also has `specimen/compare-<Face>.png`, which shows the specimen's alphabet lines as scanned with the font
+set beneath them, character for character in the same cells. Anything odd that shows in both, such as Prestige
+Elite's j reaching into the i's cell or the gap between Courier 12 Italic's 7 and 8, is in the original type.
+
 ## How the fonts are made
 
 Everything is under `tools/` and runs from this directory (`selectric/`). The scans aren't in the

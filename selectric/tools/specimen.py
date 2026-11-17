@@ -3,7 +3,8 @@
     python3 tools/specimen.py
 
 specimen-lines.png: every face in a line of text, its alphabets and signs.  ascii.png: every face's printable
-ASCII (0x21-0x7E) in code order, a character the face lacks as an empty box.
+ASCII (0x21-0x7E) in code order, a character the face lacks as an empty box.  compare-<face>.png: the
+specimen's alphabet lines as scanned, each with the font set beneath it in the same cells.
 """
 import os, sys, json
 from PIL import Image, ImageDraw, ImageFont
@@ -63,6 +64,46 @@ def ascii_chart():
         y += 3 * ch + 24
     im.save(os.path.join(OUT, 'ascii.png'))
 
+def compare(face):
+    """compare-<face>.png: each alphabet line of the specimen as scanned, and the font beneath it, each character
+    in the cell of the one it was made from, the cells' edges marked: what looks odd in both is in the original"""
+    import pickle, numpy as np
+    from read import gray
+    data = pickle.load(open(os.path.join(ROOT, 'build', f'occ-{face}.pkl'), 'rb'))
+    p = float(np.median([q for q, _ in data['pitches']]))
+    S = 0.5                                                   # output pixels per scan pixel
+    f = ImageFont.truetype(fontpath(face), int(round(p * S / 0.6)))   # an advance (600 units) a cell wide
+    lab = ImageFont.truetype(LABEL, 20)
+    by = {}
+    for o in data['occ']:
+        if o.get('ref'): by.setdefault((o['scan'], o['line']), []).append(o)
+    panels = []
+    for (scan, line), occ in sorted(by.items(), key=lambda kv: (kv[0][0], str(kv[0][1]))):
+        occ.sort(key=lambda o: o['x0'])
+        x0b, x1b, y0b, y1b = line[1]
+        g = gray(scan)[y0b:y1b, x0b:x1b]
+        X0 = int(occ[0]['x0'] - p / 2) - 4; X1 = int(occ[-1]['x0'] + p / 2) + 4
+        base = float(np.median([o['base'] for o in occ]))
+        Y0 = int(base - 1.15 * p * 1.25); Y1 = int(base + 0.7 * p * 1.25)
+        crop = g[max(0, Y0):Y1, max(0, X0):X1]
+        top = Image.fromarray((np.clip(crop / max(np.median(crop), 0.3), 0, 1) * 255).astype(np.uint8))
+        top = top.resize((max(1, int(top.width * S)), max(1, int(top.height * S))), Image.LANCZOS)
+        bot = Image.new('L', top.size, 255); d = ImageDraw.Draw(bot)
+        for o in occ:
+            d.text(((o['x0'] - p / 2 - X0) * S, (o['base'] - Y0) * S), o['ch'], font=f, fill=0, anchor='ls')
+        for im in (top, bot):
+            d2 = ImageDraw.Draw(im)
+            for o in occ: d2.line([((o['x0'] - p / 2 - X0) * S, 0), ((o['x0'] - p / 2 - X0) * S, 6)], fill=150)
+        panels.append((f'scan: {scan}', top)); panels.append(('font', bot))
+    W = max(im.width for _, im in panels) + 20; H = sum(im.height + 30 for _, im in panels) + 40
+    out = Image.new('L', (W, H), 255); d = ImageDraw.Draw(out); y = 10
+    d.text((10, y), f'Selectric {NAMES[face]}: the specimen\'s alphabet lines, and the font', font=lab, fill=60); y += 30
+    for name, im in panels:
+        d.text((10, y), name, font=lab, fill=120); out.paste(im, (10, y + 24)); y += im.height + 30
+    out.save(os.path.join(OUT, f'compare-{face}.png'))
+
 if __name__ == '__main__':
     os.makedirs(OUT, exist_ok=True)
     lines(); ascii_chart()
+    for face in [a for a in sys.argv[1:] if a in VERSIONS] or VERSIONS:
+        compare(face)
