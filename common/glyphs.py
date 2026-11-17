@@ -69,12 +69,19 @@ def average_imgs(ims):
         return cv2.warpAffine(i.ink, M, (W, H), flags=cv2.INTER_LINEAR)
     stack = [put(i) for i in ims]; shifts = [(0.0, 0.0)] * len(ims)
     win = cv2.createHanningWindow((W, H), cv2.CV_32F)
+    def fit(a, b): return float((a * b).sum() / (np.sqrt((a * a).sum() * (b * b).sum()) + 1e-9))
     for _ in range(2):
         mean = np.mean(stack, 0)
         new = []
         for i, (sx, sy) in zip(ims, shifts):
-            (dx, dy), _ = cv2.phaseCorrelate(put(i, sx, sy), mean, win)
-            if abs(dx) > 0.3 * W or abs(dy) > 0.3 * H: dx = dy = 0
+            here = put(i, sx, sy)
+            (dx, dy), _ = cv2.phaseCorrelate(here, mean, win)
+            # only small corrections: the prints are placed by their cells and baselines already, within a few
+            # pixels, and a tall bowl matches itself a bowl's height away (Directory's o came out three o's)
+            if abs(dx) > 0.06 * W or abs(dy) > 0.06 * H: dx = dy = 0
+            # a shift only if it fits the mean better: with prints from several pages, the mean can have a
+            # second, fainter copy, and phase correlation can jump to it (Directory's o, a bowl's height off)
+            if (dx or dy) and fit(put(i, sx + dx, sy + dy), mean) <= fit(here, mean): dx = dy = 0
             new.append((sx + dx, sy + dy))
         shifts = new
         stack = [put(i, sx, sy) for i, (sx, sy) in zip(ims, shifts)]

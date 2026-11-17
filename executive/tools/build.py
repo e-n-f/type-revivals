@@ -55,6 +55,12 @@ VERSIONS.update(Arcadia='1.010', BoldFaceItalic='1.002', BoldFace1='1.011', Bold
                 Copperplate1='1.003', Copperplate2='1.003', Directory='1.003', Documentary='1.010', Doric='1.007',
                 MidCentury='1.009', Modern='1.008', Patron='1.003', Registry='1.003', Secretarial='1.004',
                 Testimonial='1.003', Text='1.004')
+# Raised for the averaging's alignment kept to small corrections (Directory's o), and the catalogue's w and W
+# thickened to the face's v and V (Documentary's w)
+VERSIONS.update(Arcadia='1.011', BoldFaceItalic='1.003', BoldFace1='1.012', BoldFace2='1.010', Charter='1.011',
+                Copperplate1='1.004', Copperplate2='1.004', Directory='1.004', Documentary='1.011', Doric='1.008',
+                MidCentury='1.010', Modern='1.009', Patron='1.004', Registry='1.004', Secretarial='1.005',
+                Testimonial='1.004', Text='1.005')
 
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
          'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter',
@@ -296,6 +302,24 @@ TRACE_LEVEL = {'Copperplate1Set': 0.4, 'Copperplate2Set': 0.4, 'PatronSet': 0.4,
 # A ( whose prints all touch the ¢ before it: the ) turned round instead (Text's)
 TURN = {'Text': '('}
 
+# A catalogue letter thickened to the stroke of a letter from the face's own source (see glyph_images)
+STROKE_LIKE = {'w': 'v', 'W': 'V'}
+
+
+def stroke(img):
+    """a glyph's typical stroke width, in font units: twice the median distance to the edge along its spine"""
+    m = (img.ink > 0.5).astype(np.uint8)
+    d = cv2.distanceTransform(m, cv2.DIST_L2, 5)
+    spine = d[(d >= cv2.dilate(d, np.ones((3, 3), np.uint8))) & (d > 2)]
+    return 2 * float(np.median(spine)) if len(spine) else 0.0
+
+
+def darkness(img):
+    """the share of a glyph's bounding box that is inked"""
+    m = img.ink > 0.5; ys = np.nonzero(m.any(1))[0]; xs = np.nonzero(m.any(0))[0]
+    return float(m[ys[0]:ys[-1] + 1, xs[0]:xs[-1] + 1].mean()) if len(ys) else 0.0
+
+
 # Characters printed once, more heavily than the rest of their face, thinned by this many font units a side:
 # Patron's J (its stems 89 units wide, the other capitals' 63 to 76)
 THIN = {'Patron': {'J': 8}}
@@ -354,6 +378,17 @@ def glyph_images(face):
             # period fitted at 2 units, printed at 3), the glyph is centred
             fitted = next((t.units[ch] for t in srcs if ch in t.units), None)
             off = s.offset.get(ch, 0) * s.k if fitted in (None, u) else 0.0
+            if s.name.startswith('Catalog') and ch in STROKE_LIKE and STROKE_LIKE[ch] in G \
+                    and not G[STROKE_LIKE[ch]]['src'].name.startswith('Catalog'):
+                # the catalogue's w and W print thinner than the rest of its letters, and the thickening that
+                # matches the n m h u leaves them light: thickened to the face's own v and V
+                # (a step at a time: a stroke measured on a thin diagonal grows faster than its radius)
+                # (and no darker than a W is than a V where both are the face's own: about 1.25 times; thickened
+                # alike, a W's thin diagonals grow as much as its thick ones and it comes out heavy)
+                want, dark = stroke(G[STROKE_LIKE[ch]]['img']), 1.25 * darkness(G[STROKE_LIKE[ch]]['img'])
+                for r in range(2, 40, 2):
+                    if stroke(img) >= 0.97 * want or darkness(img) >= dark: break
+                    img = Img(cv2.dilate(img.ink, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))), img.x0, img.top)
             if ch in THIN.get(face, {}):           # a single print heavier than its face: thinned
                 r = THIN[face][ch]
                 img = Img(cv2.erode(img.ink, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1))),
