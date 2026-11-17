@@ -177,12 +177,23 @@ The chart shows each font's printable ASCII (0x21–0x7E) in code order. A chara
 Everything is under `tools/` and runs from this directory (`executive/`). The scans aren't in the
 repository: see [`scans/README.md`](scans/README.md) for where to get them.
 
+It needs Python 3 with the packages in `requirements.txt`, and the DejaVu fonts (`fonts-dejavu` on Debian and
+Ubuntu) at `/usr/share/fonts/truetype/dejavu/`. DejaVu Serif is the reference the reader compares signs with,
+and DejaVu Sans labels the specimens.
+
 ```bash
+pip install -r requirements.txt
+python3 tools/catalog.py     # build/occ-Catalog<Face>.pkl, build/catalog-units.json: the 1972 catalogue's cells and widths
 python3 tools/read.py        # build/occ-<Face>.pkl: every character of every source line, matched to its text
 python3 tools/units.py       # build/units-<Face>.json: the unit widths and slug offsets
-python3 tools/build.py       # fonts/otf, fonts/ttf
+python3 tools/build.py       # fonts/otf, fonts/ttf (about half an hour)
 python3 tools/specimen.py    # specimen/
+python3 ../scripts/font_links.py   # the download lists and their specimen lines
 ```
+
+`catalog.py` identifies each catalogue cell's letter against the face's font, so it uses the fonts in
+`fonts/otf/`; a face built for the first time is identified by its cells' order alone. Three of
+*Typesetting*'s further pages don't read and are reported and left out, as is Heritage.
 
 1. **Reading** (`read.py`, with the line texts and positions in `sources.py`). Every line of the sources has a
    known text. Each line's ink is cut into groups of touching components and matched to its characters. Groups
