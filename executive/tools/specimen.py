@@ -11,7 +11,7 @@ from fontTools.ttLib import TTFont
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(HERE, '..', '..', 'common'))
 import read as R
-from build import VERSIONS, NAMES, PER_INCH, ALTERNATES
+from build import VERSIONS, NAMES, PER_INCH, ALTERNATES, ITALIC
 ROOT = os.path.join(HERE, '..')
 OUT = os.path.join(ROOT, 'specimen')
 LABEL = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
@@ -80,18 +80,39 @@ def compare(face):
         bot = Image.new('L', top.size, 255); d = ImageDraw.Draw(bot)
         words = {}
         for o in os_: words.setdefault(o['word'], []).append(o)
-        for (lid, wi), ws in words.items():
-            first = min(ws, key=lambda o: o['idx'])
-            text = texts[lid].split()[wi][first['idx']:]
-            ink_left = font.getbbox(text[0], anchor='ls')[0]
-            d.text((X(first) - x0 - ink_left, Y(first, first['base']) - y0), text, font=font, fill=0, anchor='ls')
+        # each word where the reader found it; the words it couldn't read (letters run together on a soft
+        # page, a word lost in a photocopy's noise) set in the gap they leave: ending a space before the next
+        # word found, or, at the end of a line, starting a space after the last
+        sp = font.getlength(' ')
+        for lid in sorted({lid for lid, _ in words}):
+            found = {}
+            for wi, word in enumerate(texts[lid].split()):
+                ws = words.get((lid, wi))
+                if ws:
+                    first = min(ws, key=lambda o: o['idx'])
+                    text = word[first['idx']:]
+                    found[wi] = (text, X(first) - x0 - font.getbbox(text[0], anchor='ls')[0], Y(first, first['base']) - y0)
+            if not found: continue
+            ws_ = texts[lid].split(); placed = dict(found); run = []
+            for wi in range(len(ws_) + 1):
+                if wi < len(ws_) and wi not in found: run.append(wi); continue
+                if run:
+                    w = sum(font.getlength(ws_[r]) for r in run) + sp * (len(run) - 1)
+                    if wi in found: x, base = found[wi][1] - sp - w, found[wi][2]
+                    else:
+                        t, px, base = placed[run[0] - 1]; x = px + font.getlength(t) + sp
+                    for r in run:
+                        placed[r] = (ws_[r], x, base); x += font.getlength(ws_[r]) + sp
+                    run = []
+            for text, x, base in placed.values():
+                d.text((x, base), text, font=font, fill=0, anchor='ls')
         panels += [('scan', top), ('font', bot)]
     lab = ImageFont.truetype(LABEL, 22)
     ims = [p.resize((int(p.width * scale), int(p.height * scale)), Image.LANCZOS) for _, p in panels]
     W = max(i.width for i in ims) + 20; H = sum(i.height + 40 for i in ims) + 10
     out = Image.new('L', (W, H), 255); d = ImageDraw.Draw(out); y = 10
     for (kind, _), im in zip(panels, ims):
-        d.text((10, y), f'{kind}: {"the scan" if kind == "scan" else f"Executive {NAMES[face]}, set at the scan’s size"}',
+        d.text((10, y), f'{kind}: {"the scan" if kind == "scan" else f"Executive {NAMES[face]}{' Italic' if face in ITALIC else ''}, set at the scan’s size"}',
                font=lab, fill=110)
         out.paste(im, (10, y + 30)); y += im.height + 40
     out.save(os.path.join(OUT, f'compare-{face}.png'))
