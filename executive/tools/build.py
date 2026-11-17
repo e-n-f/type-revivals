@@ -50,6 +50,11 @@ VERSIONS.update(Documentary='1.009', MidCentury='1.007', Arcadia='1.009', BoldFa
 VERSIONS.update(MidCentury='1.008', BoldFace1='1.010', Charter='1.009', Secretarial='1.003', Text='1.002',
                 Directory='1.002', Testimonial='1.002', Copperplate1='1.002', Copperplate2='1.002', Patron='1.002')
 VERSIONS.update(Text='1.003')       # its ( the ) turned round
+# Raised for baselines corrected along each line (raised VWXYZ), Text's j dots and Directory's O
+VERSIONS.update(Arcadia='1.010', BoldFaceItalic='1.002', BoldFace1='1.011', BoldFace2='1.009', Charter='1.010',
+                Copperplate1='1.003', Copperplate2='1.003', Directory='1.003', Documentary='1.010', Doric='1.007',
+                MidCentury='1.009', Modern='1.008', Patron='1.003', Registry='1.003', Secretarial='1.004',
+                Testimonial='1.003', Text='1.004')
 
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
          'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter',
