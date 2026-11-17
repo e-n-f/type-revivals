@@ -174,8 +174,8 @@ The chart shows each font's printable ASCII (0x21–0x7E) in code order. A chara
 
 ## How the fonts are made
 
-Everything is under `tools/` and runs from this directory (`executive/`). The scans aren't in the
-repository: see [`scans/README.md`](scans/README.md) for where to get them.
+Everything is under `tools/` and runs from this directory (`executive/`). The scans are in `scans/`, and
+[`scans/README.md`](scans/README.md) says where each came from.
 
 It needs Python 3 with the packages in `requirements.txt`, and the DejaVu fonts (`fonts-dejavu` on Debian and
 Ubuntu) at `/usr/share/fonts/truetype/dejavu/`. DejaVu Serif is the reference the reader compares signs with,

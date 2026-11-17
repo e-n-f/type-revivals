@@ -1,7 +1,8 @@
 # Scans
 
-The sources for the Executive revivals. The image files are not in the repository; put them in this
-directory under these names.
+The sources for the Executive revivals, kept here so that the fonts can be rebuilt from them. The
+*Typesetting* pages are screenshots, which nobody could make again pixel for pixel, and the build's text-block
+positions are measured on these files.
 
 | File | What it is | Used for |
 |---|---|---|
