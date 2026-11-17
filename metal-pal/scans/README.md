@@ -3,8 +3,8 @@
 The fonts are traced from eight photographs of D. Stempel AG *Schriftmuster-Karteikarten*
 (specimen cards after DIN 16517) in the Letterform Archive's Flickr album
 <https://www.flickr.com/photos/letterformarchive/albums/72177720310834741/>.
-They are not in the repository; download the originals ("Original" size, about 9900 × 7000 px)
-into this directory under these names:
+The originals ("Original" size, about 9900 × 7000 px) are kept here, so that the fonts can be rebuilt from them,
+under these names:
 
 | File | Card | Used for |
 |---|---|---|

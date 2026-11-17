@@ -69,8 +69,8 @@ sorts (f, j and the italic's long-tailed letters) overhang their bodies here as 
 
 ## How the fonts are made
 
-Everything is under `tools/` and runs from this directory (`metal-pal/`). The scans aren't in the repository: see
-[`scans/README.md`](scans/README.md) for where to download them.
+Everything is under `tools/` and runs from this directory (`metal-pal/`). The scans are in `scans/`, and
+[`scans/README.md`](scans/README.md) says where each came from.
 
 1. **Segmentation** (`tools/segment.py`, `tools/sheets.py`). Each character sheet is a photograph of about
    9900 × 7000 pixels, with a cap height of about 352 px. Each line of the *Drucktypenverzeichnis* (the type list)
