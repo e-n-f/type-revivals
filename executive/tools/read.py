@@ -598,6 +598,15 @@ def read(face):
             a, b = baseline(occ)
             for o in occ: o['base'] = a + b * (o['x0'] + o['w'] / 2)
             res[k] = (text, occ)
+        # a bracket is one stroke: anything else in its crop is a neighbour's edge (Text's ( has its ¢'s)
+        for o in res[k][1] or []:
+            if o['ch'] not in '()[]{}': continue
+            n, lab, st, _ = cv2.connectedComponentsWithStats((o['ink'] > 0.5).astype(np.uint8), 8)
+            if n <= 2: continue
+            big = 1 + int(np.argmax(st[1:, 4])); keep = cv2.dilate((lab == big).astype(np.uint8), np.ones((5, 5), np.uint8))
+            ink = o['ink'] * keep; cols = np.nonzero((ink > 0.5).any(0))[0]; rows = np.nonzero((ink > 0.5).any(1))[0]
+            o.update(ink=ink.astype(np.float32), x0=o['X0'] + int(cols[0]), w=int(cols[-1] - cols[0] + 1),
+                     x1=o['X0'] + int(cols[-1]) + 1, top=o['Y0'] + int(rows[0]), bottom=o['Y0'] + int(rows[-1]) + 1)
         # a sign read with its neighbour joined to it: the neighbour cut away (sources.SET_CUT)
         for _, oc in res:
             for o in oc or []:

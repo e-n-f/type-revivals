@@ -5,7 +5,7 @@
 compare-<Face>.png shows a stretch of the scan above the same words set in the font at the scan's scale, each
 word started where the scan has it (the Jowa card's text is justified foundry type, so its spaces vary).
 """
-import os, sys, json, pickle, numpy as np
+import os, sys, json, pickle, numpy as np, cv2
 from PIL import Image, ImageDraw, ImageFont
 from fontTools.ttLib import TTFont
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -72,10 +72,28 @@ def compare(face):
         if oc: texts[oc[0]['line']] = t
     for scan in scans:
         os_ = [o for o in occ if o['scan'] == scan]
-        X = lambda o: o['x0'] + o['off'][0]; Y = lambda o, v: v + o['off'][1]
-        x0 = int(min(X(o) for o in os_)) - 30; x1 = int(max(o['x1'] + o['off'][0] for o in os_)) + 30
+        # a page read un-slanted (sources.SHEAR: Bold Face 1 Italic's) is shown as printed, and its words placed
+        # back where they are on it: a point (x, y) of the page as read is (x - sh y, y) on the page as printed
+        sh = R.S.SHEAR.get(scan, 0.0)
+        Y = lambda o, v: v + o['off'][1]
+        X = lambda o: o['x0'] + o['off'][0] - sh * Y(o, o['base'])
+        x0 = int(min(X(o) for o in os_)) - 30; x1 = int(max(X(o) + o['x1'] - o['x0'] for o in os_)) + 30
         y0 = int(min(Y(o, o['top']) for o in os_)) - 30; y1 = int(max(Y(o, o['bottom']) for o in os_)) + 30
-        g = R.gray(scan)[y0:y1, x0:x1]
+        g = R.gray(scan)
+        if sh: g = cv2.warpAffine(g, np.float32([[1, -sh, 0], [0, 1, 0]]), (g.shape[1], g.shape[0]),
+                                  borderMode=cv2.BORDER_CONSTANT, borderValue=float(np.median(g)))
+        g = g[y0:y1, max(0, x0):x1]
+        # each line's baseline: a straight line through all its letters' (one word's few letters, on a soft
+        # page, put it a little high or low)
+        bases = {}
+        for lid in {o['word'][0] for o in os_}:
+            pts = np.array([(X(o), Y(o, o['base'])) for o in os_ if o['word'][0] == lid], float)
+            if len(pts) >= 4:
+                b, a = np.polyfit(pts[:, 0], pts[:, 1], 1)
+                r = np.abs(pts[:, 1] - (a + b * pts[:, 0])); keep = r <= max(2.0, 2.5 * np.median(r))
+                b, a = np.polyfit(pts[keep, 0], pts[keep, 1], 1)
+            else: a, b = float(np.median(pts[:, 1])), 0.0
+            bases[lid] = (a, b)
         top = Image.fromarray((np.clip(g / max(np.median(g), 0.3), 0, 1) * 255).astype(np.uint8))
         bot = Image.new('L', top.size, 255); d = ImageDraw.Draw(bot)
         words = {}
@@ -93,7 +111,8 @@ def compare(face):
                     # one letter can be read a little out of place)
                     starts = [X(o) - x0 - font.getlength(word[:o['idx']]) - font.getbbox(word[o['idx']], anchor='ls')[0]
                               for o in ws if o['idx'] < len(word)]
-                    found[wi] = (word, float(np.median(starts)), float(np.median([Y(o, o['base']) - y0 for o in ws])))
+                    xs = float(np.median(starts)); a, b = bases[lid]
+                    found[wi] = (word, xs, a + b * (xs + x0) - y0)
             if not found: continue
             ws_ = texts[lid].split(); placed = dict(found); run = []
             for wi in range(len(ws_) + 1):
@@ -109,8 +128,9 @@ def compare(face):
                     elif wi in found: x, base = found[wi][1] - sp - w, found[wi][2]
                     else:
                         t, px, base = prev; x = px + font.getlength(t) + sp
+                    a, b = bases[lid]
                     for r in run:
-                        placed[r] = (ws_[r], x, base); x += font.getlength(ws_[r]) + gap
+                        placed[r] = (ws_[r], x, a + b * (x + x0) - y0); x += font.getlength(ws_[r]) + gap
                     run = []
             for text, x, base in placed.values():
                 d.text((x, base), text, font=font, fill=0, anchor='ls')
