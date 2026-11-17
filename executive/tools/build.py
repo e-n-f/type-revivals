@@ -42,7 +42,7 @@ VERSIONS.update(Modern='1.006', Documentary='1.008', MidCentury='1.006', Arcadia
 # Modern's card read whole ('Dickten')
 VERSIONS.update(Secretarial='1.002', Directory='1.001', Copperplate2='1.001', Modern='1.007')
 # Raised for prints checked against each other before averaging, the underscores and composed double quotes
-VERSIONS.update(Documentary='1.009', MidCentury='1.007', Arcadia='1.009', Doric='1.007', BoldFace1='1.009',
+VERSIONS.update(Documentary='1.009', MidCentury='1.007', Arcadia='1.009', BoldFace1='1.009',
                 BoldFace2='1.008', Charter='1.008', Registry='1.002', Text='1.001', Testimonial='1.001',
                 BoldFaceItalic='1.001', Copperplate1='1.001', Patron='1.001')
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
