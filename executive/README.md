@@ -35,9 +35,9 @@ says (it also calls Bold Face #2 a 90 % Bold Face #1, and Registry an 85 % Direc
 separately. Bold Face 2 is made anyway, because it comes out lighter than a reduced Bold Face 1.
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
-[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Doric 1.006; Modern and
-Mid-Century 1.007; Bold Face 2 and Charter 1.008; Documentary, Bold Face 1 and Arcadia 1.009; Secretarial and
-Registry 1.002; Copperplate Gothic 1 1.002; and the other faces from *Typesetting*, 1.001. Every face takes its w and W
+[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Bold Face 1 Italic 1.001;
+Directory, Testimonial, Copperplate Gothic 1 and 2, Patron and Registry 1.002; Secretarial and Text 1.003; Doric
+1.006; Modern 1.007; Mid-Century and Bold Face 2 1.008; Documentary, Arcadia and Charter 1.009; Bold Face 1 1.010. Every face takes its w and W
 (where nothing better has them) and its letters' widths from IBM's 1972 catalogue. The sources are listed in
 [`scans/README.md`](scans/README.md).
 
@@ -110,7 +110,8 @@ The chart shows each font's printable ASCII (0x21–0x7E) in code order. A chara
   book's pages. A face with no `"` gets one made of two of its `'` (Text, Directory, Testimonial), and a face
   with a `‘` gets a `“` made of two of them.
 - **Documentary's** `` ` `` and `^` are from the catalogue.
-- `)` is the `(` turned round in Modern, whose card has only the `(`. The other typographic quotes map to the
+- `)` is the `(` turned round in Modern, whose card has only the `(`, and Text's `(` is its `)` turned round,
+  because every print of its `(` touches the `¢` beside it. The other typographic quotes map to the
   typewriter's straight `'` and `"`.
 
 ## How the fonts are made

@@ -47,9 +47,9 @@ VERSIONS.update(Documentary='1.009', MidCentury='1.007', Arcadia='1.009', BoldFa
                 BoldFaceItalic='1.001', Copperplate1='1.001', Patron='1.001')
 # Raised for prints of further pages checked against the first page's, two prints averaged only if they agree
 # closely, brackets cut free of their neighbours, Copperplate 1's and Secretarial's page traced at 40 %
-VERSIONS.update(Modern='1.008', Documentary='1.010', MidCentury='1.008', Arcadia='1.010', Doric='1.007',
-                BoldFace1='1.010', BoldFace2='1.009', Charter='1.009', Secretarial='1.003', Registry='1.003',
-                **{f: '1.002' for f in NEW_FACES})
+VERSIONS.update(MidCentury='1.008', BoldFace1='1.010', Charter='1.009', Secretarial='1.003', Text='1.002',
+                Directory='1.002', Testimonial='1.002', Copperplate1='1.002', Copperplate2='1.002', Patron='1.002')
+VERSIONS.update(Text='1.003')       # its ( the ) turned round
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
          'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter',
          'Secretarial': 'Secretarial', 'Registry': 'Registry', 'Text': 'Text', 'Directory': 'Directory',
@@ -287,6 +287,9 @@ def agree(occs, k, most=8):
 TRACE_LEVEL = {'Copperplate1Set': 0.4, 'Copperplate2Set': 0.4, 'PatronSet': 0.4, 'DirectorySet': 0.4,
                'SecretarialSet': 0.4}
 
+# A ( whose prints all touch the ¢ before it: the ) turned round instead (Text's)
+TURN = {'Text': '('}
+
 # Characters printed once, more heavily than the rest of their face, thinned by this many font units a side:
 # Patron's J (its stems 89 units wide, the other capitals' 63 to 76)
 THIN = {'Patron': {'J': 8}}
@@ -449,9 +452,9 @@ def build(face):
     G, srcs = glyph_images(face)
     notes = []
     xh = top_of(G['x']['img']); cap = top_of(G['H']['img'])
-    # ( and ) are one another turned round, where the source shows only one
+    # ( and ) are one another turned round, where the source shows only one, or one is spoiled (TURN)
     for a, b in (('(', ')'), (')', '(')):
-        if a in G and b not in G:
+        if a in G and (b not in G or TURN.get(face) == b):
             G[b] = dict(G[a], img=G[a]['img'].rot180(), off=-G[a]['off']); notes.append(f'{b} from {a}')
     # double quotes, where the source shows none: two of the single ones side by side, a third of a mark's width
     # apart, a unit wider (Testimonial's and Text's pages print no ")
