@@ -35,9 +35,9 @@ says (it also calls Bold Face #2 a 90 % Bold Face #1, and Registry an 85 % Direc
 separately. Bold Face 2 is made anyway, because it comes out lighter than a reduced Bold Face 1.
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
-[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Bold Face 1 Italic 1.002;
-Directory, Testimonial, Copperplate Gothic 1 and 2, Patron and Registry 1.003; Secretarial and Text 1.004; Doric
-1.007; Modern 1.008; Mid-Century and Bold Face 2 1.009; Documentary, Arcadia and Charter 1.010; Bold Face 1 1.011. Every face takes its w and W
+[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Bold Face 1 Italic 1.003;
+Directory, Testimonial, Copperplate Gothic 1 and 2, Patron and Registry 1.004; Secretarial and Text 1.005; Doric
+1.008; Modern 1.009; Mid-Century and Bold Face 2 1.010; Documentary, Arcadia and Charter 1.011; Bold Face 1 1.012. Every face takes its w and W
 (where nothing better has them) and its letters' widths from IBM's 1972 catalogue. The sources are listed in
 [`scans/README.md`](scans/README.md).
 
@@ -77,7 +77,9 @@ The chart shows each font's printable ASCII (0x21–0x7E) in code order. A chara
   Doric, Bold Face 1 and 2 and Charter's w take theirs from IBM's 1972 catalogue. Each is scaled so the
   catalogue's letters are as tall as the brochure's, and thickened by the difference between the two sources'
   n m h u stems, because the catalogue is a crisp print and the brochure's halftone spreads the ink. The
-  thickening is kept to the strokes: the glyph is scaled back to its height and width.
+  thickening is kept to the strokes: the glyph is scaled back to its height and width. The catalogue's w and W
+  print thinner than its other letters, so they are thickened further, to the stroke of the face's own v and V,
+  but no darker than 1.25 times it.
 - **Accented letters are put together** from the face's own letters and accents, for every accent the scans show.
   Each accent is averaged over all the letters that carry it, and placed at its average offset from the
   letter's centre. Modern composes à á â ã ä å è é ê ë ì í î ï ñ ò ó ô õ ö ù ú û ü ý ÿ and their capitals. The

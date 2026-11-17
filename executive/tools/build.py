@@ -314,6 +314,12 @@ def stroke(img):
     return 2 * float(np.median(spine)) if len(spine) else 0.0
 
 
+def darkness(img):
+    """the share of a glyph's bounding box that is inked"""
+    m = img.ink > 0.5; ys = np.nonzero(m.any(1))[0]; xs = np.nonzero(m.any(0))[0]
+    return float(m[ys[0]:ys[-1] + 1, xs[0]:xs[-1] + 1].mean()) if len(ys) else 0.0
+
+
 # Characters printed once, more heavily than the rest of their face, thinned by this many font units a side:
 # Patron's J (its stems 89 units wide, the other capitals' 63 to 76)
 THIN = {'Patron': {'J': 8}}
@@ -376,11 +382,13 @@ def glyph_images(face):
                     and not G[STROKE_LIKE[ch]]['src'].name.startswith('Catalog'):
                 # the catalogue's w and W print thinner than the rest of its letters, and the thickening that
                 # matches the n m h u leaves them light: thickened to the face's own v and V
-                want, have = stroke(G[STROKE_LIKE[ch]]['img']), stroke(img)
-                r = int(round((want - have) / 2))
-                if r >= 2:
-                    img = Img(cv2.dilate(img.ink, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1))),
-                              img.x0, img.top)
+                # (a step at a time: a stroke measured on a thin diagonal grows faster than its radius)
+                # (and no darker than a W is than a V where both are the face's own: about 1.25 times; thickened
+                # alike, a W's thin diagonals grow as much as its thick ones and it comes out heavy)
+                want, dark = stroke(G[STROKE_LIKE[ch]]['img']), 1.25 * darkness(G[STROKE_LIKE[ch]]['img'])
+                for r in range(2, 40, 2):
+                    if stroke(img) >= 0.97 * want or darkness(img) >= dark: break
+                    img = Img(cv2.dilate(img.ink, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))), img.x0, img.top)
             if ch in THIN.get(face, {}):           # a single print heavier than its face: thinned
                 r = THIN[face][ch]
                 img = Img(cv2.erode(img.ink, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1))),
