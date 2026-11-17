@@ -183,16 +183,19 @@ and DejaVu Sans labels the specimens.
 
 ```bash
 pip install -r requirements.txt
-python3 tools/catalog.py     # build/occ-Catalog<Face>.pkl, build/catalog-units.json: the 1972 catalogue's cells and widths
 python3 tools/read.py        # build/occ-<Face>.pkl: every character of every source line, matched to its text
-python3 tools/units.py       # build/units-<Face>.json: the unit widths and slug offsets
+python3 tools/units.py       # build/units-<Face>.json: the unit widths and slug offsets of the brochure faces
+python3 tools/catalog.py     # build/occ-Catalog<Face>.pkl, build/catalog-units.json: the 1972 catalogue's cells and widths
+python3 tools/units.py       # again: the faces fitted with the catalogue's widths (Secretarial, Registry, Typesetting's)
 python3 tools/build.py       # fonts/otf, fonts/ttf (about half an hour)
 python3 tools/specimen.py    # specimen/
 python3 ../scripts/font_links.py   # the download lists and their specimen lines
 ```
 
-`catalog.py` identifies each catalogue cell's letter against the face's font, so it uses the fonts in
-`fonts/otf/`; a face built for the first time is identified by its cells' order alone. Three of
+`catalog.py` reads the width digits against templates taken from the brochure faces' fitted widths, so it runs
+after the first `units.py`, and the faces whose widths come from the catalogue are fitted by the second. It
+identifies each catalogue cell's letter against the face's font, so it uses the fonts in `fonts/otf/`; a face
+built for the first time is identified by its cells' order alone. Three of
 *Typesetting*'s further pages don't read and are reported and left out, as is Heritage.
 
 1. **Reading** (`read.py`, with the line texts and positions in `sources.py`). Every line of the sources has a
