@@ -184,10 +184,9 @@ def read_face(face, templates=None):
             for i, o in enumerate(row):
                 if ids[i] != o['ch']:
                     o['ch'] = ids[i]; digits[('_', ids[i])] = digits.pop(o['_cell'])
-            # the row's baseline: the feet of its letters that sit on it
-            feet = [o['bottom'] for o in row if o['ch'] in R.BASE]
-            base = float(np.median(feet))
-            for o in row: o['base'] = base
+            # the row's baseline: through the feet of its letters that sit on it, which drift along a row
+            # (Bold Face Italic's A sits 75 units above its T)
+            R.set_bases(row)
             occ += row
     # the digits by the letter now in each cell
     digits = {k[1] if k[0] == '_' else next((o['ch'] for o in occ if o['_cell'] == k), None): f for k, f in digits.items()}

@@ -50,6 +50,7 @@ VERSIONS.update(Documentary='1.009', MidCentury='1.007', Arcadia='1.009', BoldFa
 VERSIONS.update(MidCentury='1.008', BoldFace1='1.010', Charter='1.009', Secretarial='1.003', Text='1.002',
                 Directory='1.002', Testimonial='1.002', Copperplate1='1.002', Copperplate2='1.002', Patron='1.002')
 VERSIONS.update(Text='1.003')       # its ( the ) turned round
+
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
          'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter',
          'Secretarial': 'Secretarial', 'Registry': 'Registry', 'Text': 'Text', 'Directory': 'Directory',
@@ -326,7 +327,10 @@ def glyph_images(face):
                     ref = place(own[ch][0], s.k)
                     more = [o for o in more if overlap(ref, place(o, s.k)) >= 0.8]
                 extra.setdefault(ch, []).extend(more)
-        for ch, occs in s.by_char().items():
+        own = s.by_char()
+        # (a character the first page lacks, or whose print there is left out, from the face's other pages)
+        for ch in list(own) + [c for c in extra if c not in own]:
+            occs = own.get(ch, [])
             if ch in G or (only and ch not in only): continue
             occs = agree(level(clean(occs + extra.get(ch, [])), s, main), s.k)
             # a character with no neighbour to fit (the last of a line): its ink and half a unit of margin

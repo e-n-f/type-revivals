@@ -106,6 +106,7 @@ class Line:
         return np.where(mask > 0, self.ink[Y0:Y1, X0:X1], 0), (X0, Y0)
 
 def block_lines(scan, box, minarea):
+    minarea = S.MINAREA.get(scan, minarea)
     """the lines of a block of text: lines from the tall components; a small one (comma, full stop, hyphen) in
     a line's band goes to that line, and one outside every band (a dot, ring, accent) to the line of the
     letter it sits over, or else to the nearest line"""
@@ -174,6 +175,18 @@ def baseline(occ):
         b, a = np.polyfit(xs[keep], ys[keep], 1) if keep.sum() > 2 else (0.0, np.median(ys[keep]))
         r = ys - (a + b * xs); keep = np.abs(r) < max(2.5 * np.median(np.abs(r[keep])) + 1, 2)
     return a, b
+
+def set_bases(occ):
+    """each occurrence's baseline: the line's straight fit, corrected by the median of how far the feet of the
+    seven letters nearest it sit off that line.  A straight line isn't enough: a book's page curves towards its
+    spine, and a line of a catalogue's grid drifts, so that an alphabet's last letters (VWXYZ) came out raised"""
+    if not occ: return
+    a, b = baseline(occ)
+    mid = lambda o: o['x0'] + o['w'] / 2
+    feet = [(mid(o), o['bottom'] - (a + b * mid(o))) for o in occ if o['ch'] in BASE]
+    for o in occ:
+        x = mid(o); near = sorted(feet, key=lambda f: abs(f[0] - x))[:7]
+        o['base'] = a + b * x + (float(np.median([r for _, r in near])) if len(near) >= 5 else 0.0)
 
 def area(G, lab):
     return G['a'] if isinstance(G, dict) else sum(c.get('a', 0) for c in G)
@@ -272,9 +285,7 @@ def match(line, text, multi, split=None, lid=0, model=None, minocc=3):
             o = occurrence(line, ch, G, (lid, wi), k)
             if o is not None: occ.append(o)
     if len(occ) < minocc: return None
-    a, b = baseline(occ)
-    for o in occ:
-        o['base'] = a + b * (o['x0'] + o['w'] / 2)
+    set_bases(occ)
     return occ
 
 def occurrence(line, ch, gs, word, k):
@@ -388,8 +399,7 @@ def symbols(line, text, cols, lid, model):
         o = occurrence(line, ch, gs, (lid, 1), k) if gs else None
         if o is not None:
             o['touching'] = any(isinstance(G, dict) for G in gs); occ.append(o)
-    a, b = baseline(occ)
-    for o in occ: o['base'] = a + b * (o['x0'] + o['w'] / 2)
+    set_bases(occ)
     return occ
 
 def read_jowa():
@@ -494,9 +504,11 @@ def trim_capitals(res):
         if not oc or 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' not in t.replace(' ', ''): continue
         caps = [o for o in oc if o['ch'] in 'ABDEHIKLMNPRTUVWXZ']
         if len(caps) < 5: continue
-        top = float(np.median([o['top'] for o in caps]))
+        # (by each capital's own baseline: on a curved page one height for the line would cut into the raised end)
+        cap = float(np.median([o['base'] - o['top'] for o in caps]))
         for o in oc:
             if not o['ch'].isupper(): continue
+            top = o['base'] - cap
             cut = int(round(top - 3 - o['Y0']))
             if cut > 0 and o['top'] < top - 3:
                 o['ink'][:cut] = 0
@@ -554,8 +566,7 @@ def read_typed(entries, multi=None, name=None):
             gs = columns(ln, x0, x1)
             o = occurrence(ln, ch, gs, (lid, 0), k) if gs else None
             if o is not None: o['touching'] = any(isinstance(G, dict) for G in gs); occ.append(o)
-        a, b = baseline(occ)
-        for o in occ: o['base'] = a + b * (o['x0'] + o['w'] / 2)
+        set_bases(occ)
         res.append((''.join(c for c, _, _ in cols), occ)); lines.append(ln)
     # table rows: the baseline at the depth the flat-footed capitals' rows have it
     feet = [o['bottom'] for (t, oc), row in zip(res, rows) if row and oc for o in oc if o['ch'] in 'ABDEFHKLMNTWXZ']
@@ -595,8 +606,7 @@ def read(face):
                     if o['idx'] >= u['idx'] and text != full: o['idx'] += 1
                 occ = sorted(occ + [u], key=lambda o: o['x0']); text = full
         if occ:
-            a, b = baseline(occ)
-            for o in occ: o['base'] = a + b * (o['x0'] + o['w'] / 2)
+            set_bases(occ)
             res[k] = (text, occ)
         # a bracket is one stroke: anything else in its crop is a neighbour's edge (Text's ( has its ¢'s)
         for o in res[k][1] or []:

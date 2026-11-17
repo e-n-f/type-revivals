@@ -335,6 +335,9 @@ for _k, _box in _SETBOX.items():
 # Scans read through a correction: SHEAR un-slants an italic page (x + s*y) so its letters stand apart; OPEN
 # closes the small breaks in a faint print (a grey opening of k px)
 SHEAR = {'typesetting-boldfaceitalic-1.png': 0.32}
+# The smallest piece of ink kept as part of a character, in pixels, where the usual 15 is too much: Text's first
+# page is printed so small that its i and j dots are under it
+MINAREA = {'typesetting-text-1.png': 5}
 # Scans stretched in one direction, read squashed back by this factor vertically (boxes are given in the scan's
 # own pixels).  The Bemer memo's photocopy: its single-spaced lines are 57.4 px apart, but at its 1/32-inch units
 # (9.50 px: 303.9 dpi across) a sixth of an inch is 50.65 px, so it is 13% taller than it is wide.
@@ -375,7 +378,8 @@ TYPESET_MORE.setdefault(_FACE['text'], {})[3] = [('typesetting-text-3.png', (0, 
 TYPESET_MORE.setdefault(_FACE['text'], {})[4] = [('typesetting-text-4.png', (0, 426, 2418, 1708), _set_para('at' if 'text' in _AT else 'of', quotes=not 'text'.startswith('copperplate')) + [_SETSIGNS.get('text', _SIGNS), _ALPHA])]
 # characters of a page that read wrong and are left out: Directory's first page prints its % in pieces that
 # merge with the 0 and the ‡ beside it
-TYPESET_DROP = {'DirectorySet': '%‡'}
+TYPESET_DROP = {'DirectorySet': '%‡O',      # (its O is worn away at the lower left; its third page's isn't)
+                'DirectorySet2': '%‡'}
 # ... and signs read with a neighbour joined to them, cut free at a column of their crop (tools/read.py): a
 # column n clears what is left of it, -n what is right of it.  The whole % of Directory's third page touches the
 # 0 before it; its first and second pages' 0 carry a piece of the % after it
