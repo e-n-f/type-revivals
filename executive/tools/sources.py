@@ -28,7 +28,7 @@ JOWA_MULTI = {'»': 2, '«': 2, '*': 2, '"': 2}
 
 JOWA_BLOCK1 = [
     'Bei dieser neuen Schreibmaschinenschrift ist das Alphabet in vier',
-    'systematische Dicken aufgeteilt (4, 6, 8 und 10p). Besonderer',
+    'systematische Dickten aufgeteilt (4, 6, 8 und 10p). Besonderer',
     'Schreibmaschinenausschluß ist nicht mehr notwendig. Es kann vielmehr',
     'der normale Ausschluß nach Punktsystem benutzt werden. Diese',
     'IBM Schreibmaschinenschrift kann auch mit Randausgleich gesetzt',
@@ -305,7 +305,7 @@ def _set_para(of='of', quotes=True):
             'will show. Consult the separate charts in this book to find out how',
             f'wide to set a line to achieve a given reduction {of} the width you',
             'want the final printed job to be.']
-_SIGNS = "§1234567890%‡='-.,#*¶/$†?!¢()@&+‘;:"
+_SIGNS = "§1234567890%‡='-.,#*¶/$†?!¢()@&+‘_;:"
 _ALPHA = 'abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 _SETBOX = {'arcadia': (0, 238, 2090, 855), 'boldface1': (0, 295, 2114, 994), 'boldface2': (0, 242, 1982, 857),
            'boldfaceitalic': (0, 225, 2400, 848), 'charter': (0, 273, 2032, 930),
@@ -314,9 +314,9 @@ _SETBOX = {'arcadia': (0, 238, 2090, 855), 'boldface1': (0, 295, 2114, 994), 'bo
            'midcentury': (0, 333, 2286, 1071), 'modern': (18, 272, 2594, 1013), 'patron': (0, 326, 2400, 1066),
            'registry': (0, 305, 2350, 1059), 'secretarial': (0, 306, 2567, 1040),
            'testimonial': (0, 290, 2538, 1041), 'text': (0, 261, 1864, 890)}
-_AT = {'modern', 'boldfaceitalic', 'copperplate1', 'copperplate2'}
-_SETSIGNS = {'boldfaceitalic': "§234567890-=1';/.,¶@#$%¢&*()+!\":?.,",
-             'patron': "1234567890-=';/.,!@#$%¢&*()+\":?.,",
+_AT = {'modern', 'boldfaceitalic', 'copperplate1'}         # (Copperplate 2's pages: 'of')
+_SETSIGNS = {'boldfaceitalic': "§234567890-=1';/.,¶@#$%¢&*()_+!\":?.,",
+             'patron': "1234567890-=';/.,!@#$%¢&*()_+\":?.,",
              # Copperplate: the small figures and signs (unshifted keys), then the large ones (shifted), which
              # are named by their full-width forms here and in the font's ss01
              # (one word: the gap between the sets is no wider than Copperplate's letter spacing)
@@ -335,10 +335,15 @@ for _k, _box in _SETBOX.items():
 # Scans read through a correction: SHEAR un-slants an italic page (x + s*y) so its letters stand apart; OPEN
 # closes the small breaks in a faint print (a grey opening of k px)
 SHEAR = {'typesetting-boldfaceitalic-1.png': 0.32}
+# Scans stretched in one direction, read squashed back by this factor vertically (boxes are given in the scan's
+# own pixels).  The Bemer memo's photocopy: its single-spaced lines are 57.4 px apart, but at its 1/32-inch units
+# (9.50 px: 303.9 dpi across) a sixth of an inch is 50.65 px, so it is 13% taller than it is wide.
+SCALE_Y = {'secretarial-bemer-memo-1961.jpg': 50.65 / 57.4}
 OPEN = {}
 # GAMMA darkens a soft page's mid-tones (g ** gamma), so thin strokes stay joined to their letters
 GAMMA = {'typesetting-boldfaceitalic-1.png': 3.0, 'typesetting-boldface2-1.png': 2.0, 'typesetting-testimonial-1.png': 3.0,
-         'typesetting-testimonial-3.png': 2.0, 'typesetting-secretarial-1.png': 2.0}
+         'typesetting-testimonial-3.png': 2.0, 'typesetting-secretarial-1.png': 2.0,
+         'typesetting-copperplate2-1.png': 2.0}
 
 # More pages of 'Typesetting with the IBM Executive', at other ratchet spacings and reductions: each its own
 # source (<Face>Set<n>), since each is at its own scale.  Pages whose lines run together, or that are cut off,
@@ -370,4 +375,8 @@ TYPESET_MORE.setdefault(_FACE['text'], {})[3] = [('typesetting-text-3.png', (0, 
 TYPESET_MORE.setdefault(_FACE['text'], {})[4] = [('typesetting-text-4.png', (0, 426, 2418, 1708), _set_para('at' if 'text' in _AT else 'of', quotes=not 'text'.startswith('copperplate')) + [_SETSIGNS.get('text', _SIGNS), _ALPHA])]
 # characters of a page that read wrong and are left out: Directory's first page prints its % in pieces that
 # merge with the 0 and the ‡ beside it
-TYPESET_DROP = {'DirectorySet': '0%‡'}
+TYPESET_DROP = {'DirectorySet': '%‡'}
+# ... and signs read with a neighbour joined to them, cut free at a column of their crop (tools/read.py): a
+# column n clears what is left of it, -n what is right of it.  The whole % of Directory's third page touches the
+# 0 before it; its first and second pages' 0 carry a piece of the % after it
+SET_CUT = {'DirectorySet3': {'%': 45}, 'DirectorySet': {'0': -41}, 'DirectorySet2': {'0': -30}}

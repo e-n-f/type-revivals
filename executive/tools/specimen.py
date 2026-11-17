@@ -89,20 +89,28 @@ def compare(face):
             for wi, word in enumerate(texts[lid].split()):
                 ws = words.get((lid, wi))
                 if ws:
-                    first = min(ws, key=lambda o: o['idx'])
-                    text = word[first['idx']:]
-                    found[wi] = (text, X(first) - x0 - font.getbbox(text[0], anchor='ls')[0], Y(first, first['base']) - y0)
+                    # where the word starts, by the median of what each of its letters says (on a faint page
+                    # one letter can be read a little out of place)
+                    starts = [X(o) - x0 - font.getlength(word[:o['idx']]) - font.getbbox(word[o['idx']], anchor='ls')[0]
+                              for o in ws if o['idx'] < len(word)]
+                    found[wi] = (word, float(np.median(starts)), float(np.median([Y(o, o['base']) - y0 for o in ws])))
             if not found: continue
             ws_ = texts[lid].split(); placed = dict(found); run = []
             for wi in range(len(ws_) + 1):
                 if wi < len(ws_) and wi not in found: run.append(wi); continue
                 if run:
                     w = sum(font.getlength(ws_[r]) for r in run) + sp * (len(run) - 1)
-                    if wi in found: x, base = found[wi][1] - sp - w, found[wi][2]
+                    gap = sp
+                    prev = placed.get(run[0] - 1)
+                    if wi in found and prev:      # between two words found: spread evenly over the gap
+                        left = prev[1] + font.getlength(prev[0])
+                        gap = max(0.5 * sp, (found[wi][1] - left - (w - sp * (len(run) - 1))) / (len(run) + 1))
+                        x, base = left + gap, found[wi][2]
+                    elif wi in found: x, base = found[wi][1] - sp - w, found[wi][2]
                     else:
-                        t, px, base = placed[run[0] - 1]; x = px + font.getlength(t) + sp
+                        t, px, base = prev; x = px + font.getlength(t) + sp
                     for r in run:
-                        placed[r] = (ws_[r], x, base); x += font.getlength(ws_[r]) + sp
+                        placed[r] = (ws_[r], x, base); x += font.getlength(ws_[r]) + gap
                     run = []
             for text, x, base in placed.values():
                 d.text((x, base), text, font=font, fill=0, anchor='ls')

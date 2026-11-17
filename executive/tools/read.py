@@ -35,6 +35,8 @@ def gray(name):
             sh = S.SHEAR[name]; M = np.float32([[1, sh, 0], [0, 1, 0]])
             g = cv2.warpAffine(g, M, (g.shape[1] + int(abs(sh) * g.shape[0]) + 2, g.shape[0]),
                                borderMode=cv2.BORDER_CONSTANT, borderValue=float(np.median(g)))
+        if S.SCALE_Y.get(name):
+            g = cv2.resize(g, (g.shape[1], int(round(g.shape[0] * S.SCALE_Y[name]))), interpolation=cv2.INTER_AREA)
         _cache[name] = g
     return _cache[name]
 
@@ -502,10 +504,35 @@ def trim_capitals(res):
                 if not m.any(): continue
                 rows = np.nonzero(m.any(1))[0]; o['top'] = o['Y0'] + rows[0]
 
+def find_underscore(occ, text, xh):
+    """the underscore of a 'Typesetting' page's line of signs, where align_signs didn't find it: it prints well
+    below the baseline (a third of an x-height down and more), out of the band the line's characters are taken
+    from.  Looked for between the signs either side of it: the largest flat piece of ink just below the baseline"""
+    i = text.index('_')
+    prev = [o for o in occ if o['ch'] == text[i - 1]]; nxt = [o for o in occ if o['ch'] == text[i + 1]]
+    if not prev or not nxt: return None
+    a = prev[0]; b = min((o for o in nxt if o['x0'] > a['x0']), key=lambda o: o['x0'], default=None)
+    if b is None: return None
+    ox, oy = a['off']; ba, bb = baseline(occ); base = float(ba + bb * (a['x1'] + b['x0']) / 2)
+    X0, X1 = int(a['x1']) - 2, int(b['x0']) + 2; Y0, Y1 = int(base - 2 * xh), int(base + 1.5 * xh)
+    g = gray(a['scan'])
+    band = ink_of(g[Y0 + oy:Y1 + oy, X0 - 60 + ox:X1 + 60 + ox])[:, 60:60 + X1 - X0]
+    m = (band > 0.5).astype(np.uint8)
+    n, lab, st, _ = cv2.connectedComponentsWithStats(m, 8)
+    flat = [j for j in range(1, n) if st[j][2] > 3 * st[j][3] and st[j][2] > 0.5 * xh and st[j][1] + Y0 > base - 2]
+    if not flat: return None
+    j = max(flat, key=lambda j: st[j][2]); x, y, w, h = (int(v) for v in st[j][:4])
+    ink = np.where(lab[max(0, y - 2):y + h + 2, max(0, x - 2):x + w + 2] == j,
+                   band[max(0, y - 2):y + h + 2, max(0, x - 2):x + w + 2], 0).astype(np.float32)
+    return dict(a, ch='_', idx=i, ink=ink, X0=X0 + max(0, x - 2), Y0=Y0 + max(0, y - 2), x0=X0 + x, x1=X0 + x + w,
+                w=w, top=Y0 + y, bottom=Y0 + y + h, base=base, touching=False)
+
 def read_typed(entries, multi=None, name=None):
     """documents typed in a face (sources.TYPED): single lines, table rows, and blocks of lines"""
     lines, items, rows = [], [], []
     for scan, box, text, *kind in entries:
+        if S.SCALE_Y.get(scan):         # the box in the scan's pixels, the page read squashed
+            f = S.SCALE_Y[scan]; box = (box[0], int(box[1] * f), box[2], int(box[3] * f))
         if isinstance(text, str):
             # (a table's cells are clean: a small minimum keeps the dots of ; and !)
             rows.append(bool(kind)); lines.append(Line(scan, box, 4 if kind else 15)); items.append(text)
@@ -557,10 +584,31 @@ def read(face):
         k = len(res) - 2; text = res[k][0]
         xh = float(np.median([o['bottom'] - o['top'] for _, oc in res[:7] if oc for o in oc if o['ch'] in 'xzvnmu']))
         occ, cost = align_signs(lines[k], text, k, xh)
+        # an underscore read as something not flat is a piece of a neighbour: the line read again without it
+        full = text
+        if occ and any(o['ch'] == '_' and o['w'] < 3 * (o['bottom'] - o['top']) for o in occ):
+            text = text.replace('_', ''); occ, cost = align_signs(lines[k], text, k, xh)
+        if occ and '_' in full and not any(o['ch'] == '_' for o in occ):
+            u = find_underscore(occ, full, xh)
+            if u:
+                for o in occ:
+                    if o['idx'] >= u['idx'] and text != full: o['idx'] += 1
+                occ = sorted(occ + [u], key=lambda o: o['x0']); text = full
         if occ:
             a, b = baseline(occ)
             for o in occ: o['base'] = a + b * (o['x0'] + o['w'] / 2)
             res[k] = (text, occ)
+        # a sign read with its neighbour joined to it: the neighbour cut away (sources.SET_CUT)
+        for _, oc in res:
+            for o in oc or []:
+                cut = S.SET_CUT.get(face, {}).get(o['ch'])
+                if cut is None: continue
+                ink = o['ink'].copy()
+                if cut >= 0: ink[:, :cut] = 0          # the neighbour on the left: columns before `cut`
+                else: ink[:, -cut:] = 0                # ... on the right: columns from -`cut` on
+                cols = np.nonzero((ink > 0.5).any(0))[0]; rows = np.nonzero((ink > 0.5).any(1))[0]
+                o.update(ink=ink, x0=o['X0'] + int(cols[0]), w=int(cols[-1] - cols[0] + 1),
+                         x1=o['X0'] + int(cols[-1]) + 1, top=o['Y0'] + int(rows[0]), bottom=o['Y0'] + int(rows[-1]) + 1)
         return res, lines
     if face in TYPED:         # documents typed in the face, for the characters the brochure lacks
         name = face[:-len('Typed')]

@@ -14,7 +14,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(HERE, '..', '..', 'common'))
 import trace
 from fontio import draw, autohint
-from glyphs import Img, average, average_imgs
+from glyphs import Img, average, average_imgs, place
 from fontTools.fontBuilder import FontBuilder
 import sources as _S0
 from fontTools.pens.t2CharStringPen import T2CharStringPen
@@ -38,6 +38,13 @@ VERSIONS.update({f: '1.000' for f in NEW_FACES})
 # Raised for the signs § ‡ ¶ † ‘ from the 'Typesetting' pages
 VERSIONS.update(Modern='1.006', Documentary='1.008', MidCentury='1.006', Arcadia='1.008', Doric='1.006',
                 BoldFace1='1.008', BoldFace2='1.007', Charter='1.007', Secretarial='1.001', Registry='1.001')
+# Secretarial at its true size (the memo's photocopy squashed back); Directory's %; Copperplate 2's digits;
+# Modern's card read whole ('Dickten')
+VERSIONS.update(Secretarial='1.002', Directory='1.001', Copperplate2='1.001', Modern='1.007')
+# Raised for prints checked against each other before averaging, the underscores and composed double quotes
+VERSIONS.update(Documentary='1.009', MidCentury='1.007', Arcadia='1.009', BoldFace1='1.009',
+                BoldFace2='1.008', Charter='1.008', Registry='1.002', Text='1.001', Testimonial='1.001',
+                BoldFaceItalic='1.001', Copperplate1='1.001', Patron='1.001')
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
          'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter',
          'Secretarial': 'Secretarial', 'Registry': 'Registry', 'Text': 'Text', 'Directory': 'Directory',
@@ -64,12 +71,13 @@ from catalog import CHOSEN as _CHOSEN
 for _f in OLD_FACES: SOURCES[_f].append((f'Catalog{_f}', 'wW' + ''.join(_CHOSEN.get(_f, {}))))
 # 'Typesetting with the IBM Executive': § ‡ ¶ † ‘, which no other source of these faces shows
 for _f in OLD_FACES:
-    if _f in _S0.TYPESET: SOURCES[_f].append((f'{_f}Set', '§‡¶†‘'))   # (Doric has no page)
+    if _f in _S0.TYPESET: SOURCES[_f].append((f'{_f}Set', '§‡¶†‘_'))  # (Doric has no page)
 # The new faces: their 'Typesetting' page, the catalogue filling in.  Bold Face Italic's page is soft (read
 # darkened, which thickens it), so its letters are the catalogue's and the page gives the rest.
 for _f in NEW_FACES: SOURCES[_f] = [(f'{_f}Set', None), (f'Catalog{_f}', None)]
 SOURCES['BoldFaceItalic'] = [('CatalogBoldFaceItalic', None), ('BoldFaceItalicSet', None)]
 SOURCES['Copperplate1'] = [('Copperplate1Set', None)]           # its catalogue page shows signs only
+SOURCES['Directory'].append(('DirectorySet3', '%'))   # the one whole % (its first page's prints in pieces)
 # Faces with no brochure line (tools/units.py CATALOG_FACES): Secretarial's letters from the catalogue (the memo
 # typed in it is a faint photocopy), its signs and figures from the memo; Registry's from the newsletter typed in
 # it, the catalogue filling in.  MAIN: the source the others are scaled, thickened and levelled to.
@@ -91,7 +99,8 @@ MATCH_HEIGHTS = {'Keyboard': ('Modern', '0123456789'), 'MidCenturyTyped': ('MidC
                  'CatalogRegistry': ('RegistryTyped', 'EFHILTZxzvnmu'),
                  **{f'{f}Set': (MAIN.get(f, f), 'EFHILTZxzvnmu') for f in OLD_FACES if f in _S0.TYPESET},
                  **{f'Catalog{f}': (f'{f}Set', 'EFHILTZxzvnmu') for f in NEW_FACES},
-                 'CatalogBoldFaceItalic': ('BoldFaceItalicSet', 'EFHILTZxzvnmu')}
+                 'CatalogBoldFaceItalic': ('BoldFaceItalicSet', 'EFHILTZxzvnmu'),
+                 'DirectorySet3': ('DirectorySet', 'EFHILTZxzvnmu')}
 # printed sources, crisper than the typed ones: thickened to the face's weight (match_weight)
 REWEIGHT = ({f'Catalog{f}' for f in VERSIONS} - {'CatalogSecretarial', 'CatalogBoldFaceItalic'}
             | {f'{f}Set' for f in OLD_FACES} | {'BoldFaceItalicSet'}) - {'SecretarialSet'}
@@ -237,6 +246,43 @@ def rescale(o, f):
                 w=o['w'] * f, top=(o['top'] - o['Y0']) * f, bottom=(o['bottom'] - o['Y0']) * f)
 
 
+def overlap(a, b):
+    """how well two placed images agree at their best small shift: normalized correlation, 0..1 (prints of one
+    character score 0.8 and up; a misread or misplaced print, or one from a page drawn at another size, under 0.5)"""
+    x0 = min(a.x0, b.x0); top = max(a.top, b.top)
+    W = int(max(a.x0 + a.ink.shape[1], b.x0 + b.ink.shape[1]) - x0) + 40
+    H = int(top - min(a.top - a.ink.shape[0], b.top - b.ink.shape[0])) + 40
+    def put(i, dx=0.0, dy=0.0):
+        M = np.float32([[1, 0, i.x0 - x0 + 20 + dx], [0, 1, top - i.top + 20 + dy]])
+        return cv2.warpAffine(i.ink.astype(np.float32), M, (W, H), flags=cv2.INTER_LINEAR)
+    A, Bm = put(a), put(b)
+    (dx, dy), _ = cv2.phaseCorrelate(A, Bm, cv2.createHanningWindow((W, H), cv2.CV_32F))
+    if abs(dx) > 0.3 * W or abs(dy) > 0.3 * H: dx = dy = 0
+    A = put(a, dx, dy)
+    return float((A * Bm).sum() / (np.sqrt((A * A).sum() * (Bm * Bm).sum()) + 1e-9))
+
+
+def agree(occs, k, most=8):
+    """of a few prints, those that agree with the rest: each compared with the average of the others, and left out
+    under 0.6 (averaged in, a print that doesn't match leaves the strokes half-inked, and they break up when traced:
+    Patron's @, Copperplate 2's small 3).  Of two that disagree, the first (the main page's own) is kept.  With
+    more than `most`, clean()'s medians have already done this"""
+    if len(occs) < 2 or len(occs) > most: return occs
+    ims = [place(o, k) for o in occs]
+    if len(ims) == 2: return occs if overlap(ims[0], ims[1]) >= 0.6 else occs[:1]
+    sc = [overlap(ims[i], average_imgs(ims[:i] + ims[i + 1:])) for i in range(len(ims))]
+    return [o for o, x in zip(occs, sc) if x >= 0.6] or [occs[int(np.argmax(sc))]]
+
+
+# Soft pages whose thin strokes average out grey (a print or two of the few lighter than the rest): traced at this
+# fraction of full ink, not half, which keeps Copperplate 2's small figures, Patron's @ and Directory's O whole
+TRACE_LEVEL = {'Copperplate2Set': 0.4, 'PatronSet': 0.4, 'DirectorySet': 0.4}
+
+# Characters printed once, more heavily than the rest of their face, thinned by this many font units a side:
+# Patron's J (its stems 89 units wide, the other capitals' 63 to 76)
+THIN = {'Patron': {'J': 8}}
+
+
 # a face's further 'Typesetting' pages, pooled with its first: their prints averaged in, each from its own scale
 POOL = {f'{f}Set': [f'{f}Set{n}' for n in pages] for f, pages in _S0.TYPESET_MORE.items()}
 
@@ -263,19 +309,27 @@ def glyph_images(face):
                 extra.setdefault(ch, []).extend(rescale(o, t.k / s.k) for o in level(clean(os_), t, s))
         for ch, occs in s.by_char().items():
             if ch in G or (only and ch not in only): continue
-            occs = level(clean(occs + extra.get(ch, [])), s, main)
+            occs = agree(level(clean(occs + extra.get(ch, [])), s, main), s.k)
             # a character with no neighbour to fit (the last of a line): its ink and half a unit of margin
             # (IBM's own width comes first, where the catalogue prints one; then a width fitted from another
             # source of the face: Modern's & from the brochure)
             u = (cat.get(ch) or next((t.units[ch] for t in srcs if ch in t.units), None)
                  or max(2, int(round(np.median([o['w'] for o in occs]) / s.p + 0.5))))
             img = average(occs, s.k)
+            # a faint print (thin strokes on a soft page: Copperplate 2's small figures) never reaches full ink, and
+            # traced at half ink its strokes break up: traced at half its own peak instead
+            pk = float(np.percentile(img.ink[img.ink > 0.1], 99)) if (img.ink > 0.1).any() else 1.0
+            if pk < 0.9: img = Img(np.clip(img.ink / pk, 0, 1).astype(np.float32), img.x0, img.top)
             if s.name in UNSHEAR: img = slant(img, UNSHEAR[s.name])
             if s.name in REWEIGHT: img, _ = match_weight(img, s, main)
             # the fitted offset in the slug holds only with the fitted width: where IBM's width differs (a
             # period fitted at 2 units, printed at 3), the glyph is centred
             fitted = next((t.units[ch] for t in srcs if ch in t.units), None)
             off = s.offset.get(ch, 0) * s.k if fitted in (None, u) else 0.0
+            if ch in THIN.get(face, {}):           # a single print heavier than its face: thinned
+                r = THIN[face][ch]
+                img = Img(cv2.erode(img.ink, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1))),
+                          img.x0, img.top)
             if not (img.ink > 0.5).any():          # too faint to trace: leave it for a later source
                 print(f'  {face}: {ch!r} from {s.name} too faint, skipped'); continue
             G[ch] = dict(img=img, units=u, off=off, src=s, n=len(occs))
@@ -383,6 +437,13 @@ def build(face):
     for a, b in (('(', ')'), (')', '(')):
         if a in G and b not in G:
             G[b] = dict(G[a], img=G[a]['img'].rot180(), off=-G[a]['off']); notes.append(f'{b} from {a}')
+    # double quotes, where the source shows none: two of the single ones side by side, a third of a mark's width
+    # apart, a unit wider (Testimonial's and Text's pages print no ")
+    for dbl, sgl in (('"', "'"), ('“', '‘'), ('”', '’')):
+        if dbl in G or sgl not in G: continue
+        q = G[sgl]; b = q['img'].bbox(); d = 0.65 * (b[2] - b[0])
+        G[dbl] = dict(q, img=q['img'].shift(-d, 0).union(q['img'].shift(d, 0)), units=q['units'] + 1)
+        notes.append(f'{dbl} from two {sgl}')
     if 'i' in G:     # dotless i: the i without its dot
         parts = G['i']['img'].parts()
         stem = [p for p in parts if p.bbox()[1] < 0.5 * xh]
@@ -441,7 +502,13 @@ def build(face):
         a = int(round(g['units'] * g['src'].unit))
         im = g['img']; b = im.bbox()
         im = im.shift(a / 2 + g['off'] - (b[0] + b[2]) / 2, 0)
-        segs = trace.trace(im.ink, SIGMA * g['src'].k)
+        ink = im.ink
+        if g['src'].name in TRACE_LEVEL:      # (and nicks of up to two scan pixels closed: the scan's dropouts)
+            r = max(1, int(round(2 * g["src"].k)))
+            ink = cv2.morphologyEx(ink.astype(np.float32), cv2.MORPH_CLOSE,
+                                   cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1)))
+            ink = np.clip(ink * 0.5 / TRACE_LEVEL[g['src'].name], 0, 1)
+        segs = trace.trace(ink, SIGMA * g['src'].k)
         glyphs[gname(ch)] = [[(s[0],) + tuple((p[0] + im.x0, p[1] + im.top) for p in s[1:]) for s in c]
                              for c in segs]
         adv[gname(ch)] = a
