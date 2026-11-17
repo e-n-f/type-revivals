@@ -41,6 +41,62 @@ Directory, Testimonial, Copperplate Gothic 1 and 2, Patron and Registry 1.004; S
 (where nothing better has them) and its letters' widths from IBM's 1972 catalogue. The sources are listed in
 [`scans/README.md`](scans/README.md).
 
+<!-- downloads -->
+## Download
+
+**Executive Modern**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/otf/ExecutiveModern-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/ttf/ExecutiveModern-Regular.ttf)  
+![Executive Modern](specimen/fonts/ExecutiveModern-Regular.png)
+
+**Executive Documentary**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/otf/ExecutiveDocumentary-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/ttf/ExecutiveDocumentary-Regular.ttf)  
+![Executive Documentary](specimen/fonts/ExecutiveDocumentary-Regular.png)
+
+**Executive Mid-Century**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/otf/ExecutiveMidCentury-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/ttf/ExecutiveMidCentury-Regular.ttf)  
+![Executive Mid-Century](specimen/fonts/ExecutiveMidCentury-Regular.png)
+
+**Executive Arcadia**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/otf/ExecutiveArcadia-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/ttf/ExecutiveArcadia-Regular.ttf)  
+![Executive Arcadia](specimen/fonts/ExecutiveArcadia-Regular.png)
+
+**Executive Doric**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/otf/ExecutiveDoric-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/ttf/ExecutiveDoric-Regular.ttf)  
+![Executive Doric](specimen/fonts/ExecutiveDoric-Regular.png)
+
+**Executive Bold Face 1**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/otf/ExecutiveBoldFace1-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/ttf/ExecutiveBoldFace1-Regular.ttf)  
+![Executive Bold Face 1](specimen/fonts/ExecutiveBoldFace1-Regular.png)
+
+**Executive Bold Face 2**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/otf/ExecutiveBoldFace2-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/ttf/ExecutiveBoldFace2-Regular.ttf)  
+![Executive Bold Face 2](specimen/fonts/ExecutiveBoldFace2-Regular.png)
+
+**Executive Charter**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/otf/ExecutiveCharter-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/ttf/ExecutiveCharter-Regular.ttf)  
+![Executive Charter](specimen/fonts/ExecutiveCharter-Regular.png)
+
+**Executive Secretarial**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/otf/ExecutiveSecretarial-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/ttf/ExecutiveSecretarial-Regular.ttf)  
+![Executive Secretarial](specimen/fonts/ExecutiveSecretarial-Regular.png)
+
+**Executive Registry**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/otf/ExecutiveRegistry-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/ttf/ExecutiveRegistry-Regular.ttf)  
+![Executive Registry](specimen/fonts/ExecutiveRegistry-Regular.png)
+
+**Executive Text**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/otf/ExecutiveText-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/ttf/ExecutiveText-Regular.ttf)  
+![Executive Text](specimen/fonts/ExecutiveText-Regular.png)
+
+**Executive Directory**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/otf/ExecutiveDirectory-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/ttf/ExecutiveDirectory-Regular.ttf)  
+![Executive Directory](specimen/fonts/ExecutiveDirectory-Regular.png)
+
+**Executive Testimonial**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/otf/ExecutiveTestimonial-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/ttf/ExecutiveTestimonial-Regular.ttf)  
+![Executive Testimonial](specimen/fonts/ExecutiveTestimonial-Regular.png)
+
+**Executive Bold Face 1 Italic**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/otf/ExecutiveBoldFace1-Italic.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/ttf/ExecutiveBoldFace1-Italic.ttf)  
+![Executive Bold Face 1 Italic](specimen/fonts/ExecutiveBoldFace1-Italic.png)
+
+**Executive Copperplate Gothic 1**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/otf/ExecutiveCopperplateGothic1-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/ttf/ExecutiveCopperplateGothic1-Regular.ttf)  
+![Executive Copperplate Gothic 1](specimen/fonts/ExecutiveCopperplateGothic1-Regular.png)
+
+**Executive Copperplate Gothic 2**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/otf/ExecutiveCopperplateGothic2-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/ttf/ExecutiveCopperplateGothic2-Regular.ttf)  
+![Executive Copperplate Gothic 2](specimen/fonts/ExecutiveCopperplateGothic2-Regular.png)
+
+**Executive Patron**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/otf/ExecutivePatron-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/ttf/ExecutivePatron-Regular.ttf)  
+![Executive Patron](specimen/fonts/ExecutivePatron-Regular.png)
+
+<!-- /downloads -->
+
 ## Size and spacing
 
 The fonts have 200 font units to the 1/32-inch unit, so 6400 to the inch. At 1000 units to the em, **set at

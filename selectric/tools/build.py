@@ -30,6 +30,7 @@ BUILD = os.path.join(ROOT, 'build')
 VERSIONS = {f: '1.003' for f in S.FACES}
 VERSIONS.update(ANSIOCR='1.003', AN3360='1.002', BookfaceAcademic72='1.004', LargeElite72='1.004',
                 PrintingPublishing2='1.001')
+VERSIONS.update(Courier12Italic='1.004', LightItalic='1.004')   # full names without "Italic Italic"
 NAMES = {'Advocate': 'Advocate', 'BookfaceAcademic72': 'Bookface Academic 72', 'Courier72': 'Courier 72',
          'Delegate': 'Delegate', 'Pica72': 'Pica 72', 'PrestigePica72': 'Prestige Pica 72', 'Adjutant': 'Adjutant',
          'Artisan12': 'Artisan 12', 'Courier12': 'Courier 12', 'Courier12Italic': 'Courier 12 Italic',
@@ -218,6 +219,8 @@ def build(face):
 def font(face, otf=True, data=None):
     glyphs, adv, cmap, info = data or build(face)
     family = 'Selectric ' + NAMES[face]; style = 'Italic' if face in ITALIC else 'Regular'
+    # the full name: the family's own, with the style unless the family already ends in it ("Light Italic")
+    full = family if style == 'Regular' or family.endswith(' ' + style) else f'{family} {style}'
     psname = 'Selectric' + face + '-' + style
     VERSION = VERSIONS[face]
     order = ['.notdef', 'space'] + sorted(n for n in glyphs if n not in ('.notdef', 'space'))
@@ -228,7 +231,7 @@ def font(face, otf=True, data=None):
         cs = {}
         for n in order:
             pen = T2CharStringPen(adv[n], None); draw(ReverseContourPen(pen), glyphs[n]); cs[n] = pen.getCharString()
-        fb.setupCFF(psname, {'FullName': f'{family} {style}' if style != 'Regular' else family, 'FamilyName': family,
+        fb.setupCFF(psname, {'FullName': full, 'FamilyName': family,
                              'Weight': 'Regular', 'isFixedPitch': True}, cs, {})
     else:
         gl = {}
@@ -247,7 +250,7 @@ def font(face, otf=True, data=None):
     line = 1000 if info['pitch'] == 10 else 1200
     desc = int(np.floor(lmin)); asc = line + desc
     fb.setupHorizontalHeader(ascent=asc, descent=desc, lineGap=0)
-    full = family if style == 'Regular' else f'{family} {style}'
+
     fb.setupNameTable({
         'familyName': family, 'styleName': style,
         'uniqueFontIdentifier': f'{psname};{VERSION}', 'fullName': full,

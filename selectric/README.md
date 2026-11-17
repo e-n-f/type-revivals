@@ -6,27 +6,111 @@ one. The fonts are monospaced to match, so text set in them lines up as it did o
 
 ![The fonts](specimen/specimen-lines.png)
 
-| Font | Pitch | Font | Pitch |
-|---|---|---|---|
-| Selectric Advocate | 10 | Selectric Courier 12 | 12 |
-| Selectric Bookface Academic 72 | 10 | Selectric Courier 12 Italic | 12 |
-| Selectric Courier 72 | 10 | Selectric Elite 72 | 12 |
-| Selectric Delegate | 10 | Selectric Large Elite 72 | 12 |
-| Selectric Pica 72 | 10 | Selectric Letter Gothic | 12 |
-| Selectric Prestige Pica 72 | 10 | Selectric Prestige Elite 72 | 12 |
-| Selectric Manifold 72 | 10 | Selectric Scribe | 12 |
-| Selectric Orator | 10 | Selectric Adjutant | 12 |
-| Selectric ANSI OCR | 10 | Selectric Artisan 12 | 12 |
-| Selectric AN3 360 | 10 | Selectric Dual Gothic | 12 |
-| Selectric Printing and Publishing 2 | 10 | | |
-| | | Selectric Light Italic | 12 |
-| | | Selectric Script | 12 |
+| Font | Pitch |
+|---|---|
+| Selectric Advocate | 10 |
+| Selectric Bookface Academic 72 | 10 |
+| Selectric Courier 72 | 10 |
+| Selectric Delegate | 10 |
+| Selectric Pica 72 | 10 |
+| Selectric Prestige Pica 72 | 10 |
+| Selectric Manifold 72 | 10 |
+| Selectric Orator | 10 |
+| Selectric ANSI OCR | 10 |
+| Selectric AN3 360 | 10 |
+| Selectric Printing and Publishing 2 | 10 |
+| Selectric Adjutant | 12 |
+| Selectric Artisan 12 | 12 |
+| Selectric Courier 12 | 12 |
+| Selectric Courier 12 Italic | 12 |
+| Selectric Elite 72 | 12 |
+| Selectric Large Elite 72 | 12 |
+| Selectric Letter Gothic | 12 |
+| Selectric Prestige Elite 72 | 12 |
+| Selectric Scribe | 12 |
+| Selectric Dual Gothic | 12 |
+| Selectric Light Italic | 12 |
+| Selectric Script | 12 |
 
 The files are `fonts/otf/Selectric<Face>-Regular.otf` (cubic outlines, unhinted) and `fonts/ttf/Selectric<Face>-Regular.ttf`
 (quadratic, hinted with [ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px), with `-Italic` for Courier
-12 Italic, Light Italic and Script. The text faces are at version 1.002 (Bookface Academic 72 and Large Elite 72 at 1.003), ANSI OCR at 1.002 and
-AN3 360 at 1.001. The sources are listed in
+12 Italic, Light Italic and Script. The text faces are at version 1.003 (Bookface Academic 72, Large Elite 72, Courier 12 Italic and Light Italic
+at 1.004), ANSI OCR at 1.003, AN3 360 at 1.002 and Printing and Publishing 2 at 1.001. The sources are listed in
 [`scans/README.md`](scans/README.md).
+
+<!-- downloads -->
+## Download
+
+**Selectric Advocate**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricAdvocate-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricAdvocate-Regular.ttf)  
+![Selectric Advocate](specimen/fonts/SelectricAdvocate-Regular.png)
+
+**Selectric Bookface Academic 72**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricBookfaceAcademic72-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricBookfaceAcademic72-Regular.ttf)  
+![Selectric Bookface Academic 72](specimen/fonts/SelectricBookfaceAcademic72-Regular.png)
+
+**Selectric Courier 72**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricCourier72-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricCourier72-Regular.ttf)  
+![Selectric Courier 72](specimen/fonts/SelectricCourier72-Regular.png)
+
+**Selectric Delegate**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricDelegate-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricDelegate-Regular.ttf)  
+![Selectric Delegate](specimen/fonts/SelectricDelegate-Regular.png)
+
+**Selectric Pica 72**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricPica72-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricPica72-Regular.ttf)  
+![Selectric Pica 72](specimen/fonts/SelectricPica72-Regular.png)
+
+**Selectric Prestige Pica 72**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricPrestigePica72-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricPrestigePica72-Regular.ttf)  
+![Selectric Prestige Pica 72](specimen/fonts/SelectricPrestigePica72-Regular.png)
+
+**Selectric Manifold 72**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricManifold72-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricManifold72-Regular.ttf)  
+![Selectric Manifold 72](specimen/fonts/SelectricManifold72-Regular.png)
+
+**Selectric Orator**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricOrator-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricOrator-Regular.ttf)  
+![Selectric Orator](specimen/fonts/SelectricOrator-Regular.png)
+
+**Selectric ANSI OCR**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricANSIOCR-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricANSIOCR-Regular.ttf)  
+![Selectric ANSI OCR](specimen/fonts/SelectricANSIOCR-Regular.png)
+
+**Selectric AN3 360**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricAN3360-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricAN3360-Regular.ttf)  
+![Selectric AN3 360](specimen/fonts/SelectricAN3360-Regular.png)
+
+**Selectric Printing and Publishing 2**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricPrintingPublishing2-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricPrintingPublishing2-Regular.ttf)  
+![Selectric Printing and Publishing 2](specimen/fonts/SelectricPrintingPublishing2-Regular.png)
+
+**Selectric Adjutant**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricAdjutant-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricAdjutant-Regular.ttf)  
+![Selectric Adjutant](specimen/fonts/SelectricAdjutant-Regular.png)
+
+**Selectric Artisan 12**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricArtisan12-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricArtisan12-Regular.ttf)  
+![Selectric Artisan 12](specimen/fonts/SelectricArtisan12-Regular.png)
+
+**Selectric Courier 12**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricCourier12-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricCourier12-Regular.ttf)  
+![Selectric Courier 12](specimen/fonts/SelectricCourier12-Regular.png)
+
+**Selectric Courier 12 Italic**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricCourier12Italic-Italic.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricCourier12Italic-Italic.ttf)  
+![Selectric Courier 12 Italic](specimen/fonts/SelectricCourier12Italic-Italic.png)
+
+**Selectric Elite 72**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricElite72-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricElite72-Regular.ttf)  
+![Selectric Elite 72](specimen/fonts/SelectricElite72-Regular.png)
+
+**Selectric Large Elite 72**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricLargeElite72-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricLargeElite72-Regular.ttf)  
+![Selectric Large Elite 72](specimen/fonts/SelectricLargeElite72-Regular.png)
+
+**Selectric Letter Gothic**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricLetterGothic-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricLetterGothic-Regular.ttf)  
+![Selectric Letter Gothic](specimen/fonts/SelectricLetterGothic-Regular.png)
+
+**Selectric Prestige Elite 72**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricPrestigeElite72-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricPrestigeElite72-Regular.ttf)  
+![Selectric Prestige Elite 72](specimen/fonts/SelectricPrestigeElite72-Regular.png)
+
+**Selectric Scribe**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricScribe-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricScribe-Regular.ttf)  
+![Selectric Scribe](specimen/fonts/SelectricScribe-Regular.png)
+
+**Selectric Dual Gothic**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricDualGothic-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricDualGothic-Regular.ttf)  
+![Selectric Dual Gothic](specimen/fonts/SelectricDualGothic-Regular.png)
+
+**Selectric Light Italic**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricLightItalic-Italic.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricLightItalic-Italic.ttf)  
+![Selectric Light Italic](specimen/fonts/SelectricLightItalic-Italic.png)
+
+**Selectric Script Italic**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricScript-Italic.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricScript-Italic.ttf)  
+![Selectric Script Italic](specimen/fonts/SelectricScript-Italic.png)
+
+<!-- /downloads -->
 
 ## Size and spacing
 

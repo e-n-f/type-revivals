@@ -26,6 +26,20 @@ x-height, cap height and stems to the pixel grid at 8–50 px. That matters main
 scaling. macOS ignores hints, and on high-resolution screens they make little difference. The fonts have 1000 units per em, with the cap height at 692, as in digital Palatino, so the two
 can be set at the same size.
 
+<!-- downloads -->
+## Download
+
+**Metal Pal Regular**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/metal-pal/fonts/otf/MetalPal-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/metal-pal/fonts/ttf/MetalPal-Regular.ttf)  
+![Metal Pal Regular](specimen/fonts/MetalPal-Regular.png)
+
+**Metal Pal Italic**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/metal-pal/fonts/otf/MetalPal-Italic.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/metal-pal/fonts/ttf/MetalPal-Italic.ttf)  
+![Metal Pal Italic](specimen/fonts/MetalPal-Italic.png)
+
+**Metal Pal Bold**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/metal-pal/fonts/otf/MetalPal-Bold.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/metal-pal/fonts/ttf/MetalPal-Bold.ttf)  
+![Metal Pal Bold](specimen/fonts/MetalPal-Bold.png)
+
+<!-- /downloads -->
+
 ## Character set and features
 
 Each style has every character on its card: a–z, A–Z, ä ö ü Ä Ö Ü ß, the figures, `& . · , : ; - ⹀ — ! ? ’ „ “ » « / ( ) [ ] § † * ¶`
