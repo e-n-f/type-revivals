@@ -27,7 +27,7 @@ keep those widths exactly, so text set in them falls where the machine would hav
 | Executive Copperplate Gothic 2 | Copperplate Gothic #2 | 1/36 inch | Typesetting; 1972 catalogue | `ExecutiveCopperplateGothic2-Regular` |
 | Executive Patron | Patron | 1/36 inch | Typesetting; 1972 catalogue | `ExecutivePatron-Regular` |
 
-"Typesetting" is the book *Typesetting with the IBM Executive* ([archive.org](https://archive.org/details/typesettingwithi0000gard)), which sets the same paragraph, line of signs
+"Typesetting" is Christina Gardner's book *Typesetting with IBM Executive Typewriters* ([archive.org](https://archive.org/details/typesettingwithi0000gard)), which sets the same paragraph, line of signs
 and alphabets in each face, several times over at different ratchet spacings and reductions. Each face's
 first page is its main source. Its further pages, where they read well, are scaled to the first by their
 letters' heights and averaged in. The book's Heritage is a 90 % reduction of Testimonial, as the book itself

@@ -186,7 +186,7 @@ def run_typed(face, dpi=300, src='Typed'):
 # unit in pixels: the memo is scanned at 300 dpi; the newsletter's scale is that of its page 5, whose Arcadia
 # (1/32 inch) has a 17.00 px unit.
 CATALOG_FACES = {'Secretarial': 300.0, 'Registry': 32 * 17.00}
-# Faces whose main source is their page of 'Typesetting with the IBM Executive' (screenshots, of no known scale):
+# Faces whose main source is their page of 'Typesetting with IBM Executive Typewriters' (screenshots, of no known scale):
 # the escapement each is printed with in IBM's 1960 catalogue
 SET_FACES = {'Text': 45, 'BoldFaceItalic': 32, 'Directory': 32, 'Testimonial': 32, 'Copperplate1': 36,
              'Copperplate2': 36, 'Patron': 36}

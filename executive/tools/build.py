@@ -32,7 +32,7 @@ VERSIONS = {'Modern': '1.005', 'Documentary': '1.007', 'MidCentury': '1.005', 'A
             'Doric': '1.006', 'BoldFace1': '1.007', 'BoldFace2': '1.006', 'Charter': '1.006',
             'Secretarial': '1.000', 'Registry': '1.000'}
 OLD_FACES = list(VERSIONS)
-# the faces whose main source is their page of 'Typesetting with the IBM Executive' (tools/units.py SET_FACES)
+# the faces whose main source is their page of 'Typesetting with IBM Executive Typewriters' (tools/units.py SET_FACES)
 NEW_FACES = ['Text', 'Directory', 'Testimonial', 'BoldFaceItalic', 'Copperplate1', 'Copperplate2', 'Patron']
 VERSIONS.update({f: '1.000' for f in NEW_FACES})
 # Raised for the signs § ‡ ¶ † ‘ from the 'Typesetting' pages
@@ -74,7 +74,7 @@ SOURCES['Charter'] = [('CharterTyped', 'W'), ('Charter', None), ('CharterTyped',
 # place of the letter's small raised one), and IBM's own widths
 from catalog import CHOSEN as _CHOSEN
 for _f in OLD_FACES: SOURCES[_f].append((f'Catalog{_f}', 'wW' + ''.join(_CHOSEN.get(_f, {}))))
-# 'Typesetting with the IBM Executive': § ‡ ¶ † ‘, which no other source of these faces shows
+# 'Typesetting with IBM Executive Typewriters': § ‡ ¶ † ‘, which no other source of these faces shows
 for _f in OLD_FACES:
     if _f in _S0.TYPESET: SOURCES[_f].append((f'{_f}Set', '§‡¶†‘_'))  # (Doric has no page)
 # The new faces: their 'Typesetting' page, the catalogue filling in.  Bold Face Italic's page is soft (read

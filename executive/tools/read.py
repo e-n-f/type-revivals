@@ -575,7 +575,7 @@ def read(face):
     if face == 'Modern':
         return read_jowa()
     m = re.match(r'(.+)Set(\d*)$', face)
-    if m:                     # the face's page of 'Typesetting with the IBM Executive'
+    if m:                     # the face's page of 'Typesetting with IBM Executive Typewriters'
         f, n = m.group(1), m.group(2)
         entries = S.TYPESET[f] if not n else S.TYPESET_MORE[f][int(n)]
         res, lines = read_typed(entries, S.MULTI, face)

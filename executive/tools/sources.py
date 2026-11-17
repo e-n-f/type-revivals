@@ -291,8 +291,8 @@ TYPED_COLUMNS = {'Registry': [(NL55_6, (680, 2570, 2320, 2690),
                                 ('&', 319, 375), ('*', 379, 425), ('(', 425, 447), (')', 460, 484), ('!', 547, 560),
                                 ('"', 577, 605), (':', 625, 640), ('?', 658, 694)])]}
 
-# ------------------------------------------------------------------------------ Typesetting with the IBM...
-# "Typesetting with the IBM Executive" (archive.org typesettingwithi0000gard): a page per face typed on the
+# ------------------------------------------------------------------------------ Typesetting with IBM Executive Typewriters
+# "Typesetting with IBM Executive Typewriters" (archive.org typesettingwithi0000gard): a page per face typed on the
 # Executive, all with the same paragraph, then the signs and the two alphabets.  Screenshots of the book's page
 # images (typesetting-<face>-<n>.png).  The keyboard's underscore is left out of the signs: it often prints a
 # line low, over a capital of the alphabet line (read.py trims what reaches above the capitals there).
@@ -345,7 +345,7 @@ GAMMA = {'typesetting-boldfaceitalic-1.png': 3.0, 'typesetting-boldface2-1.png':
          'typesetting-testimonial-3.png': 2.0, 'typesetting-secretarial-1.png': 2.0,
          'typesetting-copperplate2-1.png': 2.0}
 
-# More pages of 'Typesetting with the IBM Executive', at other ratchet spacings and reductions: each its own
+# More pages of 'Typesetting with IBM Executive Typewriters', at other ratchet spacings and reductions: each its own
 # source (<Face>Set<n>), since each is at its own scale.  Pages whose lines run together, or that are cut off,
 # are left out.
 TYPESET_MORE = {}
