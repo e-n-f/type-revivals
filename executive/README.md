@@ -35,9 +35,9 @@ says (it also calls Bold Face #2 a 90 % Bold Face #1, and Registry an 85 % Direc
 separately. Bold Face 2 is made anyway, because it comes out lighter than a reduced Bold Face 1.
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
-[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Bold Face 1 Italic 1.001;
-Directory, Testimonial, Copperplate Gothic 1 and 2, Patron and Registry 1.002; Secretarial and Text 1.003; Doric
-1.006; Modern 1.007; Mid-Century and Bold Face 2 1.008; Documentary, Arcadia and Charter 1.009; Bold Face 1 1.010. Every face takes its w and W
+[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Bold Face 1 Italic 1.002;
+Directory, Testimonial, Copperplate Gothic 1 and 2, Patron and Registry 1.003; Secretarial and Text 1.004; Doric
+1.007; Modern 1.008; Mid-Century and Bold Face 2 1.009; Documentary, Arcadia and Charter 1.010; Bold Face 1 1.011. Every face takes its w and W
 (where nothing better has them) and its letters' widths from IBM's 1972 catalogue. The sources are listed in
 [`scans/README.md`](scans/README.md).
 
@@ -194,4 +194,4 @@ two-storey one, and the brochure's is `ss01`.
 - Heritage (a 90 % Testimonial) isn't made. Three of *Typesetting*'s further pages don't read (Bold Face 2's
   third, Documentary's and Secretarial's second), and the Executive brochure's pages 4 and 5
   (`executive-brochure-0004.jp2`, `-0005.jp2`) aren't used yet.
-- Directory's O has a small dent at its lower left, from the one print of it on its page.
+- Directory's O has a small nick at its lower left, which every print of it shows.
