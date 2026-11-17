@@ -5,7 +5,7 @@ introduced in 1944. Unlike an ordinary typewriter, which moves the same distance
 gives each character a whole number of units: 2 for an i, 3 for an a, 4 for a capital H, 5 for an m. The fonts
 keep those widths exactly, so text set in them falls where the machine would have put it.
 
-![The eight fonts](specimen/specimen-lines.png)
+![The fonts](specimen/specimen-lines.png)
 
 | Font | IBM's name | Unit | Sources | Files |
 |---|---|---|---|---|
@@ -18,12 +18,26 @@ keep those widths exactly, so text set in them falls where the machine would hav
 | Executive Bold Face 2 | Bold Face #2 | 1/36 inch | Finnish brochure | `ExecutiveBoldFace2-Regular` |
 | Executive Charter | Charter | 1/45 inch | Finnish brochure; BCD code table of 1962 | `ExecutiveCharter-Regular` |
 | Executive Secretarial | Secretarial | 1/32 inch | 1972 catalogue; R. W. Bemer's memo of 1961 | `ExecutiveSecretarial-Regular` |
-| Executive Registry | Registry | 1/36 inch | E. T. News Letter of 1955; 1972 catalogue | `ExecutiveRegistry-Regular` |
+| Executive Registry | Registry | 1/36 inch | E. T. News Letter of 1955; 1972 catalogue; Typesetting | `ExecutiveRegistry-Regular` |
+| Executive Text | Text | 1/45 inch | Typesetting; 1972 catalogue | `ExecutiveText-Regular` |
+| Executive Directory | Directory | 1/32 inch | Typesetting; 1972 catalogue | `ExecutiveDirectory-Regular` |
+| Executive Testimonial | Testimonial | 1/32 inch | Typesetting; 1972 catalogue | `ExecutiveTestimonial-Regular` |
+| Executive Bold Face 1 Italic | Bold Face Italic | 1/32 inch | 1972 catalogue; Typesetting | `ExecutiveBoldFace1-Italic` |
+| Executive Copperplate Gothic 1 | Copperplate Gothic #1 | 1/36 inch | Typesetting | `ExecutiveCopperplateGothic1-Regular` |
+| Executive Copperplate Gothic 2 | Copperplate Gothic #2 | 1/36 inch | Typesetting; 1972 catalogue | `ExecutiveCopperplateGothic2-Regular` |
+| Executive Patron | Patron | 1/36 inch | Typesetting; 1972 catalogue | `ExecutivePatron-Regular` |
+
+"Typesetting" is the book *Typesetting with the IBM Executive* ([archive.org](https://archive.org/details/typesettingwithi0000gard)), which sets the same paragraph, line of signs
+and alphabets in each face, several times over at different ratchet spacings and reductions. Each face's
+first page is its main source. Its further pages, where they read well, are scaled to the first by their
+letters' heights and averaged in. The book's Heritage is a 90 % reduction of Testimonial, as the book itself
+says (it also calls Bold Face #2 a 90 % Bold Face #1, and Registry an 85 % Directory), so it isn't made
+separately. Bold Face 2 is made anyway, because it comes out lighter than a reduced Bold Face 1.
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
-[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Executive Modern and Mid-Century 1.005;
-Doric, Bold Face 2 and Charter 1.006; Documentary, Bold Face 1 and Arcadia 1.007; Secretarial and Registry
-1.000. Every face takes its w and W
+[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Doric 1.006; Modern and
+Mid-Century 1.007; Bold Face 2 and Charter 1.008; Documentary, Bold Face 1 and Arcadia 1.009; Secretarial and
+Registry 1.002; Copperplate Gothic 1 1.002; and the other faces from *Typesetting*, 1.001. Every face takes its w and W
 (where nothing better has them) and its letters' widths from IBM's 1972 catalogue. The sources are listed in
 [`scans/README.md`](scans/README.md).
 
@@ -33,7 +47,8 @@ The fonts have 200 font units to the 1/32-inch unit, so 6400 to the inch. At 100
 11.25 pt they print at the typewriter's own size**. The 1/36-inch faces' unit is 6400/36 = 177.8 font units and
 the 1/45-inch face's 142.2. Each advance is its whole number of units, rounded to the nearest font unit.
 
-The word space is 2 units in every face, measured from the gaps between words on the brochure. (The Jowa card is
+The word space is 2 units in every face but Secretarial (3), measured from the gaps between words on the
+brochure, the typed pages and *Typesetting*. (The Jowa card is
 justified foundry type, so its spaces vary.) The line spacing is the Executive's single spacing, six lines to the
 inch (1067 font units).
 
@@ -76,13 +91,26 @@ The chart shows each font's printable ASCII (0x21–0x7E) in code order. A chara
   The catalogue has no `\` or `|` for any of the faces, and `{ } ~` and `< >` only where listed.
 - **Executive Secretarial and Registry** have no brochure line. Secretarial's letters and signs are the 1972
   catalogue's single prints (`CHOSEN` in `tools/catalog.py`), because the memo typed in it is a faint photocopy
-  whose letters are broken; the memo gives its unit, 1/32 inch, and its word space. Its 1 and 0, which neither of those
-  sources shows, are from its page of "Typesetting with the IBM Executive". Registry's characters are the
+  whose letters are broken; the memo gives its unit, 1/32 inch, and its word space. The photocopy is 13 % taller
+  than it is wide (its single-spaced lines are 57.4 px apart where a sixth of an inch is 50.6 px), so it is read
+  squashed back (`SCALE_Y`); the letters are scaled to its heights. Its 1 and 0, # and &, which neither of those
+  sources shows, are from its page of *Typesetting*. Registry's characters are the
   1955 newsletter's typed prints, which give its unit, 1/36 inch, with the catalogue filling in `= + [ ] < ½ ¼`.
   The newsletter's line of signs is read by hand-listed columns (`TYPED_COLUMNS`): its `@#` and `*(` touch, its
   `%` prints in two pieces, and its `_` didn't print. Both faces take their letters' widths from the catalogue.
   Neither has accented letters, which none of their sources show.
-- `)` is the `(` turned round in Modern, whose card has only the `(`. The typographic quotes ‘ ’ “ ” map to the
+- **The faces from *Typesetting*** have what its pages show: a–z, A–Z, the figures and
+  `§ % ‡ = ' - . , # * ¶ / $ † ? ! ¢ ( ) @ & + ‘ _ ; :`. The catalogue fills in w, W and what a page lacks. Bold Face
+  1 Italic's page is soft, so its letters are the catalogue's and the page gives the rest; it is set at 14°.
+  Directory's % is from its third page, the only whole one, cut free of the 0 it touches (`SET_CUT`).
+- **Copperplate Gothic 1 and 2** are small capitals on the lower-case keys and large capitals on the upper. Their
+  figures and signs come in two sizes too: the small ones are the default, and **`ss01`** ("Large figures and
+  signs") gives the large ones.
+- **Every face from *Typesetting*, and the older faces where they lacked them,** take `§ ‡ ¶ † ‘ _` from the
+  book's pages. A face with no `"` gets one made of two of its `'` (Text, Directory, Testimonial), and a face
+  with a `‘` gets a `“` made of two of them.
+- **Documentary's** `` ` `` and `^` are from the catalogue.
+- `)` is the `(` turned round in Modern, whose card has only the `(`. The other typographic quotes map to the
   typewriter's straight `'` and `"`.
 
 ## How the fonts are made
@@ -118,8 +146,17 @@ python3 tools/specimen.py    # specimen/
    of signs has few letters to find its baseline by. A `$` is then moved so its centre of mass is its face's
    `S`'s, since its S-shaped body is most of its ink and its bar reaches about as far above as below.
 3. **Averaging and tracing** (`glyphs.py`, `build.py`, `common/trace.py`). Every occurrence of a character is
-   scaled to font units and aligned to the others by phase correlation. The occurrences are averaged, which
-   cancels most of the ribbon's and the paper's noise, and the 50 % ink contour is traced into Bézier curves.
+   scaled to font units and aligned to the others by phase correlation. Where there are only a few, each is
+   compared with the average of the others, and one that doesn't match (a misread, or a print from a page drawn
+   at another size) is left out. The occurrences are averaged, which cancels most of the ribbon's and the
+   paper's noise, and the 50 % ink contour is traced into Bézier curves. The softest *Typesetting* pages
+   (Copperplate's, Patron's and Directory's) are traced at 40 %, with dropouts of a scan pixel or two closed,
+   so their thin strokes don't break up.
+4. ***Typesetting*'s pages** are read like the typed pages, with two additions. The line of signs is aligned by
+   shape against a reference font, because its signs print once each. Its underscore, which prints well below
+   the baseline, is looked for separately. Bold Face 1 Italic's page is read un-slanted and its glyphs slanted
+   back; pages with faint hairlines (Testimonial's, Secretarial's, Bold Face 2's and Copperplate 2's) are read
+   darkened (`GAMMA` in `tools/sources.py`).
 
 **IBM's widths.** IBM's "Type Available" catalogue of January 1972 (form 1268416) shows every face's characters
 in a grid, each with its width in units printed beside it. `tools/catalog.py` reads each face's alphabet from it.
@@ -149,12 +186,11 @@ two-storey one, and the brochure's is `ss01`.
 
 - The catalogue shows every face's alternates too (other forms of letters, figures and signs, fractions,
   accented capitals); only what ASCII needs is taken from it so far.
-- A memo by R. W. Bemer (7 November 1961), offered as Arcadia, is in IBM's **Secretarial**: the same wide
-  monoline slab serif as the "Type designs" sheet's Secretarial sample (ball-terminal r and c, curve-tailed y,
-  plain slab-footed f). It is one of Executive Secretarial's sources.
-- The 1972 catalogue also shows Text, Bold Face Italic, Heritage, Directory, Testimonial, Copperplate Gothic 2,
-  Patron and Registry No. 2, one print of each character, and Copperplate Gothic 1's signs.
-- The brochure is a halftone print at about 13 px to the unit, so the brochure faces are softer than Modern,
-  which is traced from a 9983-px photograph of the Jowa card (36 px to the unit).
+- The brochure is a halftone print at about 13 px to the unit, and *Typesetting*'s pages are smaller still, so
+  those faces are softer than Modern, which is traced from a 9983-px photograph of the Jowa card (36 px to the
+  unit).
 - Modern's `† [ ] =` and em dash, shown on the Science Museum's 602 specimen, are in tiles too small to trace.
-- The other Executive faces (Heritage, Directory, Bold Face Italic, Patron, …) aren't made yet.
+- Heritage (a 90 % Testimonial) isn't made. Three of *Typesetting*'s further pages don't read (Bold Face 2's
+  third, Documentary's and Secretarial's second), and the Executive brochure's pages 4 and 5
+  (`executive-brochure-0004.jp2`, `-0005.jp2`) aren't used yet.
+- Directory's O has a small dent at its lower left, from the one print of it on its page.

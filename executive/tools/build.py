@@ -45,6 +45,11 @@ VERSIONS.update(Secretarial='1.002', Directory='1.001', Copperplate2='1.001', Mo
 VERSIONS.update(Documentary='1.009', MidCentury='1.007', Arcadia='1.009', BoldFace1='1.009',
                 BoldFace2='1.008', Charter='1.008', Registry='1.002', Text='1.001', Testimonial='1.001',
                 BoldFaceItalic='1.001', Copperplate1='1.001', Patron='1.001')
+# Raised for prints of further pages checked against the first page's, two prints averaged only if they agree
+# closely, brackets cut free of their neighbours, Copperplate 1's and Secretarial's page traced at 40 %
+VERSIONS.update(Modern='1.008', Documentary='1.010', MidCentury='1.008', Arcadia='1.010', Doric='1.007',
+                BoldFace1='1.010', BoldFace2='1.009', Charter='1.009', Secretarial='1.003', Registry='1.003',
+                **{f: '1.002' for f in NEW_FACES})
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
          'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter',
          'Secretarial': 'Secretarial', 'Registry': 'Registry', 'Text': 'Text', 'Directory': 'Directory',
@@ -82,8 +87,9 @@ SOURCES['Directory'].append(('DirectorySet3', '%'))   # the one whole % (its fir
 # typed in it is a faint photocopy), its signs and figures from the memo; Registry's from the newsletter typed in
 # it, the catalogue filling in.  MAIN: the source the others are scaled, thickened and levelled to.
 # Secretarial's 1 and 0, which the catalogue and the memo lack, are its 'Typesetting' page's; that page also
-# fills in what the others don't show (§ ‡ ¶ † ‘, and Secretarial's & and #), as Registry's does for it
-SOURCES['Secretarial'] = [('SecretarialSet', '10'), ('CatalogSecretarial', None), ('SecretarialTyped', None)]
+# fills in what the others don't show (§ ‡ ¶ † ‘), as Registry's does for it; its $ & § # are cleaner than the
+# catalogue's and the memo's
+SOURCES['Secretarial'] = [('SecretarialSet', '10$&§#'), ('CatalogSecretarial', None), ('SecretarialTyped', None)]
 SOURCES['Registry'] = [('RegistryTyped', None), ('CatalogRegistry', None)]
 for _f in ('Secretarial', 'Registry'):
     if _f in _S0.TYPESET: SOURCES[_f].append((f'{_f}Set', None))
@@ -269,14 +275,17 @@ def agree(occs, k, most=8):
     more than `most`, clean()'s medians have already done this"""
     if len(occs) < 2 or len(occs) > most: return occs
     ims = [place(o, k) for o in occs]
-    if len(ims) == 2: return occs if overlap(ims[0], ims[1]) >= 0.6 else occs[:1]
+    # (two that agree less than 0.8 are too far apart to average: a small figure's two prints, misaligned by a
+    # pixel, average into a doubled outline)
+    if len(ims) == 2: return occs if overlap(ims[0], ims[1]) >= 0.8 else occs[:1]
     sc = [overlap(ims[i], average_imgs(ims[:i] + ims[i + 1:])) for i in range(len(ims))]
     return [o for o, x in zip(occs, sc) if x >= 0.6] or [occs[int(np.argmax(sc))]]
 
 
 # Soft pages whose thin strokes average out grey (a print or two of the few lighter than the rest): traced at this
-# fraction of full ink, not half, which keeps Copperplate 2's small figures, Patron's @ and Directory's O whole
-TRACE_LEVEL = {'Copperplate2Set': 0.4, 'PatronSet': 0.4, 'DirectorySet': 0.4}
+# fraction of full ink, not half, which keeps Copperplate's small figures, Patron's @ and Directory's O whole
+TRACE_LEVEL = {'Copperplate1Set': 0.4, 'Copperplate2Set': 0.4, 'PatronSet': 0.4, 'DirectorySet': 0.4,
+               'SecretarialSet': 0.4}
 
 # Characters printed once, more heavily than the rest of their face, thinned by this many font units a side:
 # Patron's J (its stems 89 units wide, the other capitals' 63 to 76)
@@ -305,8 +314,15 @@ def glyph_images(face):
             h = lambda os_: float(np.median([o['bottom'] - o['top'] for o in os_]))
             fs = [h(hs[c]) / h(ht[c]) for c in 'EFHILTZxzvnmu' if c in hs and c in ht]
             if fs: t.k = s.k * float(np.median(fs))         # (level() moves it at this scale too)
+            own = s.by_char()
             for ch, os_ in t.by_char().items():
-                extra.setdefault(ch, []).extend(rescale(o, t.k / s.k) for o in level(clean(os_), t, s))
+                more = [rescale(o, t.k / s.k) for o in level(clean(os_), t, s)]
+                # a print of a further page that doesn't match the first page's (Copperplate 2's third page
+                # prints its small figures broken) is left out
+                if ch in own:
+                    ref = place(own[ch][0], s.k)
+                    more = [o for o in more if overlap(ref, place(o, s.k)) >= 0.8]
+                extra.setdefault(ch, []).extend(more)
         for ch, occs in s.by_char().items():
             if ch in G or (only and ch not in only): continue
             occs = agree(level(clean(occs + extra.get(ch, [])), s, main), s.k)
@@ -503,8 +519,8 @@ def build(face):
         im = g['img']; b = im.bbox()
         im = im.shift(a / 2 + g['off'] - (b[0] + b[2]) / 2, 0)
         ink = im.ink
-        if g['src'].name in TRACE_LEVEL:      # (and nicks of up to two scan pixels closed: the scan's dropouts)
-            r = max(1, int(round(2 * g["src"].k)))
+        if g['src'].name in TRACE_LEVEL:      # (and nicks of a scan pixel closed: the scan's dropouts)
+            r = max(1, int(round(g['src'].k)))
             ink = cv2.morphologyEx(ink.astype(np.float32), cv2.MORPH_CLOSE,
                                    cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1)))
             ink = np.clip(ink * 0.5 / TRACE_LEVEL[g['src'].name], 0, 1)

@@ -1,6 +1,6 @@
 # Scans
 
-The sources for the IBM Executive revivals. The image files are not in the repository; put them in this
+The sources for the Executive revivals. The image files are not in the repository; put them in this
 directory under these names.
 
 | File | What it is | Used for |
@@ -15,10 +15,13 @@ directory under these names.
 | `midcentury-asa-letter-0027.jpg` | Letter of the American Standards Association, 28 May 1962 (ISO/TC97/WGB document USA-4), typed in Mid-Century; 300 dpi | Mid-Century: `w W : ; " # *`; the 1/36-inch unit checked (8.42 px against 8.33 at 300 dpi) |
 | `midcentury-asa-footnotes-0038.jpg` | The same document's footnotes page | Not used: the page is curved and turned on the scanner |
 | `charter-bcd-code-0046.jpg`, `-0047.jpg` | "Standard BCD Interchange Code" (1962), typed in Charter: the code table and its figures; a photocopy at about 90 % | Charter: `W [ ] < > ; : * ' # @ ! \` from the table's Graphics column; the unit from page 47's captions |
-| `catalog-1972-<page>.png` (the faces' pages: 351–373, 374–388, 399–423, 424–427, 459–462, 464–465, 466–501, 527–528, 533–534, 538–539) | IBM "Type Available" catalogue, January 1972 (form 1268416), [bitsavers](https://archive.decromancer.ca/bitsavers.org/pdf/ibm/typewriter/1268416_Type_Available_Catalog_1972.pdf): each face's characters with their widths in units; 1-bit, about 600 dpi | All faces: the letters' widths; w and W where no other source has them; Arcadia's punctuation widths |
+| `catalog-1972-<page>.png` (the faces' pages, listed in `PAGES` and `ALL_PAGES` in `tools/catalog.py`) | IBM "Type Available" catalogue, January 1972 (form 1268416), [bitsavers](https://archive.decromancer.ca/bitsavers.org/pdf/ibm/typewriter/1268416_Type_Available_Catalog_1972.pdf): each face's characters with their widths in units; 1-bit, about 600 dpi | All faces: the letters' widths; w and W where no other source has them; signs a face lacks (`CHOSEN`); Bold Face 1 Italic's letters; Secretarial's letters and signs |
 | `et-newsletter-16-1955-p5.png`, `-p6.png` | IBM E. T. News Letter No. 16 (1955), [bitsavers](https://archive.decromancer.ca/bitsavers.org/pdf/ibm/typewriter/ET_News_Letter_1955.pdf), announcing Arcadia and Registry, typed in them | Arcadia: the two-storey a, w, W, ``: ; ' " @ # $ ¢ * _``; Registry: its characters and unit |
-| `secretarial-bemer-memo-1961.jpg` | R. W. Bemer's memo of 7 November 1961 on the X3.2 code, typed in Secretarial (a photocopy, 300 dpi) | Secretarial: its unit and word space; a check of its letters |
+| `secretarial-bemer-memo-1961.jpg` | R. W. Bemer's memo of 7 November 1961 on the X3.2 code, typed in Secretarial (a photocopy, 300 dpi across, stretched 13 % vertically) | Secretarial: its unit, word space and letter heights; a check of its letters |
 | `model-a-1951-modern-angled.jpg` | Sample typed on a 1951 Model A Executive (Modern, serial 20142) | Modern: checks |
+| `typesetting-<face>-<n>.png` | Screenshots of *Typesetting with the IBM Executive*, [archive.org](https://archive.org/details/typesettingwithi0000gard): for each face, one paragraph, a line of signs and the alphabets, set at different ratchet spacings and reductions (n = 1 is the page the face is read from first; 2–4 are its other settings) | Text, Directory, Testimonial, Bold Face 1 Italic, Copperplate Gothic 1 and 2, Patron: everything; the older faces: `§ ‡ ¶ † ‘ _`; Secretarial: `1 0 # & $ §` |
+| `typesetting-heritage-<n>.png` | The same book's Heritage pages | Not used: Heritage is a 90 % Testimonial |
+| `executive-brochure-0004.jp2`, `-0005.jp2` | Pages of an IBM Executive brochure, [archive.org](https://archive.org/) | Not used yet |
 
 The face behind Jowa's and the Science Museum's "602" is IBM's Modern: the same letterforms as the 1951 Model A
 sample, which names its face, and as the Finnish brochure's "Proportional Modern" (see Fonts In Use,
