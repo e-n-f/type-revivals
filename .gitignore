@@ -1,5 +1,2 @@
 build/
-**/scans/*.jpg
-**/scans/*.jp2
-**/scans/*.png
 __pycache__/
