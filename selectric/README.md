@@ -147,8 +147,8 @@ Elite's j reaching into the i's cell or the gap between Courier 12 Italic's 7 an
 
 ## How the fonts are made
 
-Everything is under `tools/` and runs from this directory (`selectric/`). The scans aren't in the
-repository: see [`scans/README.md`](scans/README.md) for where to get them.
+Everything is under `tools/` and runs from this directory (`selectric/`). The scans are in `scans/`, and
+[`scans/README.md`](scans/README.md) says where each came from.
 
 It needs Python 3 with the packages in `requirements.txt`, and the DejaVu fonts (`fonts-dejavu` on Debian and
 Ubuntu) at `/usr/share/fonts/truetype/dejavu/`, which label the specimens.

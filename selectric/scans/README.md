@@ -1,7 +1,7 @@
 # Scans
 
-The sources for the IBM Selectric revivals. The image files are not in the repository; put them in this
-directory under these names.
+The sources for the Selectric revivals, kept here so that the fonts can be rebuilt from them. They are the
+Internet Archive's page images, under these names.
 
 | Files | What they are | Used for |
 |---|---|---|
