@@ -33,9 +33,9 @@ says (it also calls Bold Face #2 a 90 % Bold Face #1, and Registry an 85 % Direc
 separately. Bold Face 2 is made anyway, because it comes out lighter than a reduced Bold Face 1.
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
-[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Bold Face 1 Italic 1.003;
-Directory, Testimonial, Copperplate Gothic 1 and 2, Patron and Registry 1.004; Secretarial and Text 1.005; Doric
-and Modern 1.009; Mid-Century 1.010; Documentary, Arcadia and Charter 1.011; Bold Face 2 1.012; Bold Face 1 1.013.
+[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Bold Face 1 Italic 1.004;
+Directory, Testimonial, Copperplate Gothic 1 and 2, Patron and Registry 1.005; Secretarial and Text 1.006; Doric
+and Modern 1.010; Mid-Century 1.011; Documentary, Arcadia and Charter 1.012; Bold Face 2 1.013; Bold Face 1 1.014.
 Every face takes its w and W
 (where nothing better has them) and its letters' widths from IBM's 1972 catalogue. The sources are listed in
 [`scans/README.md`](scans/README.md).
@@ -179,6 +179,9 @@ a font lacks is an empty box.
   styles, the only source that shows them: a small scan, so they are softer than their faces' other characters.
   Their widths are set, not fitted (`SET_WIDTHS` in `tools/build.py`): `# _ ¢` 3 units, as in every face that has
   them, and `@` 5.
+- **`! ? :`** are set with their dots on the baseline where the face's own period sits, and `;` with its upper dot
+  level with the colon's. A line of signs has few letters to find its baseline by, and they had come out as much as
+  85 units high (Documentary's catalogue `!`) or 140 low (Directory's, from its book page).
 - `)` is the `(` turned round in Modern, whose card has only the `(`, and Text's `(` is its `)` turned round,
   because every print of its `(` touches the `¢` beside it. The other typographic quotes map to the
   typewriter's straight `'` and `"`.
