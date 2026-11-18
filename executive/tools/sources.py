@@ -286,7 +286,21 @@ TYPED_MULTI = {'Registry': {'%': 2}}
 # A typed line whose signs are read by hand-listed columns (character, first, last column, in pixels from the
 # box's left edge), as the brochure's symbol lines are: Registry's keyboard line of signs, whose @# and *( touch
 # and whose % prints in two pieces, so counting groups goes wrong
-TYPED_COLUMNS = {'Registry': [(NL55_6, (680, 2570, 2320, 2690),
+# The NOMDA dealers' guide's pages of IBM type styles (6-70, from Typecast; small and cut off at the right):
+# Doric's keyboard row and Bold Face 2's (code 057, the lighter of the two Bold Faces) line of signs give their
+# @ # ¢, and Doric's _, which no other source shows
+NOMDA = 'NOMDA-type-IBM-09.jpg'
+TYPED['Doric'] = []
+TYPED['BoldFace2'] = []
+TYPED_COLUMNS = {'Doric': [(NOMDA, (335, 540, 630, 592),
+                            [('[', 8, 19), ('@', 19, 43), ('#', 44, 61), ('$', 61, 81), ('%', 82, 105), ('¢', 106, 123),
+                             ('&', 124, 144), ('*', 145, 158), ('(', 160, 173), (')', 174, 184), ('_', 185, 205),
+                             ('+', 206, 226)])],
+                 'BoldFace2': [(NOMDA, (300, 222, 640, 262),
+                                [('#', 10, 27), ('*', 27, 43), ('¶', 44, 58), ('/', 59, 76), ('$', 76, 94), ('†', 94, 109),
+                                 ('?', 114, 132), ('!', 137, 147), ('¢', 149, 166), ('(', 166, 175), (')', 175, 186),
+                                 ('@', 187, 210)])],
+                 'Registry': [(NL55_6, (680, 2570, 2320, 2690),
                                [('@', 28, 93), ('#', 93, 140), ('$', 158, 199), ('%', 208, 270), ('¢', 279, 315),
                                 ('&', 319, 375), ('*', 379, 425), ('(', 425, 447), (')', 460, 484), ('!', 547, 560),
                                 ('"', 577, 605), (':', 625, 640), ('?', 658, 694)])]}

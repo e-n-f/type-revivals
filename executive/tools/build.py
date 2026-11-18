@@ -62,6 +62,7 @@ VERSIONS.update(Arcadia='1.011', BoldFaceItalic='1.003', BoldFace1='1.012', Bold
                 MidCentury='1.010', Modern='1.009', Patron='1.004', Registry='1.004', Secretarial='1.005',
                 Testimonial='1.004', Text='1.005')
 VERSIONS.update(BoldFace1='1.013', BoldFace2='1.011')   # their catalogue W no darker than 1.25 times their V
+VERSIONS.update(Doric='1.009', BoldFace2='1.012')      # @ # ¢ (and Doric's _) from the NOMDA guide
 
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
          'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter',
@@ -95,6 +96,9 @@ for _f in OLD_FACES:
 for _f in NEW_FACES: SOURCES[_f] = [(f'{_f}Set', None), (f'Catalog{_f}', None)]
 SOURCES['BoldFaceItalic'] = [('CatalogBoldFaceItalic', None), ('BoldFaceItalicSet', None)]
 SOURCES['Copperplate1'] = [('Copperplate1Set', None)]           # its catalogue page shows signs only
+# the NOMDA guide's lines (sources.TYPED_COLUMNS): Doric's @ # _ ¢ and Bold Face 2's @ # ¢, which nothing else shows
+SOURCES['Doric'].append(('DoricTyped', '@#_¢'))
+SOURCES['BoldFace2'].append(('BoldFace2Typed', '@#¢'))
 SOURCES['Directory'].append(('DirectorySet3', '%'))   # the one whole % (its first page's prints in pieces)
 # Faces with no brochure line (tools/units.py CATALOG_FACES): Secretarial's letters from the catalogue (the memo
 # typed in it is a faint photocopy), its signs and figures from the memo; Registry's from the newsletter typed in
@@ -119,7 +123,8 @@ MATCH_HEIGHTS = {'Keyboard': ('Modern', '0123456789'), 'MidCenturyTyped': ('MidC
                  **{f'{f}Set': (MAIN.get(f, f), 'EFHILTZxzvnmu') for f in OLD_FACES if f in _S0.TYPESET},
                  **{f'Catalog{f}': (f'{f}Set', 'EFHILTZxzvnmu') for f in NEW_FACES},
                  'CatalogBoldFaceItalic': ('BoldFaceItalicSet', 'EFHILTZxzvnmu'),
-                 'DirectorySet3': ('DirectorySet', 'EFHILTZxzvnmu')}
+                 'DirectorySet3': ('DirectorySet', 'EFHILTZxzvnmu'),
+                 'DoricTyped': ('Doric', '$%&*()+'), 'BoldFace2Typed': ('BoldFace2', '$?!()*/')}
 # printed sources, crisper than the typed ones: thickened to the face's weight (match_weight)
 REWEIGHT = ({f'Catalog{f}' for f in VERSIONS} - {'CatalogSecretarial', 'CatalogBoldFaceItalic'}
             | {f'{f}Set' for f in OLD_FACES} | {'BoldFaceItalicSet'}) - {'SecretarialSet'}
@@ -300,6 +305,11 @@ def agree(occs, k, most=8):
 TRACE_LEVEL = {'Copperplate1Set': 0.4, 'Copperplate2Set': 0.4, 'PatronSet': 0.4, 'DirectorySet': 0.4,
                'SecretarialSet': 0.4}
 
+# Widths for characters whose only source is too small to fit them (the NOMDA guide's lines): # ¢ _ are 3 units in
+# every face that has them (IBM's own table, typed-bold-face-1-units.jpg, says so too), @ 4 or 5 (5 in Bold Face 1,
+# Mid-Century and Secretarial; Doric's, as wide as its capitals, too)
+SET_WIDTHS = {'Doric': {'@': 5, '#': 3, '_': 3, '¢': 3}, 'BoldFace2': {'@': 5, '#': 3, '¢': 3}}
+
 # A ( whose prints all touch the ¢ before it: the ) turned round instead (Text's)
 TURN = {'Text': '('}
 
@@ -366,7 +376,7 @@ def glyph_images(face):
             # a character with no neighbour to fit (the last of a line): its ink and half a unit of margin
             # (IBM's own width comes first, where the catalogue prints one; then a width fitted from another
             # source of the face: Modern's & from the brochure)
-            u = (cat.get(ch) or next((t.units[ch] for t in srcs if ch in t.units), None)
+            u = (SET_WIDTHS.get(face, {}).get(ch) or cat.get(ch) or next((t.units[ch] for t in srcs if ch in t.units), None)
                  or max(2, int(round(np.median([o['w'] for o in occs]) / s.p + 0.5))))
             img = average(occs, s.k)
             # a faint print (thin strokes on a soft page: Copperplate 2's small figures) never reaches full ink, and
