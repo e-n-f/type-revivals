@@ -1,0 +1,288 @@
+"""Build the Selectric fonts: each Selectric typewriter face's characters averaged over the scans, traced, and set in the
+typewriter's fixed cells.
+
+    python3 tools/build.py [Courier72 Orator ...]   ->  fonts/otf/Selectric<Face>-Regular.otf, fonts/ttf/...ttf
+
+Needs build/occ-*.pkl from tools/read.py.
+
+Every character is 600 font units wide, at 1000 to the em: a 10-pitch face set at 12 pt, or a 12-pitch face
+at 10 pt, prints at the typewriter's own size (1/10 or 1/12 inch to the character).  A character keeps the
+place in its cell the scans show: x = 0 at the cell's centre on the scan is x = 300 in the font.
+"""
+import sys, os, json, pickle, numpy as np
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(HERE, '..', '..', 'common'))
+import trace
+from fontio import draw, autohint
+from glyphs import Img, place
+import sources as S
+from fontTools.fontBuilder import FontBuilder
+from fontTools.pens.t2CharStringPen import T2CharStringPen
+from fontTools.pens.ttGlyphPen import TTGlyphPen
+from fontTools.pens.reverseContourPen import ReverseContourPen
+from fontTools.pens.boundsPen import BoundsPen
+from fontTools.agl import UV2AGL
+
+ROOT = os.path.join(HERE, '..')
+BUILD = os.path.join(ROOT, 'build')
+# Each font's version, in the head table and the name table.  Raise a font's version with every change to
+# that font, or font managers treat the new file as a duplicate of the installed one (see CONTRIBUTING.md).
+VERSIONS = {f: '1.003' for f in S.FACES}
+VERSIONS.update(ANSIOCR='1.003', AN3360='1.002', BookfaceAcademic72='1.004', LargeElite72='1.004',
+                PrintingPublishing2='1.001')
+VERSIONS.update(Courier12Italic='1.004', LightItalic='1.004')   # full names without "Italic Italic"
+NAMES = {'Advocate': 'Advocate', 'BookfaceAcademic72': 'Bookface Academic 72', 'Courier72': 'Courier 72',
+         'Delegate': 'Delegate', 'Pica72': 'Pica 72', 'PrestigePica72': 'Prestige Pica 72', 'Adjutant': 'Adjutant',
+         'Artisan12': 'Artisan 12', 'Courier12': 'Courier 12', 'Courier12Italic': 'Courier 12 Italic',
+         'Elite72': 'Elite 72', 'LargeElite72': 'Large Elite 72', 'LetterGothic': 'Letter Gothic',
+         'PrestigeElite72': 'Prestige Elite 72', 'Scribe': 'Scribe', 'Manifold72': 'Manifold 72', 'Orator': 'Orator',
+         'DualGothic': 'Dual Gothic', 'LightItalic': 'Light Italic', 'Script': 'Script', 'ANSIOCR': 'ANSI OCR',
+         'AN3360': 'AN3 360', 'PrintingPublishing2': 'Printing and Publishing 2'}
+ITALIC = {'Courier12Italic': -12.0, 'LightItalic': -12.0, 'Script': -10.0}
+CAPS_ONLY = {'Manifold72'}            # the lower-case keys type the capitals
+UPM, ADV = 1000, 600
+SIGMA = 0.6                           # smoothing of the traced ink, in pixels of the scan
+MAXSHIFT = 120                        # the largest correction registration may make, in font units (10 px)
+# typographic quotes typed with the typewriter's straight ones
+ALIAS = {0x2018: "'", 0x2019: "'", 0x201C: '"', 0x201D: '"', 0xA0: ' '}
+# OCR-A's special symbols are also on the ASCII keys OCR-A puts them on
+KEYS = {'ANSIOCR': {'!': '⑁', '@': '⑂', '#': '⑃', '^': '█'},
+        'PrintingPublishing2': {'_': '—'}}           # its long dash is on the underscore key
+
+
+def gname(ch):
+    return UV2AGL.get(ord(ch), f'uni{ord(ch):04X}')
+
+
+def shape(a):
+    ys, xs = np.nonzero(a > 0.5)
+    c = a[ys.min():ys.max() + 1, xs.min():xs.max() + 1].astype(np.float32)
+    import cv2
+    return cv2.resize(c, (16, 20), interpolation=cv2.INTER_AREA).ravel()
+
+
+def clean(occs):
+    """drop occurrences of the wrong size or shape (a cell misread, a character damaged).  A paragraph's
+    occurrence must look like the character's print in the alphabet lines, whose places are certain (a word
+    matched to the wrong text has the right length but other letters); then any far from the median in width,
+    height or normalized shape go too"""
+    # a broken print (part of the character too faint to print) has much less ink than a whole one
+    amount = [float((o['ink'] > 0.5).sum()) for o in occs]
+    # (with three or more, than the median: the heaviest may be one with a neighbour's serif caught in it)
+    most = float(np.median(amount)) if len(occs) >= 3 else max(amount)
+    occs = [o for o, a in zip(occs, amount) if a >= 0.75 * most] or occs
+    # a print far from where the others sit in their cells (its line's cells misplaced): with three or more,
+    # drop any more than 6 px from their median place
+    if len(occs) >= 3:
+        def centre(o):
+            ys, xs = np.nonzero(o['ink'] > 0.5)
+            return (o['X0'] + xs.mean() - o['x0'], o['Y0'] + ys.mean() - o['base'])
+        cs = np.array([centre(o) for o in occs]); med = np.median(cs, 0)
+        occs = [o for o, c in zip(occs, cs) if np.hypot(*(c - med)) <= 6] or occs
+    # (with three paragraph prints or more, the median below judges the alphabet-line prints too: they may be
+    # the ones that are off, touching their neighbours in the line)
+    refs = [o for o in occs if o.get('ref')]
+    if refs and len(occs) - len(refs) < 3:
+        r = refs[0]; rs = shape(r['ink']); rh = r['bottom'] - r['top']
+        occs = [o for o in occs if o.get('ref') or
+                (float(np.sqrt(((shape(o['ink']) - rs) ** 2).mean())) < 0.3
+                 and abs(o['bottom'] - o['top'] - rh) < 0.25 * rh + 2)]
+    if len(occs) < 3: return occs
+    w = np.median([o['w'] for o in occs]); h = np.median([o['bottom'] - o['top'] for o in occs])
+    occs = [o for o in occs if abs(o['w'] - w) < 0.25 * w + 2 and abs(o['bottom'] - o['top'] - h) < 0.25 * h + 2] or occs
+    if len(occs) < 3: return occs
+    sh = np.array([shape(o['ink']) for o in occs]); med = np.median(sh, 0)
+    d = np.sqrt(((sh - med) ** 2).mean(1)); cut = np.median(d) * 2.5 + 0.02
+    return [o for o, x in zip(occs, d) if x <= cut] or occs
+
+
+def register(occs, k):
+    """shift each occurrence to fit the character's alphabet-line print (sharper to align to than a blurred
+    mean): by phase correlation of the two, placed in font units, on a common canvas.  A shift is kept only if
+    it makes the two prints overlap better than they did (phase correlation can jump by a stem's width on an
+    H or an m).  Then all are moved together by the median shift, so that the character sits where most of its
+    prints put it, not where its one alphabet-line print happened to fall"""
+    from glyphs import place
+    import cv2
+    refs = [o for o in occs if o.get('ref')] or occs[:1]     # (or, if clean() dropped those, any)
+    if len(occs) < 2: return occs
+    r = place(refs[0], k)
+    shifts = []
+    for o in occs:
+        if o is refs[0]: shifts.append((0.0, 0.0)); continue
+        im = place(o, k)
+        x0 = min(r.x0, im.x0); top = max(r.top, im.top)
+        W = int(max(r.x0 + r.ink.shape[1], im.x0 + im.ink.shape[1]) - x0) + 40
+        H = int(top - min(r.top - r.ink.shape[0], im.top - im.ink.shape[0])) + 40
+        def put(a, dx=0.0, dy=0.0):
+            M = np.float32([[1, 0, a.x0 - x0 + 20 + dx], [0, 1, top - a.top + 20 + dy]])
+            return cv2.warpAffine(a.ink, M, (W, H), flags=cv2.INTER_LINEAR)
+        (dx, dy), resp = cv2.phaseCorrelate(put(im), put(r), cv2.createHanningWindow((W, H), cv2.CV_32F))
+        # only small corrections: the baseline fit already places a print within a few pixels, and phase
+        # correlation can't tell a shift along a long stem (a T's crossbar would end up anywhere)
+        if abs(dx) > MAXSHIFT or abs(dy) > MAXSHIFT: shifts.append((0.0, 0.0)); continue
+        ref = put(r)
+        def overlap(a): return float((a * ref).sum() / (np.sqrt((a * a).sum() * (ref * ref).sum()) + 1e-9))
+        if overlap(put(im, dx, dy)) <= overlap(put(im)): shifts.append((0.0, 0.0)); continue
+        shifts.append((dx, dy))
+    mx, my = np.median([d[0] for d in shifts]), np.median([d[1] for d in shifts])
+    # move each occurrence by its shift, less the median: X0 and Y0 are in scan pixels, y down
+    return [dict(o, X0=o['X0'] + (dx - mx) / k, Y0=o['Y0'] + (dy - my) / k) for o, (dx, dy) in zip(occs, shifts)]
+
+
+def average(occs, k):
+    """the occurrences, placed and registered, averaged as they are (no further alignment)"""
+    ims = [place(o, k) for o in occs]
+    if len(ims) == 1: return ims[0]
+    import cv2
+    x0 = min(i.x0 for i in ims); top = max(i.top for i in ims)
+    x1 = max(i.x0 + i.ink.shape[1] for i in ims); bot = min(i.top - i.ink.shape[0] for i in ims)
+    W, H = int(np.ceil(x1 - x0)) + 2, int(np.ceil(top - bot)) + 2
+    stack = [cv2.warpAffine(i.ink, np.float32([[1, 0, i.x0 - x0], [0, 1, top - i.top]]), (W, H),
+                            flags=cv2.INTER_LINEAR) for i in ims]
+    # the median, with three or more: a neighbour's serif caught in one print or two (the v beside the w of
+    # an alphabet line) doesn't show, as it would faintly in a mean
+    return Img((np.median if len(stack) >= 3 else np.mean)(stack, 0).astype(np.float32), x0, top)
+
+
+# Fractions whose numerator is damaged in every print, taken from another fraction of the same element (the
+# numerator 1 is the same): Bookface Academic's ¼, whose 1 is merged with the g of the line above it.
+NUMERATOR_FROM = {'BookfaceAcademic72': {'¼': '½'}}
+
+
+def numerator_from(frac, src):
+    """frac with src's numerator: everything above the fraction bar replaced, lined up by the bar's top and,
+    sideways, by the numerator's stem just above the bar (below any damage)"""
+    def bar(im):
+        w = (im.ink > 0.5).sum(1); rows = np.nonzero(w > 0.6 * w.max())[0]
+        # the bar: the widest rows below the image's middle (the numerator's foot serif is narrower)
+        rows = rows[rows > 0.35 * im.ink.shape[0]]
+        return int(rows.min())                                  # its top row
+    def stem(im, row):
+        cols = np.nonzero(im.ink[row] > 0.5)[0]; return im.x0 + (cols.min() + cols.max()) / 2
+    bf, bs = bar(frac), bar(src)
+    # the stem's middle a third of the way up from the bar to the top of the numerator (above the foot serif)
+    rf, rs = bf - max(4, bf // 3), bs - max(4, bs // 3)
+    dx = stem(frac, rf) - stem(src, rs)
+    dy = (frac.top - bf) - (src.top - bs)                        # moves src's bar top onto frac's
+    gap = 6                                                      # rows above the bar that stay frac's
+    out = frac.ink.copy(); out[:bf - gap] = 0
+    num = src.ink[:bs - gap]
+    import cv2
+    M = np.float32([[1, 0, src.x0 + dx - frac.x0], [0, 1, (frac.top - src.top) - dy]])
+    placed = cv2.warpAffine(np.pad(num, ((0, src.ink.shape[0] - num.shape[0]), (0, 0))), M,
+                            (out.shape[1], out.shape[0]), flags=cv2.INTER_LINEAR)
+    # the numerator may reach above the frac image's top: grow the canvas upwards
+    return Img(np.maximum(out, placed), frac.x0, frac.top)
+
+
+def build(face):
+    data = pickle.load(open(os.path.join(BUILD, f'occ-{face}.pkl'), 'rb'))
+    p = float(np.median([q for q, _ in data['pitches']])); pitch = data['pitches'][0][1]
+    k = ADV / p                                   # font units per scan pixel
+    by = {}
+    for o in data['occ']: by.setdefault(o['ch'], []).append(o)
+    glyphs, adv, counts = {}, {}, {}
+    ims = {}
+    for ch, occs in by.items():
+        occs = register(clean(occs), k); counts[ch] = len(occs)
+        ims[ch] = average(occs, k)
+    for frac, src in NUMERATOR_FROM.get(face, {}).items():
+        ims[frac] = numerator_from(ims[frac], ims[src])
+    for ch, im in ims.items():
+        segs = trace.trace(im.ink, SIGMA * k)
+        glyphs[gname(ch)] = [[(s[0],) + tuple((q[0] + im.x0 + ADV / 2, q[1] + im.top) for q in s[1:]) for s in c]
+                             for c in segs]
+        adv[gname(ch)] = ADV
+    glyphs['space'] = []; adv['space'] = ADV
+    glyphs['.notdef'] = [[('L', (100, 0), (100, 600)), ('L', (100, 600), (500, 600)), ('L', (500, 600), (500, 0)),
+                          ('L', (500, 0), (100, 0))]]
+    adv['.notdef'] = ADV
+    cmap = {ord(ch): gname(ch) for ch in by}
+    if face in CAPS_ONLY:
+        for c in S.LC: cmap[ord(c)] = gname(c.upper())
+    for key, ch in KEYS.get(face, {}).items():
+        if ch in by: cmap[ord(key)] = gname(ch)
+    cmap[0x20] = 'space'
+    for u, ch in ALIAS.items():
+        if ch == ' ' or ch in by: cmap[u] = 'space' if ch == ' ' else gname(ch)
+    def top_of(n):
+        bp = BoundsPen(None); draw(bp, glyphs[n]); return bp.bounds[3] if bp.bounds else 0
+    xh = top_of('x') if 'x' in glyphs and face not in CAPS_ONLY else top_of('X') * 0.7
+    cap = top_of('H')
+    rare = {c: n for c, n in counts.items() if n < 2}
+    print(f'{face}: {len(by)} characters, pitch {p:.2f} px (1/{pitch} inch); cap height {cap:.0f};'
+          f' seen once: {"".join(sorted(rare))}')
+    return glyphs, adv, cmap, dict(pitch=pitch, cap=cap, xh=xh, counts=counts)
+
+
+def font(face, otf=True, data=None):
+    glyphs, adv, cmap, info = data or build(face)
+    family = 'Selectric ' + NAMES[face]; style = 'Italic' if face in ITALIC else 'Regular'
+    # the full name: the family's own, with the style unless the family already ends in it ("Light Italic")
+    full = family if style == 'Regular' or family.endswith(' ' + style) else f'{family} {style}'
+    psname = 'Selectric' + face + '-' + style
+    VERSION = VERSIONS[face]
+    order = ['.notdef', 'space'] + sorted(n for n in glyphs if n not in ('.notdef', 'space'))
+    fb = FontBuilder(UPM, isTTF=not otf)
+    fb.setupGlyphOrder(order)
+    fb.setupCharacterMap(cmap)
+    if otf:
+        cs = {}
+        for n in order:
+            pen = T2CharStringPen(adv[n], None); draw(ReverseContourPen(pen), glyphs[n]); cs[n] = pen.getCharString()
+        fb.setupCFF(psname, {'FullName': full, 'FamilyName': family,
+                             'Weight': 'Regular', 'isFixedPitch': True}, cs, {})
+    else:
+        gl = {}
+        for n in order:
+            pen = TTGlyphPen(None); draw(pen, glyphs[n], quad=True); gl[n] = pen.glyph()
+        fb.setupGlyf(gl)
+    lsb = {}; ymax = 0; ymin = 0; lmin = 0
+    for n in order:
+        bp = BoundsPen(None); draw(bp, glyphs[n], quad=not otf)
+        lsb[n] = int(np.floor(bp.bounds[0])) if bp.bounds else 0
+        if bp.bounds:
+            ymin = min(ymin, bp.bounds[1]); ymax = max(ymax, bp.bounds[3])
+            if len(n) == 1 and n.isalpha(): lmin = min(lmin, bp.bounds[1])
+    fb.setupHorizontalMetrics({n: (adv[n], lsb[n]) for n in order})
+    # single spacing, six lines to the inch: 12 pt, which is 1000 units at 12 pt (10 pitch) or 1200 at 10 pt
+    line = 1000 if info['pitch'] == 10 else 1200
+    desc = int(np.floor(lmin)); asc = line + desc
+    fb.setupHorizontalHeader(ascent=asc, descent=desc, lineGap=0)
+
+    fb.setupNameTable({
+        'familyName': family, 'styleName': style,
+        'uniqueFontIdentifier': f'{psname};{VERSION}', 'fullName': full,
+        'psName': psname, 'version': f'Version {VERSION}',
+        'copyright': 'Traced from Selectric typewriter type style brochures (1970s).',
+        'description': f'A revival of the Selectric typewriter face {NAMES[face]} ({info["pitch"]} pitch), '
+                       f'traced from its specimens.',
+    })
+    italic = style == 'Italic'
+    from fontTools.ttLib.tables.O_S_2f_2 import Panose
+    fb.setupOS2(sTypoAscender=asc, sTypoDescender=desc, sTypoLineGap=0,
+                usWinAscent=int(np.ceil(max(ymax, asc))), usWinDescent=int(np.ceil(max(-ymin, -desc))),
+                sxHeight=int(round(info['xh'])), sCapHeight=int(round(info['cap'])), usWeightClass=400,
+                achVendID='NONE', fsType=0, fsSelection=(0x01 if italic else 0x40) | 0x80, version=4,
+                panose=dict(bFamilyType=2, bSerifStyle=0, bWeight=0, bProportion=9, bContrast=0,   # monospaced
+                            bStrokeVariation=0, bArmStyle=0, bLetterForm=0, bMidline=0, bXHeight=0))
+    fb.setupPost(isFixedPitch=1, italicAngle=ITALIC.get(face, 0))
+    if italic: fb.font['head'].macStyle = 2
+    fb.font['head'].fontRevision = float(VERSION)
+    d = os.path.join(ROOT, 'fonts', 'otf' if otf else 'ttf')
+    os.makedirs(d, exist_ok=True)
+    path = os.path.join(d, f'{psname}.{"otf" if otf else "ttf"}')
+    fb.save(path)
+    if not otf: autohint(path)
+    print('  wrote', os.path.relpath(path, ROOT), len(order), 'glyphs')
+
+
+if __name__ == '__main__':
+    p = os.path.join(BUILD, 'fonts.json')
+    infos = json.load(open(p)) if os.path.exists(p) else {}
+    for face in [a for a in sys.argv[1:] if a in VERSIONS] or list(VERSIONS):
+        data = build(face)
+        font(face, True, data); font(face, False, data)
+        infos[face] = dict(pitch=data[3]['pitch'], cap=data[3]['cap'])
+    json.dump(infos, open(p, 'w'), indent=1)

@@ -1,0 +1,183 @@
+# Selectric
+
+Digital fonts traced from the type of the **Selectric** typewriter, as IBM's type-style brochure of 1972
+shows it, in two printings. Every Selectric character is the same width: 1/10 inch on a 10-pitch element, 1/12 inch on a 12-pitch
+one. The fonts are monospaced to match, so text set in them lines up as it did on the machine.
+
+| Font | Pitch |
+|---|---|
+| Selectric Advocate | 10 |
+| Selectric Bookface Academic 72 | 10 |
+| Selectric Courier 72 | 10 |
+| Selectric Delegate | 10 |
+| Selectric Pica 72 | 10 |
+| Selectric Prestige Pica 72 | 10 |
+| Selectric Manifold 72 | 10 |
+| Selectric Orator | 10 |
+| Selectric ANSI OCR | 10 |
+| Selectric AN3 360 | 10 |
+| Selectric Printing and Publishing 2 | 10 |
+| Selectric Adjutant | 12 |
+| Selectric Artisan 12 | 12 |
+| Selectric Courier 12 | 12 |
+| Selectric Courier 12 Italic | 12 |
+| Selectric Elite 72 | 12 |
+| Selectric Large Elite 72 | 12 |
+| Selectric Letter Gothic | 12 |
+| Selectric Prestige Elite 72 | 12 |
+| Selectric Scribe | 12 |
+| Selectric Dual Gothic | 12 |
+| Selectric Light Italic | 12 |
+| Selectric Script | 12 |
+
+The files are `fonts/otf/Selectric<Face>-Regular.otf` (cubic outlines, unhinted) and `fonts/ttf/Selectric<Face>-Regular.ttf`
+(quadratic, hinted with [ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px), with `-Italic` for Courier
+12 Italic, Light Italic and Script. The text faces are at version 1.003 (Bookface Academic 72, Large Elite 72, Courier 12 Italic and Light Italic
+at 1.004), ANSI OCR at 1.003, AN3 360 at 1.002 and Printing and Publishing 2 at 1.001. The sources are listed in
+[`scans/README.md`](scans/README.md).
+
+<!-- downloads -->
+## Download
+
+**Selectric Advocate**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricAdvocate-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricAdvocate-Regular.ttf)  
+![Selectric Advocate](specimen/fonts/SelectricAdvocate-Regular.png)
+
+**Selectric Bookface Academic 72**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricBookfaceAcademic72-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricBookfaceAcademic72-Regular.ttf)  
+![Selectric Bookface Academic 72](specimen/fonts/SelectricBookfaceAcademic72-Regular.png)
+
+**Selectric Courier 72**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricCourier72-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricCourier72-Regular.ttf)  
+![Selectric Courier 72](specimen/fonts/SelectricCourier72-Regular.png)
+
+**Selectric Delegate**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricDelegate-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricDelegate-Regular.ttf)  
+![Selectric Delegate](specimen/fonts/SelectricDelegate-Regular.png)
+
+**Selectric Pica 72**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricPica72-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricPica72-Regular.ttf)  
+![Selectric Pica 72](specimen/fonts/SelectricPica72-Regular.png)
+
+**Selectric Prestige Pica 72**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricPrestigePica72-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricPrestigePica72-Regular.ttf)  
+![Selectric Prestige Pica 72](specimen/fonts/SelectricPrestigePica72-Regular.png)
+
+**Selectric Manifold 72**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricManifold72-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricManifold72-Regular.ttf)  
+![Selectric Manifold 72](specimen/fonts/SelectricManifold72-Regular.png)
+
+**Selectric Orator**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricOrator-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricOrator-Regular.ttf)  
+![Selectric Orator](specimen/fonts/SelectricOrator-Regular.png)
+
+**Selectric ANSI OCR**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricANSIOCR-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricANSIOCR-Regular.ttf)  
+![Selectric ANSI OCR](specimen/fonts/SelectricANSIOCR-Regular.png)
+
+**Selectric AN3 360**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricAN3360-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricAN3360-Regular.ttf)  
+![Selectric AN3 360](specimen/fonts/SelectricAN3360-Regular.png)
+
+**Selectric Printing and Publishing 2**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricPrintingPublishing2-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricPrintingPublishing2-Regular.ttf)  
+![Selectric Printing and Publishing 2](specimen/fonts/SelectricPrintingPublishing2-Regular.png)
+
+**Selectric Adjutant**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricAdjutant-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricAdjutant-Regular.ttf)  
+![Selectric Adjutant](specimen/fonts/SelectricAdjutant-Regular.png)
+
+**Selectric Artisan 12**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricArtisan12-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricArtisan12-Regular.ttf)  
+![Selectric Artisan 12](specimen/fonts/SelectricArtisan12-Regular.png)
+
+**Selectric Courier 12**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricCourier12-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricCourier12-Regular.ttf)  
+![Selectric Courier 12](specimen/fonts/SelectricCourier12-Regular.png)
+
+**Selectric Courier 12 Italic**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricCourier12Italic-Italic.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricCourier12Italic-Italic.ttf)  
+![Selectric Courier 12 Italic](specimen/fonts/SelectricCourier12Italic-Italic.png)
+
+**Selectric Elite 72**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricElite72-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricElite72-Regular.ttf)  
+![Selectric Elite 72](specimen/fonts/SelectricElite72-Regular.png)
+
+**Selectric Large Elite 72**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricLargeElite72-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricLargeElite72-Regular.ttf)  
+![Selectric Large Elite 72](specimen/fonts/SelectricLargeElite72-Regular.png)
+
+**Selectric Letter Gothic**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricLetterGothic-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricLetterGothic-Regular.ttf)  
+![Selectric Letter Gothic](specimen/fonts/SelectricLetterGothic-Regular.png)
+
+**Selectric Prestige Elite 72**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricPrestigeElite72-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricPrestigeElite72-Regular.ttf)  
+![Selectric Prestige Elite 72](specimen/fonts/SelectricPrestigeElite72-Regular.png)
+
+**Selectric Scribe**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricScribe-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricScribe-Regular.ttf)  
+![Selectric Scribe](specimen/fonts/SelectricScribe-Regular.png)
+
+**Selectric Dual Gothic**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricDualGothic-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricDualGothic-Regular.ttf)  
+![Selectric Dual Gothic](specimen/fonts/SelectricDualGothic-Regular.png)
+
+**Selectric Light Italic**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricLightItalic-Italic.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricLightItalic-Italic.ttf)  
+![Selectric Light Italic](specimen/fonts/SelectricLightItalic-Italic.png)
+
+**Selectric Script Italic**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricScript-Italic.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricScript-Italic.ttf)  
+![Selectric Script Italic](specimen/fonts/SelectricScript-Italic.png)
+
+<!-- /downloads -->
+
+## Size and spacing
+
+Every character is 600 font units wide, at 1000 units to the em. **A 10-pitch face set at 12 pt, or a 12-pitch
+face at 10 pt, prints at the typewriter's own size.** The line spacing is the Selectric's single spacing, six
+lines to the inch: 1000 units for a 10-pitch face, 1200 for a 12-pitch one (12 pt at 10 pt). Each character
+keeps the place in its cell that the scans show.
+
+## Character set
+
+Each face has what its brochure line shows: A–Z, a–z, the figures, and `! @ # $ % ¢ & * ( ) - _ = + ½ ¼ ? / " '
+: ; , .` (88 glyphs with the space and `.notdef`). The typographic quotes ‘ ’ “ ” map to the straight `'` and `"`.
+
+- **Selectric Manifold 72** is capitals only; its lower-case keys type the capitals, as on the element.
+- **Selectric Orator**'s lower case is small capitals, as on the element.
+- No text face has `` < > [ \ ] ^ ` { | } ~ ``: a standard Selectric element doesn't have them.
+- **Selectric ANSI OCR** is OCR-A (the American National Standards Institute's font A, size 1), with its own signs in
+  place of the usual ones: the hook ⑁, chair ⑂ and fork ⑃ (on `!`, `@` and `#`, as OCR-A puts them, and also at
+  their own code points U+2441–2443), the long bar `|`, braces `{ }`, the solid block █ (on `^` and at U+2588), an
+  upright `"` and `'`, and `¬`. It has no `( ) ¢ ½ ¼ ,`; the `-` and `_` are its short and long dashes. The
+  specimen shows its `:` and `;` the wrong way round (OCR-A's two-dot colon in the `;` place); here they are swapped
+  back.
+- **Selectric Printing and Publishing 2** is the "Perry Font" (REI-X04), for Recognition Equipment's scanners:
+  a monoline face with a hooked e and g. Its signs are `! ¶ @ $ % ⁄ & * ( ) - — { } ¤ △ ? / + = : ; , .` on the
+  keys where the text faces have `!@#$%¢&*()-_=+½¼?/"':;,.`; the long dash is also on `_`. Version 1.000.
+- **Selectric AN3 360** matches IBM's AN3 chain and train printer type of System/360. Its lower case is small capitals,
+  like Orator's, and its signs are `‡ @ # $ % ¤ & * ( ) - _ = + < > ? / ° ' : ; , .` (no `!`, `"` or `¢`).
+
+[`specimen/ascii.png`](specimen/ascii.png) charts each font's printable ASCII (0x21–0x7E) in code order.
+
+Each face also has `specimen/compare-<Face>.png`, which shows the specimen's alphabet lines as scanned with the font
+set beneath them, character for character in the same cells. Anything odd that shows in both, such as Prestige
+Elite's j reaching into the i's cell or the gap between Courier 12 Italic's 7 and 8, is in the original type.
+
+## How the fonts are made
+
+Everything is under `tools/` and runs from this directory (`selectric/`). The scans are in `scans/`, and
+[`scans/README.md`](scans/README.md) says where each came from.
+
+It needs Python 3 with the packages in `requirements.txt`, and the DejaVu fonts (`fonts-dejavu` on Debian and
+Ubuntu) at `/usr/share/fonts/truetype/dejavu/`, which label the specimens.
+
+```bash
+pip install -r requirements.txt
+python3 tools/read.py        # build/occ-<Face>.pkl: every character of every source line, in its cell
+python3 tools/build.py       # fonts/otf, fonts/ttf (about ten minutes)
+python3 tools/specimen.py    # specimen/
+python3 ../scripts/font_links.py   # the download lists and their specimen lines
+```
+
+1. **Reading** (`read.py`, with the faces' blocks and texts in `sources.py`). Each face appears in both printings
+   of the brochure (a and c in `scans/README.md`), so every character has at least two prints. Each face's block holds a
+   paragraph of three lines, its capitals and signs, and its lower case and figures. The reader finds the
+   lines, fits the block's pitch and each line's phase (the lattice that puts the most character centres in
+   the middle of a cell), and puts every piece of ink in the cell of its centre. A piece wider than a cell
+   (touching characters) is cut at the cells' edges, unless the slice is only the tail of a stroke (Script).
+   The occupied cells fall into runs, which are matched to the text's words by their lengths. Each line then
+   fits its own pitch and phase to its characters, and its baseline as a sloped line (the scans are a little
+   skewed).
+2. **Averaging and tracing** (`build.py`, `common/glyphs.py`, `common/trace.py`). Every occurrence of a
+   character, measured from the centre of its cell, is scaled to font units and aligned to the others by
+   phase correlation. Occurrences of the wrong size or shape are dropped, the rest averaged, and the 50 % ink
+   contour traced into Bézier curves. A print is dropped if it has much less ink than the character's fullest
+   print (one printing's Scribe figures are broken), if it lies far from where the others sit in their cells, or
+   (from a paragraph) if it doesn't look like the character's alphabet-line print.
+
+## Not yet done
+
+- The signs and rarer letters have only two prints, one from each printing. Brochure b (about 1970, different
+  texts) would give a third.
+- The other OCR faces (AN3/360 Bold, DF-2, 915, 12L2/12F2, 1403, Printing and Publishing 2 and 3; USASI and
+  Communications in brochure b) and the Symbol 10 and 12 elements aren't made yet.

@@ -1,4 +1,4 @@
-"""Glyph images in font units: each character averaged over its occurrences on the scans."""
+"""Glyph images in font units: each character averaged over its occurrences on the scans (shared by the revivals)."""
 import numpy as np, cv2
 
 
