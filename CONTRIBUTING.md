@@ -22,3 +22,15 @@ python3 scripts/check_font_versions.py origin/main
 It runs on every pull request that touches a `.otf` or `.ttf` file (`.github/workflows/font-versions.yml`).
 It fails if a changed font's version isn't higher than the base's, if the two version fields disagree, or if a
 font differs only in its timestamp.
+
+## Download links
+
+Each family's README, and the top-level README, list every font with its download links and a one-line
+specimen. After adding a font, or changing one's shapes, run
+
+```bash
+python3 scripts/font_links.py
+```
+
+to redraw the specimen lines (`<family>/specimen/fonts/`) and rewrite the lists between the
+`<!-- downloads -->` markers. The links point to the files on `main`.

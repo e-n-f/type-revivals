@@ -10,6 +10,7 @@ equation; a per-line tracking term absorbs any letterspacing of a line, and a we
 """
 import sys, os, json, pickle, itertools, numpy as np
 sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'common'))
 from segment import load, components, group, bbox
 from sheets import SHEETS, DISPLAY, runs
 

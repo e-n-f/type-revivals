@@ -5,6 +5,7 @@
 """
 import sys, os, pickle, itertools, numpy as np, cv2
 sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'common'))
 from segment import load, components, group, bbox, contact
 from sheets import SHEETS
 

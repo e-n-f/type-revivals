@@ -4,6 +4,7 @@
 """
 import sys, os, json, pickle, numpy as np, cv2
 sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'common'))
 import trace, vec
 from extract import CAP
 from sheets import PATCHES

@@ -1,0 +1,7 @@
+fonttools
+numpy
+opencv-python-headless
+scikit-image
+scipy
+pillow
+ttfautohint-py

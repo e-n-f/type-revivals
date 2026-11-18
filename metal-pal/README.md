@@ -8,8 +8,6 @@ the later Linotype and phototype versions. Its x-height is smaller (451 units ag
 are short (about −190). The bowls, terminals and serifs are rounder and more calligraphic, and it has the
 ligatures and alternates that German hand composition used.
 
-![The three fonts](specimen/specimen-lines.png)
-
 | Font | Source card | Files |
 |---|---|---|
 | Metal Pal Regular | *Palatino*, St. 2 | `fonts/otf/MetalPal-Regular.otf`, `fonts/ttf/MetalPal-Regular.ttf` |
@@ -25,6 +23,20 @@ integer coordinates and hinted with [ttfautohint](https://freetype.org/ttfautohi
 x-height, cap height and stems to the pixel grid at 8–50 px. That matters mainly for small text on Windows at 1×
 scaling. macOS ignores hints, and on high-resolution screens they make little difference. The fonts have 1000 units per em, with the cap height at 692, as in digital Palatino, so the two
 can be set at the same size.
+
+<!-- downloads -->
+## Download
+
+**Metal Pal Regular**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/metal-pal/fonts/otf/MetalPal-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/metal-pal/fonts/ttf/MetalPal-Regular.ttf)  
+![Metal Pal Regular](specimen/fonts/MetalPal-Regular.png)
+
+**Metal Pal Italic**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/metal-pal/fonts/otf/MetalPal-Italic.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/metal-pal/fonts/ttf/MetalPal-Italic.ttf)  
+![Metal Pal Italic](specimen/fonts/MetalPal-Italic.png)
+
+**Metal Pal Bold**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/metal-pal/fonts/otf/MetalPal-Bold.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/metal-pal/fonts/ttf/MetalPal-Bold.ttf)  
+![Metal Pal Bold](specimen/fonts/MetalPal-Bold.png)
+
+<!-- /downloads -->
 
 ## Character set and features
 
@@ -55,8 +67,8 @@ sorts (f, j and the italic's long-tailed letters) overhang their bodies here as 
 
 ## How the fonts are made
 
-Everything is under `tools/` and runs from this directory (`metal-pal/`). The scans aren't in the repository: see
-[`scans/README.md`](scans/README.md) for where to download them.
+Everything is under `tools/` and runs from this directory (`metal-pal/`). The scans are in `scans/`, and
+[`scans/README.md`](scans/README.md) says where each came from.
 
 1. **Segmentation** (`tools/segment.py`, `tools/sheets.py`). Each character sheet is a photograph of about
    9900 × 7000 pixels, with a cap height of about 352 px. Each line of the *Drucktypenverzeichnis* (the type list)
@@ -94,12 +106,16 @@ Everything is under `tools/` and runs from this directory (`metal-pal/`). The sc
 5. **Assembly** (`tools/build.py`). The script builds the accented letters, derived glyphs and OpenType features,
    then writes the OTF and TTF files with fontTools and hints the TTFs with ttfautohint.
 
+The specimens' labels need the DejaVu fonts (`fonts-dejavu` on Debian and Ubuntu) at
+`/usr/share/fonts/truetype/dejavu/`.
+
 ```
 pip install -r requirements.txt
 python3 tools/extract.py      # build/raster-<Style>.pkl (about 10 s)
 python3 tools/spacing.py      # build/spacing-<Style>.json
 python3 tools/build.py        # fonts/otf, fonts/ttf (a few minutes)
 python3 tools/specimen.py     # specimen/
+python3 ../scripts/font_links.py   # the download lists and their specimen lines
 ```
 
 Each font's version is in `VERSIONS` in `tools/build.py`. Raise it whenever that font changes, as
@@ -107,13 +123,10 @@ Each font's version is in `VERSIONS` in `tools/build.py`. Raise it whenever that
 
 ### Checking against the scans
 
-`specimen/compare-<Style>.png` shows the scan's type list (top) above the same letters set in the font at the
+[`specimen/compare-Regular.png`](specimen/compare-Regular.png), [`-Italic`](specimen/compare-Italic.png) and
+[`-Bold`](specimen/compare-Bold.png) show each scan's type list (top) above the same letters set in the font at the
 same cap height (bottom). The lower case lines up with the scan. The capitals are tighter than on the card,
 because the card letterspaces them.
-
-![Regular against its scan](specimen/compare-Regular.png)
-![Italic against its scan](specimen/compare-Italic.png)
-![Bold against its scan](specimen/compare-Bold.png)
 
 ## The swash capitals
 
@@ -126,8 +139,7 @@ Their spacing comes from the type list and the six display lines (16–48 p) on 
 the other fonts. The card sets them only next to each other, so nothing measures the gap between a swash capital and
 the lower case. The type list is taken as letterspaced by the same amount as the italic card's capitals (64 units),
 which fixes their overall spacing. A few (M, Z) may sit loose before the lower case.
-
-![The swash capitals against their scan](specimen/compare-Swash.png)
+[`specimen/compare-Swash.png`](specimen/compare-Swash.png) shows them against their scan.
 
 ## Text sizes
 
