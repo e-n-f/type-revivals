@@ -121,7 +121,7 @@ a font lacks is an empty box.
   `@ # ¢ _` from the typed keyboard sheet.
 - **The brochure faces** have what the Finnish brochure shows: a–z and A–Z without w and W, å ä ö ü Å Ä Ö, the
   figures, `. , -` and the symbols the brochure prints for each face (`+ § = % ? & ( ) / £` and some of
-  `! $ " ` ´`). Documentary's `` ` `` and Arcadia's `´` printed too faintly to trace.
+  `` ! $ " ` ´ ``). Documentary's `` ` `` and Arcadia's `´` printed too faintly to trace.
 - **Executive Mid-Century** also has `w W : ; " *` from a letter typed in it,
   and **Executive Charter** has `W [ ] < > ; : * ' # @ ! \` from a code table typed in it.
 - **Executive Arcadia** has the two-storey a, w, W and `: ; ' " @ # $ ¢ * _` from IBM's 1955 newsletter that announced
@@ -138,7 +138,7 @@ a font lacks is an empty box.
   letter's centre. Modern composes à á â ã ä å è é ê ë ì í î ï ñ ò ó ô õ ö ù ú û ü ý ÿ and their capitals. The
   brochure faces compose ä å ö ü, á à é è ë í ì ï ó ò ú ù ý ÿ, Å Ä Ö Ü and Á À É È Ó Ò Ú Ù Ý where the face shows
   the acute and grave. A capital's accent missing from a scan is the lower-case one, raised by the difference
-  between the cap height and the x-height. ç Ç ø Ø ß are traced as printed. ¨ ´ ` are also spacing glyphs.
+  between the cap height and the x-height. ç Ç ø Ø ß are traced as printed. `` ¨ ´ ` `` are also spacing glyphs.
 - **More of ASCII from IBM's catalogue.** Characters a font still lacked are traced from the catalogue's
   cells, chosen by eye among the candidates `catalog.py survey` finds (`CHOSEN` in `tools/catalog.py`):
   Modern `= ^`; Documentary `! # ' * : ; = [ ] _`; Mid-Century `! ' # @ [ ] { } ^ ~`; Arcadia `< > [ ] ^`;
