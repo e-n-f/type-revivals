@@ -35,7 +35,8 @@ separately. Bold Face 2 is made anyway, because it comes out lighter than a redu
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
 [ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Bold Face 1 Italic 1.003;
 Directory, Testimonial, Copperplate Gothic 1 and 2, Patron and Registry 1.004; Secretarial and Text 1.005; Doric
-1.008; Modern 1.009; Mid-Century 1.010; Bold Face 2, Documentary, Arcadia and Charter 1.011; Bold Face 1 1.013. Every face takes its w and W
+and Modern 1.009; Mid-Century 1.010; Documentary, Arcadia and Charter 1.011; Bold Face 2 1.012; Bold Face 1 1.013.
+Every face takes its w and W
 (where nothing better has them) and its letters' widths from IBM's 1972 catalogue. The sources are listed in
 [`scans/README.md`](scans/README.md).
 
@@ -174,6 +175,10 @@ a font lacks is an empty box.
   book's pages. A face with no `"` gets one made of two of its `'` (Text, Directory, Testimonial), and a face
   with a `‘` gets a `“` made of two of them.
 - **Documentary's** `` ` `` and `^` are from the catalogue.
+- **Doric's** `@ # _ ¢` and **Bold Face 2's** `@ # ¢` are from the NOMDA dealers' guide's page of IBM type
+  styles, the only source that shows them: a small scan, so they are softer than their faces' other characters.
+  Their widths are set, not fitted (`SET_WIDTHS` in `tools/build.py`): `# _ ¢` 3 units, as in every face that has
+  them, and `@` 5.
 - `)` is the `(` turned round in Modern, whose card has only the `(`, and Text's `(` is its `)` turned round,
   because every print of its `(` touches the `¢` beside it. The other typographic quotes map to the
   typewriter's straight `'` and `"`.
