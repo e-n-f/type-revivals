@@ -123,13 +123,10 @@ Each font's version is in `VERSIONS` in `tools/build.py`. Raise it whenever that
 
 ### Checking against the scans
 
-`specimen/compare-<Style>.png` shows the scan's type list (top) above the same letters set in the font at the
+[`specimen/compare-Regular.png`](specimen/compare-Regular.png), [`-Italic`](specimen/compare-Italic.png) and
+[`-Bold`](specimen/compare-Bold.png) show each scan's type list (top) above the same letters set in the font at the
 same cap height (bottom). The lower case lines up with the scan. The capitals are tighter than on the card,
 because the card letterspaces them.
-
-![Regular against its scan](specimen/compare-Regular.png)
-![Italic against its scan](specimen/compare-Italic.png)
-![Bold against its scan](specimen/compare-Bold.png)
 
 ## The swash capitals
 
@@ -142,8 +139,7 @@ Their spacing comes from the type list and the six display lines (16–48 p) on 
 the other fonts. The card sets them only next to each other, so nothing measures the gap between a swash capital and
 the lower case. The type list is taken as letterspaced by the same amount as the italic card's capitals (64 units),
 which fixes their overall spacing. A few (M, Z) may sit loose before the lower case.
-
-![The swash capitals against their scan](specimen/compare-Swash.png)
+[`specimen/compare-Swash.png`](specimen/compare-Swash.png) shows them against their scan.
 
 ## Text sizes
 
