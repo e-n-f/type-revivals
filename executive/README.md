@@ -5,8 +5,6 @@ introduced in 1944. Unlike an ordinary typewriter, which moves the same distance
 gives each character a whole number of units: 2 for an i, 3 for an a, 4 for a capital H, 5 for an m. The fonts
 keep those widths exactly, so text set in them falls where the machine would have put it.
 
-![The fonts](specimen/specimen-lines.png)
-
 | Font | IBM's name | Unit | Sources | Files |
 |---|---|---|---|---|
 | Executive Modern | Modern (Monotype series 602) | 1/32 inch | Jowa "IBM Executive 602" card; Finnish brochure; typed keyboard sheet | `ExecutiveModern-Regular` |
@@ -115,9 +113,8 @@ instead: with so few pairs its offset trades against its width and can come out 
 
 ## Character set
 
-![Printable ASCII in each font](specimen/ascii.png)
-
-The chart shows each font's printable ASCII (0x21–0x7E) in code order. A character a font lacks is an empty box.
+[`specimen/ascii.png`](specimen/ascii.png) charts each font's printable ASCII (0x21–0x7E) in code order. A character
+a font lacks is an empty box.
 
 - **Executive Modern** has everything on the Jowa card: a–z, A–Z, ä ö ü Ä Ö Ü ß ç Ç ø Ø, the figures,
   `& . , - : ; ! ? ( ) / " » « ' * + % $ £`. It also has `` ` ´ § `` from the brochure's Modern and

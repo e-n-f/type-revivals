@@ -8,8 +8,6 @@ the later Linotype and phototype versions. Its x-height is smaller (451 units ag
 are short (about −190). The bowls, terminals and serifs are rounder and more calligraphic, and it has the
 ligatures and alternates that German hand composition used.
 
-![The three fonts](specimen/specimen-lines.png)
-
 | Font | Source card | Files |
 |---|---|---|
 | Metal Pal Regular | *Palatino*, St. 2 | `fonts/otf/MetalPal-Regular.otf`, `fonts/ttf/MetalPal-Regular.ttf` |
