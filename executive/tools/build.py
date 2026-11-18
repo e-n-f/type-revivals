@@ -63,6 +63,11 @@ VERSIONS.update(Arcadia='1.011', BoldFaceItalic='1.003', BoldFace1='1.012', Bold
                 Testimonial='1.004', Text='1.005')
 VERSIONS.update(BoldFace1='1.013', BoldFace2='1.011')   # their catalogue W no darker than 1.25 times their V
 VERSIONS.update(Doric='1.009', BoldFace2='1.012')      # @ # ¢ (and Doric's _) from the NOMDA guide
+# Raised for ! ? : set on the period's baseline, and ; level with the colon
+VERSIONS.update(Arcadia='1.012', BoldFaceItalic='1.004', BoldFace1='1.014', BoldFace2='1.013', Charter='1.012',
+                Copperplate1='1.005', Copperplate2='1.005', Directory='1.005', Documentary='1.012', Doric='1.010',
+                MidCentury='1.011', Modern='1.010', Patron='1.005', Registry='1.005', Secretarial='1.006',
+                Testimonial='1.005', Text='1.006')
 
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
          'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter',
@@ -528,6 +533,18 @@ def build(face):
     if 'w' not in G and 'v' in G: G['w'] = standin(G, 'v', 'w', ref); notes.append('w from two v')
     if 'W' not in G and 'V' in G: G['W'] = standin(G, 'V', 'W', ref); notes.append('W from two V')
     if '$' in G and 'S' in G: G['$'] = dict(G['$'], img=on_s(G['$']['img'], G['S']['img']))
+    # the signs whose dots sit on the baseline (! ? :), set on it, where the face's own period sits: a line of
+    # signs has few letters to find its baseline by (Documentary's catalogue ! sat 85 units up, Directory's ! ? :
+    # from its book page 120 down).  A period from the catalogue is set on the baseline itself.  A ; then takes its
+    # upper dot level with the colon's
+    if '.' in G:
+        if G['.']['src'].name.startswith('Catalog'):
+            G['.'] = dict(G['.'], img=G['.']['img'].shift(0, -G['.']['img'].bbox()[1]))
+        foot = G['.']['img'].bbox()[1]
+        for c in '!?:':
+            if c in G: G[c] = dict(G[c], img=G[c]['img'].shift(0, foot - G[c]['img'].bbox()[1]))
+        if ';' in G and ':' in G:
+            G[';'] = dict(G[';'], img=G[';']['img'].shift(0, G[':']['img'].bbox()[3] - G[';']['img'].bbox()[3]))
     M = marks(G, xh, cap)
     composed = []
     for ch in COMPOSE:
