@@ -140,10 +140,19 @@ a font lacks is an empty box.
   the acute and grave. A capital's accent missing from a scan is the lower-case one, raised by the difference
   between the cap height and the x-height. ç Ç ø Ø ß are traced as printed. `` ¨ ´ ` `` are also spacing glyphs.
 - **More of ASCII from IBM's catalogue.** Characters a font still lacked are traced from the catalogue's
-  cells, chosen by eye among the candidates `catalog.py survey` finds (`CHOSEN` in `tools/catalog.py`):
-  Modern `= ^`; Documentary `! # ' * : ; = [ ] _`; Mid-Century `! ' # @ [ ] { } ^ ~`; Arcadia `< > [ ] ^`;
-  Doric `! " ' * : ; [ ] ^`; Bold Face 1 `" # $ ' * : ; @ ^`; Bold Face 2 `! " ' * : ; [ ] ^`; Charter `" ^ _`.
-  The catalogue has no `\` or `|` for any of the faces, and `{ } ~` and `< >` only where listed.
+  cells, chosen by eye among the candidates `catalog.py survey` finds, or found by the part numbers printed
+  beside them (`CHOSEN` in `tools/catalog.py`):
+  - Modern: `< = > [ \ ] ^ { }`
+  - Documentary: `` ! # ' * : ; = @ [ ] ^ _ ` | ~ ``
+  - Mid-Century: `! # ' @ [ ] ^ { } ~`
+  - Arcadia: `< > [ ] ^`
+  - Doric: `! " ' * : ; [ ] ^`
+  - Bold Face 1: `" # $ ' * : ; < > @ [ ] ^ _ { | } ~`
+  - Bold Face 2: `! " ' * : ; [ ] ^`
+  - Charter: `" < > [ ] ^ _`
+
+  The catalogue gave `\` only to Modern, and `|` to Documentary, Bold Face 1 and Secretarial; Charter's `\` is
+  from its typed code table. The other faces have neither, and `{ } ~` and `< >` only where listed.
 - **Executive Secretarial and Registry** have no brochure line. Secretarial's letters and signs are the 1972
   catalogue's single prints (`CHOSEN` in `tools/catalog.py`), because the memo typed in it is a faint photocopy
   whose letters are broken; the memo gives its unit, 1/32 inch, and its word space. The photocopy is 13 % taller
