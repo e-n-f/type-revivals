@@ -4,8 +4,6 @@ Digital fonts traced from the type of the **Selectric** typewriter, as IBM's typ
 shows it, in two printings. Every Selectric character is the same width: 1/10 inch on a 10-pitch element, 1/12 inch on a 12-pitch
 one. The fonts are monospaced to match, so text set in them lines up as it did on the machine.
 
-![The fonts](specimen/specimen-lines.png)
-
 | Font | Pitch |
 |---|---|
 | Selectric Advocate | 10 |
@@ -139,7 +137,7 @@ Each face has what its brochure line shows: A–Z, a–z, the figures, and `! @ 
 - **Selectric AN3 360** matches IBM's AN3 chain and train printer type of System/360. Its lower case is small capitals,
   like Orator's, and its signs are `‡ @ # $ % ¤ & * ( ) - _ = + < > ? / ° ' : ; , .` (no `!`, `"` or `¢`).
 
-![Printable ASCII in each font](specimen/ascii.png)
+[`specimen/ascii.png`](specimen/ascii.png) charts each font's printable ASCII (0x21–0x7E) in code order.
 
 Each face also has `specimen/compare-<Face>.png`, which shows the specimen's alphabet lines as scanned with the font
 set beneath them, character for character in the same cells. Anything odd that shows in both, such as Prestige
