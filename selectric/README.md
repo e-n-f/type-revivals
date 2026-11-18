@@ -124,7 +124,7 @@ Each face has what its brochure line shows: A–Z, a–z, the figures, and `! @ 
 
 - **Selectric Manifold 72** is capitals only; its lower-case keys type the capitals, as on the element.
 - **Selectric Orator**'s lower case is small capitals, as on the element.
-- No text face has `< > [ \ ] ^ ` { | } ~`: a standard Selectric element doesn't have them.
+- No text face has `` < > [ \ ] ^ ` { | } ~ ``: a standard Selectric element doesn't have them.
 - **Selectric ANSI OCR** is OCR-A (the American National Standards Institute's font A, size 1), with its own signs in
   place of the usual ones: the hook ⑁, chair ⑂ and fork ⑃ (on `!`, `@` and `#`, as OCR-A puts them, and also at
   their own code points U+2441–2443), the long bar `|`, braces `{ }`, the solid block █ (on `^` and at U+2588), an
