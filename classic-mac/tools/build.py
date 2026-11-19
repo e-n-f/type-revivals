@@ -31,7 +31,7 @@ import bitmap
 Image.MAX_IMAGE_PIXELS = None
 
 PX = 50                                   # font units per bitmap pixel
-VERSIONS = {'athens': '1.000', 'chicago': '1.000'}
+VERSIONS = {'athens': '1.000', 'chicago': '1.001'}
 # the size the Mac's menus gave the bitmap font, in points: its em, at 72 dpi, in pixels (the strike's 22 px are
 # its ascender and descender), so that set at 18 pt Athens HD matches Athens 18
 SIZE = {'athens': 18, 'chicago': 12}
@@ -45,6 +45,10 @@ MOVED = {'chicago': 'Ÿ⁄¤‹'}
 # further code points for a character: Ω is both the Greek letter and the ohm sign (Mac OS Roman 0xBD is either)
 ALSO = {'Ω': [0x2126]}
 SIGMA = 1.5                               # smoothing of the traced ink, in font units
+# Font units taken off each side of every stroke. Traced at their 50 % contour, the stems come out the bitmap's
+# exact width (2 px), but antialiased outlines (and macOS's font smoothing) read darker than crisp pixels:
+# Chicago HD's are thinned to about 1.84 px
+LIGHTEN = {'chicago': 4}
 
 
 def gname(ch):
@@ -73,6 +77,8 @@ def glyphs(font):
         crop = np.where(np.isin(lab, own), crop, 0).astype(np.float32)
         ink = cv2.resize(crop, (int(round(crop.shape[1] * f)), int(round(crop.shape[0] * f))),
                          interpolation=cv2.INTER_LINEAR)
+        r = LIGHTEN.get(font, 0)
+        if r: ink = cv2.erode(ink, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1)))
         ox, oy = g['origin'][0] * k, g['origin'][1] * k
         dx, dy = (x0 - ox) * f, (oy - y0) * f                # the crop's top left corner, from the origin
         contours = [[(s[0],) + tuple((p[0] + dx, p[1] + dy) for p in s[1:]) for s in c]
