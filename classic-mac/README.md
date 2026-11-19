@@ -6,7 +6,7 @@ recreation lines up as the bitmap font set it.
 
 | Font | Recreates | Version | Files |
 |---|---|---|---|
-| Athens HD | Athens 18 (Susan Kare, 1984) | 1.000 | `fonts/otf/AthensHD-Regular.otf`, `fonts/ttf/AthensHD-Regular.ttf` |
+| Athens HD | Athens 18 (Susan Kare, 1984) | 1.001 | `fonts/otf/AthensHD-Regular.otf`, `fonts/ttf/AthensHD-Regular.ttf` |
 | Chicago HD | Chicago 12 (Susan Kare, 1984) | 1.001 | `fonts/otf/ChicagoHD-Regular.otf`, `fonts/ttf/ChicagoHD-Regular.ttf` |
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
@@ -37,8 +37,8 @@ Every advance width is the bitmap's, in whole pixels, and the line gap is none. 
 had none.
 
 Traced at their 50 % contour, the strokes come out the bitmap's exact width: Chicago's and Athens's stems are 2
-pixels. But antialiased outlines read darker than crisp pixels, more so with macOS's font smoothing, so Chicago
-HD's strokes are thinned by 4 units a side (`LIGHTEN` in `tools/build.py`), to about 1.8 pixels.
+pixels. But antialiased outlines read darker than crisp pixels, more so with macOS's font smoothing, so both
+fonts' strokes are thinned by 4 units a side (`LIGHTEN` in `tools/build.py`), to about 1.8 pixels.
 
 ## Character set
 

@@ -31,7 +31,7 @@ import bitmap
 Image.MAX_IMAGE_PIXELS = None
 
 PX = 50                                   # font units per bitmap pixel
-VERSIONS = {'athens': '1.000', 'chicago': '1.001'}
+VERSIONS = {'athens': '1.001', 'chicago': '1.001'}
 # the size the Mac's menus gave the bitmap font, in points: its em, at 72 dpi, in pixels (the strike's 22 px are
 # its ascender and descender), so that set at 18 pt Athens HD matches Athens 18
 SIZE = {'athens': 18, 'chicago': 12}
@@ -47,8 +47,8 @@ ALSO = {'Ω': [0x2126]}
 SIGMA = 1.5                               # smoothing of the traced ink, in font units
 # Font units taken off each side of every stroke. Traced at their 50 % contour, the stems come out the bitmap's
 # exact width (2 px), but antialiased outlines (and macOS's font smoothing) read darker than crisp pixels:
-# Chicago HD's are thinned to about 1.84 px
-LIGHTEN = {'chicago': 4}
+# both are thinned to about 1.8 px
+LIGHTEN = {'athens': 4, 'chicago': 4}
 
 
 def gname(ch):
