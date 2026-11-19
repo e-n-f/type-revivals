@@ -7,6 +7,7 @@ notes on its sources.
 |---|---|---|
 | [`metal-pal/`](metal-pal/) | Metal Pal Regular, Italic, Bold | D. Stempel AG specimen cards of Hermann Zapf's foundry Palatino (1950–51) |
 | [`executive/`](executive/) | Executive Modern, Documentary, Mid-Century, Arcadia, Doric, Bold Face 1, Bold Face 2, Charter, Secretarial, Registry, Text, Directory, Testimonial, Bold Face 1 Italic, Copperplate Gothic 1, Copperplate Gothic 2, Patron | Specimens of the Executive proportional typewriter's faces (IBM, 1950s) |
+| [`classic-mac/`](classic-mac/) | Athens HD | High-resolution recreations of the early Macintosh's bitmap fonts, on their metrics |
 | [`selectric/`](selectric/) | Selectric Courier 72, Prestige Elite 72, Letter Gothic, Orator, Script, ANSI OCR and 17 more, monospaced | The Selectric typewriter's type-style brochure (IBM, 1972) |
 
 <!-- downloads -->
@@ -75,6 +76,11 @@ notes on its sources.
 
 **Executive Patron**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/otf/ExecutivePatron-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/executive/fonts/ttf/ExecutivePatron-Regular.ttf)  
 ![Executive Patron](executive/specimen/fonts/ExecutivePatron-Regular.png)
+
+### Classic Mac
+
+**Athens HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/AthensHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/AthensHD-Regular.ttf)  
+![Athens HD](classic-mac/specimen/fonts/AthensHD-Regular.png)
 
 ### Selectric
 
