@@ -12,7 +12,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(HERE, '..')
 sys.path.insert(0, HERE)
 import bitmap
-from build import VERSIONS, NAMES
+from build import VERSIONS, NAMES, PX
 
 LABEL = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
 
@@ -21,7 +21,9 @@ def compare(font):
     strike, metrics = bitmap.strike(font)
     S = 3                                                   # specimen pixels per bitmap pixel
     path = os.path.join(ROOT, 'fonts', 'otf', NAMES[font].replace(' ', '') + '-Regular.otf')
-    F = ImageFont.truetype(path, metrics['ppem'] * S)
+    from fontTools.ttLib import TTFont
+    em = TTFont(path)['head'].unitsPerEm / PX              # the font's em, in bitmap pixels (18 for Athens 18)
+    F = ImageFont.truetype(path, int(round(em * S)))
     chars = [g['char'] for g in json.load(open(os.path.join(ROOT, 'scans', f'{font}-glyphs.json')))['glyphs']]
     cols, cw = 14, max(strike[c]['adv'] for c in chars) * S + 20
     ch = (metrics['ascender'] - metrics['descender']) * S + 30
