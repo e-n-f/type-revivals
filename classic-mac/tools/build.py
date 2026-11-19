@@ -31,12 +31,19 @@ import bitmap
 Image.MAX_IMAGE_PIXELS = None
 
 PX = 50                                   # font units per bitmap pixel
-VERSIONS = {'athens': '1.000'}
+VERSIONS = {'athens': '1.000', 'chicago': '1.000'}
 # the size the Mac's menus gave the bitmap font, in points: its em, at 72 dpi, in pixels (the strike's 22 px are
 # its ascender and descender), so that set at 18 pt Athens HD matches Athens 18
-SIZE = {'athens': 18}
-NAMES = {'athens': 'Athens HD'}
-ORIGINAL = {'athens': ('Athens', 'Susan Kare', 1984)}
+SIZE = {'athens': 18, 'chicago': 12}
+NAMES = {'athens': 'Athens HD', 'chicago': 'Chicago HD'}
+ORIGINAL = {'athens': ('Athens', 'Susan Kare', 1984), 'chicago': ('Chicago', 'Susan Kare', 1984)}
+# Characters the sheet names by their Mac control codes, at their Unicode places: Chicago's command key, check
+# mark, diamond and Apple logo (the logo where Apple's own fonts put it, in the Private Use Area). The OS X
+# .dfont keeps them at Mac OS Roman 0xD9-0xDC instead, in the places of Ÿ ⁄ ¤ ‹.
+CODES = {'chicago': {'<11>': 0x2318, '<12>': 0x2713, '<13>': 0x25C6, '<14>': 0xF8FF}}
+MOVED = {'chicago': 'Ÿ⁄¤‹'}
+# further code points for a character: Ω is both the Greek letter and the ohm sign (Mac OS Roman 0xBD is either)
+ALSO = {'Ω': [0x2126]}
 SIGMA = 1.5                               # smoothing of the traced ink, in font units
 
 
@@ -81,7 +88,9 @@ def font(fontname, otf=True, data=None):
     VERSION = VERSIONS[fontname]
     glyphs_, adv, cmap = {}, {}, {}
     for ch, (contours, a) in G.items():
-        n = gname(ch); glyphs_[n] = contours; adv[n] = a; cmap[ord(ch)] = n
+        cp = CODES.get(fontname, {}).get(ch, None) or ord(ch)
+        n = gname(chr(cp)); glyphs_[n] = contours; adv[n] = a; cmap[cp] = n
+        for more in ALSO.get(ch, []): cmap[more] = n
     glyphs_['space'] = []; adv['space'] = strike[' ']['adv'] * PX; cmap[0x20] = 'space'; cmap[0xA0] = 'space'
     w = strike.get(' ', {}).get('adv', 5) * PX
     glyphs_['.notdef'] = [[('L', (50, 0), (50, 700)), ('L', (50, 700), (w - 50, 700)), ('L', (w - 50, 700), (w - 50, 0)),
@@ -141,7 +150,8 @@ if __name__ == '__main__':
     for f in [a for a in sys.argv[1:] if a in VERSIONS] or list(VERSIONS):
         G = glyphs(f)
         strike, metrics = bitmap.strike(f)
-        missing = sorted(c for c in strike if c not in G and c != ' ')
+        missing = sorted(c for c in strike if c not in G and c not in ' \xa0' + MOVED.get(f, '')
+                         and not any(ord(c) in ALSO.get(g, []) for g in G))
         print(f'{f}: {len(G)} characters traced; in the bitmap but not on the sheet: {"".join(missing) or "none"}')
         data = (G, strike, metrics)
         font(f, True, data); font(f, False, data)
