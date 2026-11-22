@@ -31,14 +31,22 @@ import bitmap
 Image.MAX_IMAGE_PIXELS = None
 
 PX = 50                                   # font units per bitmap pixel
-VERSIONS = {'athens': '1.001', 'chicago': '1.001', 'geneva': '1.000', 'newyork': '1.000', 'monaco': '1.002'}
+VERSIONS = {'athens': '1.001', 'chicago': '1.001', 'geneva': '1.000', 'newyork12': '1.001', 'newyork24': '1.000',
+            'monaco': '1.002', 'newyork12mid': '1.000', 'newyork24mid': '1.000'}
+# fonts traced from another's sources (sheet, glyph positions and bitmap) at another weight
+SOURCE = {'newyork12mid': 'newyork12', 'newyork24mid': 'newyork24'}
+MID = {f: ' Its strokes are at the weight halfway between those of the New York 12 and 24 bitmaps.' for f in SOURCE}
 # the size the Mac's menus gave the bitmap font, in points: its em, at 72 dpi, in pixels (the strike's 22 px are
 # its ascender and descender), so that set at 18 pt Athens HD matches Athens 18
-SIZE = {'athens': 18, 'chicago': 12, 'geneva': 12, 'newyork': 12, 'monaco': 12}
-NAMES = {'athens': 'Athens HD', 'chicago': 'Chicago HD', 'geneva': 'Geneva HD', 'newyork': 'New York HD', 'monaco': 'Monaco HD'}
+SIZE = {'athens': 18, 'chicago': 12, 'geneva': 12, 'newyork12': 12, 'newyork24': 24, 'monaco': 12,
+        'newyork12mid': 12, 'newyork24mid': 24}
+NAMES = {'athens': 'Athens HD', 'chicago': 'Chicago HD', 'geneva': 'Geneva HD', 'newyork12': 'New York 12 HD',
+         'newyork24': 'New York 24 HD', 'monaco': 'Monaco HD', 'newyork12mid': 'New York 12 Mid HD',
+         'newyork24mid': 'New York 24 Mid HD'}
 ORIGINAL = {'athens': ('Athens', 'Susan Kare', 1984), 'chicago': ('Chicago', 'Susan Kare', 1984),
-            'geneva': ('Geneva', 'Susan Kare', 1984), 'newyork': ('New York', 'Susan Kare', 1984),
-            'monaco': ('Monaco', 'Susan Kare', 1984)}
+            'geneva': ('Geneva', 'Susan Kare', 1984), 'newyork12': ('New York', 'Susan Kare', 1984),
+            'newyork24': ('New York', 'Susan Kare', 1984), 'monaco': ('Monaco', 'Susan Kare', 1984)}
+ORIGINAL.update({f: ORIGINAL[s] for f, s in SOURCE.items()})
 # Characters the sheet names by their Mac control codes, at their Unicode places: Chicago's command key, check
 # mark, diamond and Apple logo (the logo where Apple's own fonts put it, in the Private Use Area). The OS X
 # .dfont keeps them at Mac OS Roman 0xD9-0xDC instead, in the places of Ÿ ⁄ ¤ ‹.
@@ -50,7 +58,12 @@ SIGMA = 1.5                               # smoothing of the traced ink, in font
 # Font units taken off each side of every stroke. Traced at their 50 % contour, the stems come out the bitmap's
 # exact width (2 px), but antialiased outlines (and macOS's font smoothing) read darker than crisp pixels:
 # both are thinned to about 1.8 px
-LIGHTEN = {'athens': 4, 'chicago': 4, 'geneva': 4, 'newyork': 4, 'monaco': 4}
+LIGHTEN = {'athens': 4, 'chicago': 4, 'geneva': 4, 'newyork12': 4, 'newyork24': 4, 'monaco': 4,
+# New York 12's and 24's bitmaps differ in weight: traced at their 50 % contour, unthinned, their strokes average
+# 0.0735 em and 0.0546 em. The Mid fonts are both at about the weight halfway between, 0.064 em: 12's thinned by
+# 3 units a side (of its em of 600), to 0.0625 em, 24's thickened by 5 (of 1200), to 0.0632. A negative LIGHTEN
+# thickens
+           'newyork12mid': 3, 'newyork24mid': -5}
 # Accented letters whose accent the upscaling got wrong: Geneva 12's acute, grave and dieresis are two or three
 # pixels, and on the sheet á à é came out as circumflexes, ä and ï as broken marks. Each takes the accent of a
 # letter the sheet gets right whose bitmap accent has the same pixels (reaccent())
@@ -59,6 +72,12 @@ REACCENT = {'geneva': 'áàäéï', 'monaco': 'à'}           # Monaco's à came
 # each circle is cut off); here they advance 7 like the rest, their ink where the bitmap has it, and the font is
 # marked fixed-pitch
 MONO = {'monaco': 7}
+# Characters the AI upscaling got wrong but bitmap-upscaling's 6-times sheet (scans/<font>-6x.png) has right,
+# traced from that instead: New York 24's comma came out a dagger, its ™ a TH, and À's grave a dot
+SIX = {'newyork24': ',™À'}
+# Characters whose one-pixel dots (the dieresis) the upscaling drew faint or lost: each dot is a round dot a pixel
+# across (less LIGHTEN a side), at its pixel in the bitmap
+DOTS = {'newyork24': 'ÄÖÜäëïöüÿ¨'}
 
 
 def gname(ch):
@@ -67,13 +86,15 @@ def gname(ch):
 
 def glyphs(font):
     """{char: (contours in font units, advance)} traced from the upscaled sheet"""
-    info = json.load(open(os.path.join(ROOT, 'scans', f'{font}-glyphs.json')))
-    sheet = np.asarray(Image.open(os.path.join(ROOT, 'scans', f'{font}-upscaled.png')).convert('L'), np.float32) / 255
-    k = sheet.shape[1] / info['image_size'][0]               # upscaled sheet pixels per layout pixel
-    f = PX / (info['scale'][0] * k)                          # font units per upscaled sheet pixel
-    paper = float(np.median(sheet)); dark = float(np.percentile(sheet, 0.5))
+    src = SOURCE.get(font, font)
+    info = json.load(open(os.path.join(ROOT, 'scans', f'{src}-glyphs.json')))
+    def load(name):
+        sheet = np.asarray(Image.open(os.path.join(ROOT, 'scans', name)).convert('L'), np.float32) / 255
+        k = sheet.shape[1] / info['image_size'][0]           # sheet pixels per layout pixel
+        return sheet, k, float(np.median(sheet)), float(np.percentile(sheet, 0.5))
+    sheets = {'up': load(f'{src}-upscaled.png')}
+    if src in SIX: sheets['6x'] = load(f'{src}-6x.png')
     out = {}
-    pad = int(round(2 * info['scale'][0] * k))             # two bitmap pixels
     # each glyph's room across: two bitmap pixels past its ink box, but not past halfway to its neighbours' on the
     # same line. Glyphs that touch on the sheet (New York's w x y, its — and “) are one piece of ink, divided
     # there; a glyph pasted in from another source, reaching a little past its box, keeps what it reaches
@@ -88,15 +109,18 @@ def glyphs(font):
             lo, hi = a - p, b + p
             if i > 0: lo = max(lo, (ink_box(gs[i - 1])[1] + a) / 2)
             if i < len(gs) - 1: hi = min(hi, (b + ink_box(gs[i + 1])[0]) / 2)
-            room[g['char']] = (lo * k, hi * k)
+            room[g['char']] = (lo, hi)
     for g in info['glyphs']:
+        sheet, k, paper, dark = sheets['6x' if g['char'] in SIX.get(src, '') else 'up']
+        f = PX / (info['scale'][0] * k)                      # font units per sheet pixel
+        pad = int(round(2 * info['scale'][0] * k))         # two bitmap pixels
         # the cell and two pixels round it: a glyph pasted in from another source can reach a little past its
         # cell. Its pieces of ink are those mostly inside the cell (a neighbour's can reach into it too)
         cx0, cy0, cx1, cy1 = (int(round(v * k)) for v in g['cell'])
         x0, y0 = max(0, cx0 - pad), max(0, cy0 - pad)
         x1, y1 = min(sheet.shape[1], cx1 + pad), min(sheet.shape[0], cy1 + pad)
         crop = np.clip((paper - sheet[y0:y1, x0:x1]) / max(paper - dark, 0.2), 0, 1)
-        lo, hi = room[g['char']]
+        lo, hi = (v * k for v in room[g['char']])
         cols = np.arange(x0, x1)
         crop[:, (cols < lo) | (cols >= hi)] = 0
         n, lab, st, _ = cv2.connectedComponentsWithStats((crop > 0.25).astype(np.uint8), 8)
@@ -106,7 +130,8 @@ def glyphs(font):
         ink = cv2.resize(crop, (int(round(crop.shape[1] * f)), int(round(crop.shape[0] * f))),
                          interpolation=cv2.INTER_LINEAR)
         r = LIGHTEN.get(font, 0)
-        if r: ink = cv2.erode(ink, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1)))
+        if r: ink = (cv2.erode if r > 0 else cv2.dilate)(ink, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,
+                                                                                         (2 * abs(r) + 1,) * 2))
         ox, oy = g['origin'][0] * k, g['origin'][1] * k
         dx, dy = (x0 - ox) * f, (oy - y0) * f                # the crop's top left corner, from the origin
         contours = [[(s[0],) + tuple((p[0] + dx, p[1] + dy) for p in s[1:]) for s in c]
@@ -143,6 +168,34 @@ def reaccent(font, G, strike):
         G[t] = (base + mark_, G[t][1])
         notes.append(f'{t} from {d}')
     return notes
+
+
+def redot(font, G, strike):
+    """the one-pixel dots of DOTS's characters' bitmaps, each a round dot a pixel across (less LIGHTEN a side) at
+    its pixel, in place of what the sheet traced there"""
+    src = SOURCE.get(font, font)
+    if src not in DOTS: return
+    gx = strike['x']
+    xh = gx['y'] - next(y for y, row in enumerate(gx['bits']) if row.any())
+    area = lambda c: sum(a[0] * b[1] - b[0] * a[1] for a, b in zip([s[1] for s in c], [s[-1] for s in c])) / 2
+    sign = 1 if area(max(G['.'][0], key=lambda c: abs(area(c)))) > 0 else -1   # the trace's outer direction
+    r = PX / 2 - LIGHTEN.get(font, 0); K = 0.5523 * r
+    for ch in DOTS[src]:
+        g = strike[ch]; bits = np.pad(g['bits'], 1)
+        dots = [((g['x'] + x + 0.5) * PX, (g['y'] - y - 0.5) * PX) for y, row in enumerate(g['bits'])
+                for x, v in enumerate(row) if v and g['y'] - y > xh and bits[y:y + 3, x:x + 3].sum() == 1]
+        near = lambda c: any(abs(np.mean([p[0] for s in c for p in s[1:]]) - x) < 1.5 * PX and
+                             abs(np.mean([p[1] for s in c for p in s[1:]]) - y) < 1.5 * PX for x, y in dots)
+        above = lambda c: min(p[1] for s in c for p in s[1:]) >= xh * PX - 10
+        keep = [c for c in G[ch][0] if not (above(c) and near(c))]
+        for x, y in dots:
+            P = [(x + r, y), (x, y + r), (x - r, y), (x, y - r)]
+            H = [((0, K), (K, 0)), ((-K, 0), (0, K)), ((0, -K), (-K, 0)), ((K, 0), (0, -K))]
+            c = [('C', P[i], (P[i][0] + H[i][0][0], P[i][1] + H[i][0][1]),
+                  (P[(i + 1) % 4][0] + H[i][1][0], P[(i + 1) % 4][1] + H[i][1][1]), P[(i + 1) % 4]) for i in range(4)]
+            if np.sign(area(c)) != sign: c = [('C', s[4], s[3], s[2], s[1]) for s in reversed(c)]
+            keep.append(c)
+        G[ch] = (keep, G[ch][1])
 
 
 def font(fontname, otf=True, data=None):
@@ -192,7 +245,7 @@ def font(fontname, otf=True, data=None):
         'copyright': f'Traced from an upscaling of the {name} bitmap font ({designer}, {year}).',
         'description': f'A high-resolution recreation of the classic Mac bitmap font {name} '
                        f'{SIZE[fontname]}, on its metrics: set at {SIZE[fontname]} pt, its advances fall on '
-                       f'the bitmap\'s pixels.',
+                       f'the bitmap\'s pixels.' + (MID.get(fontname, '')),
     })
     bbox = lambda c: BoundsPen(None)
     def box(ch):
@@ -216,9 +269,10 @@ def font(fontname, otf=True, data=None):
 if __name__ == '__main__':
     for f in [a for a in sys.argv[1:] if a in VERSIONS] or list(VERSIONS):
         G = glyphs(f)
-        strike, metrics = bitmap.strike(f)
-        notes = reaccent(f, G, strike)
+        strike, metrics = bitmap.strike(SOURCE.get(f, f))
+        notes = reaccent(SOURCE.get(f, f), G, strike)
         if notes: print(f'{f}: accents', ', '.join(notes))
+        redot(f, G, strike)
         missing = sorted(c for c in strike if c not in G and c not in ' \xa0' + MOVED.get(f, '')
                          and not any(ord(c) in ALSO.get(g, []) for g in G))
         print(f'{f}: {len(G)} characters traced; in the bitmap but not on the sheet: {"".join(missing) or "none"}')
