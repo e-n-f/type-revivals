@@ -31,7 +31,7 @@ import bitmap
 Image.MAX_IMAGE_PIXELS = None
 
 PX = 50                                   # font units per bitmap pixel
-VERSIONS = {'athens': '1.001', 'chicago': '1.001', 'geneva': '1.000', 'newyork': '1.000', 'monaco': '1.001'}
+VERSIONS = {'athens': '1.001', 'chicago': '1.001', 'geneva': '1.000', 'newyork': '1.000', 'monaco': '1.002'}
 # the size the Mac's menus gave the bitmap font, in points: its em, at 72 dpi, in pixels (the strike's 22 px are
 # its ascender and descender), so that set at 18 pt Athens HD matches Athens 18
 SIZE = {'athens': 18, 'chicago': 12, 'geneva': 12, 'newyork': 12, 'monaco': 12}
@@ -54,7 +54,7 @@ LIGHTEN = {'athens': 4, 'chicago': 4, 'geneva': 4, 'newyork': 4, 'monaco': 4}
 # Accented letters whose accent the upscaling got wrong: Geneva 12's acute, grave and dieresis are two or three
 # pixels, and on the sheet á à é came out as circumflexes, ä and ï as broken marks. Each takes the accent of a
 # letter the sheet gets right whose bitmap accent has the same pixels (reaccent())
-REACCENT = {'geneva': 'áàäéï'}
+REACCENT = {'geneva': 'áàäéï', 'monaco': 'à'}           # Monaco's à came out a circumflex
 # Monospaced fonts: every advance, in bitmap pixels. Monaco 12's © and ® advance only 6 in the bitmap (the left of
 # each circle is cut off); here they advance 7 like the rest, their ink where the bitmap has it, and the font is
 # marked fixed-pitch
@@ -120,7 +120,8 @@ def reaccent(font, G, strike):
     decomposition) whose bitmap accent has the same pixels, and that isn't itself in REACCENT. A letter keeps its own
     base; the accent, its outlines above the x-height, is moved to where the letter's bitmap has its accent"""
     import unicodedata
-    xh = strike['x']['y']                                  # the x-height, in pixels
+    gx = strike['x']                                       # the x-height, in pixels: the top of x's ink (Monaco's
+    xh = gx['y'] - next(y for y, row in enumerate(gx['bits']) if row.any())   # boxes are all the strike's height)
     def accent(c):                                         # the bitmap's accent pixels, as (x, y up) from the origin
         g = strike[c]
         return {(g['x'] + x, g['y'] - y) for y, row in enumerate(g['bits']) for x, v in enumerate(row)

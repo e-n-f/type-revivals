@@ -10,7 +10,7 @@ recreation lines up as the bitmap font set it.
 | Chicago HD | Chicago 12 (Susan Kare, 1984) | 1.001 | `fonts/otf/ChicagoHD-Regular.otf`, `fonts/ttf/ChicagoHD-Regular.ttf` |
 | Geneva HD | Geneva 12 (Susan Kare, 1984) | 1.000 | `fonts/otf/GenevaHD-Regular.otf`, `fonts/ttf/GenevaHD-Regular.ttf` |
 | New York HD | New York 12 (Susan Kare, 1984) | 1.000 | `fonts/otf/NewYorkHD-Regular.otf`, `fonts/ttf/NewYorkHD-Regular.ttf` |
-| Monaco HD | Monaco 12 (Susan Kare, 1984) | 1.001 | `fonts/otf/MonacoHD-Regular.otf`, `fonts/ttf/MonacoHD-Regular.ttf` |
+| Monaco HD | Monaco 12 (Susan Kare, 1984) | 1.002 | `fonts/otf/MonacoHD-Regular.otf`, `fonts/ttf/MonacoHD-Regular.ttf` |
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
 [ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px).
@@ -99,7 +99,7 @@ python3 ../scripts/font_links.py   # the download lists and their specimen lines
 ```
 
 1. **The sheet.** `scans/<font>-upscaled.png` is the bitmap font's characters laid out in lines, upscaled to
-   36 times its pixels (Monaco's only to 6 times: its sheet is bitmap-upscaling's own): first to 6 times by
+   36 times its pixels: first to 6 times by
    [bitmap-upscaling](https://github.com/e-n-f/bitmap-upscaling) (each character averaged over the many phases it
    was rendered at), then 6 times again by an AI upscaler. `scans/<font>-glyphs.json`, from the same project,
    says where each character is on the sheet: its cell, its origin (pen position on the baseline) and the
@@ -111,6 +111,6 @@ python3 ../scripts/font_links.py   # the download lists and their specimen lines
 3. **Placing.** Each outline is placed by its origin, and given the bitmap's advance. The bitmap font itself
    (`scans/*.dfont`, read by `tools/bitmap.py`) gives the space's width and the
    ascender and descender.
-4. **Accents.** Where the sheet has a wrong accent over a letter (Geneva's `á à ä é ï`: `REACCENT` in
+4. **Accents.** Where the sheet has a wrong accent over a letter (Geneva's `á à ä é ï`, Monaco's `à`: `REACCENT` in
    `tools/build.py`), the accent is taken from another letter whose bitmap has the same accent, pixel for pixel,
    and set where the bitmap has it.
