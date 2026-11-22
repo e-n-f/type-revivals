@@ -10,3 +10,12 @@ The sources for the classic Mac recreations, kept here so that the fonts can be 
 | `Chicago_15.dfont` | Chicago, the 12-point bitmap font of the Macintosh's menus (Susan Kare, 1984), as converted for Mac OS X: one strike at 15 px, from [macfonts](https://github.com/JohnDDuncanIII/macfonts) (`Macintosh OS 1-6/OS X/`) | As Athens's |
 | `chicago-glyphs.json` | As Athens's: from bitmap-upscaling's `Chicago_12_sq_ls2_mac_6x_glyphs.json` | As Athens's |
 | `chicago-upscaled.png` | As Athens's, for Chicago (4464 × 11592) | As Athens's |
+| `Geneva_15.dfont` | Geneva, the 12-point bitmap font (Susan Kare, 1984), as converted for Mac OS X: one strike at 15 px, from [macfonts](https://github.com/JohnDDuncanIII/macfonts) (`Macintosh OS 1-6/OS X/`) | As Athens's |
+| `geneva-glyphs.json` | As Athens's: from bitmap-upscaling's `Geneva_12_sq_ls2_mac_6x_glyphs.json` | As Athens's |
+| `geneva-upscaled.png` | As Athens's, for Geneva (4032 × 10872) | As Athens's |
+| `NewYork_15.dfont` | New York, the 12-point bitmap font (Susan Kare, 1984), as converted for Mac OS X: one strike at 15 px, from [macfonts](https://github.com/JohnDDuncanIII/macfonts) (`Macintosh OS 1-6/OS X/`) | As Athens's |
+| `newyork-glyphs.json` | As Athens's: from bitmap-upscaling's `NewYork_12_sq_ls2_mac_6x_glyphs.json` | As Athens's |
+| `newyork-upscaled.png` | As Athens's, for New York (4140 × 10152) | As Athens's |
+| `Monaco_15.dfont` | Monaco, the 12-point monospaced bitmap font (Susan Kare, 1984), as converted for Mac OS X: one strike at 15 px, from [macfonts](https://github.com/JohnDDuncanIII/macfonts) (`Macintosh OS 1-6/OS X/`) | As Athens's |
+| `monaco-glyphs.json` | As Athens's: from bitmap-upscaling's `Monaco_12_sq_ls2_mac_6x_glyphs.json` | As Athens's |
+| `monaco-upscaled.png` | Monaco's sheet at 6 times the bitmap's pixels only (576 × 1812): bitmap-upscaling's `Monaco_12_sq_ls2_mac_6x_best_grey.png` itself, not upscaled again. Kept as 8-bit grey (it was grey with an opaque alpha channel) | As Athens's |

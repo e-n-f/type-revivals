@@ -31,12 +31,14 @@ import bitmap
 Image.MAX_IMAGE_PIXELS = None
 
 PX = 50                                   # font units per bitmap pixel
-VERSIONS = {'athens': '1.001', 'chicago': '1.001'}
+VERSIONS = {'athens': '1.001', 'chicago': '1.001', 'geneva': '1.000', 'newyork': '1.000', 'monaco': '1.000'}
 # the size the Mac's menus gave the bitmap font, in points: its em, at 72 dpi, in pixels (the strike's 22 px are
 # its ascender and descender), so that set at 18 pt Athens HD matches Athens 18
-SIZE = {'athens': 18, 'chicago': 12}
-NAMES = {'athens': 'Athens HD', 'chicago': 'Chicago HD'}
-ORIGINAL = {'athens': ('Athens', 'Susan Kare', 1984), 'chicago': ('Chicago', 'Susan Kare', 1984)}
+SIZE = {'athens': 18, 'chicago': 12, 'geneva': 12, 'newyork': 12, 'monaco': 12}
+NAMES = {'athens': 'Athens HD', 'chicago': 'Chicago HD', 'geneva': 'Geneva HD', 'newyork': 'New York HD', 'monaco': 'Monaco HD'}
+ORIGINAL = {'athens': ('Athens', 'Susan Kare', 1984), 'chicago': ('Chicago', 'Susan Kare', 1984),
+            'geneva': ('Geneva', 'Susan Kare', 1984), 'newyork': ('New York', 'Susan Kare', 1984),
+            'monaco': ('Monaco', 'Susan Kare', 1984)}
 # Characters the sheet names by their Mac control codes, at their Unicode places: Chicago's command key, check
 # mark, diamond and Apple logo (the logo where Apple's own fonts put it, in the Private Use Area). The OS X
 # .dfont keeps them at Mac OS Roman 0xD9-0xDC instead, in the places of Ÿ ⁄ ¤ ‹.
@@ -48,7 +50,11 @@ SIGMA = 1.5                               # smoothing of the traced ink, in font
 # Font units taken off each side of every stroke. Traced at their 50 % contour, the stems come out the bitmap's
 # exact width (2 px), but antialiased outlines (and macOS's font smoothing) read darker than crisp pixels:
 # both are thinned to about 1.8 px
-LIGHTEN = {'athens': 4, 'chicago': 4}
+LIGHTEN = {'athens': 4, 'chicago': 4, 'geneva': 4, 'newyork': 4, 'monaco': 4}
+# Accented letters whose accent the upscaling got wrong: Geneva 12's acute, grave and dieresis are two or three
+# pixels, and on the sheet á à é came out as circumflexes, ä and ï as broken marks. Each takes the accent of a
+# letter the sheet gets right whose bitmap accent has the same pixels (reaccent())
+REACCENT = {'geneva': 'áàäéï'}
 
 
 def gname(ch):
@@ -64,6 +70,21 @@ def glyphs(font):
     paper = float(np.median(sheet)); dark = float(np.percentile(sheet, 0.5))
     out = {}
     pad = int(round(2 * info['scale'][0] * k))             # two bitmap pixels
+    # each glyph's room across: two bitmap pixels past its ink box, but not past halfway to its neighbours' on the
+    # same line. Glyphs that touch on the sheet (New York's w x y, its — and “) are one piece of ink, divided
+    # there; a glyph pasted in from another source, reaching a little past its box, keeps what it reaches
+    ink_box = lambda g: (min(g['ink_best'][0], g['ink_avg'][0]), max(g['ink_best'][2], g['ink_avg'][2]))
+    room = {}
+    by_line = {}
+    for g in info['glyphs']: by_line.setdefault(g['line'], []).append(g)
+    for gs in by_line.values():
+        gs = sorted(gs, key=lambda g: ink_box(g)[0])
+        for i, g in enumerate(gs):
+            a, b = ink_box(g); p = 2 * info['scale'][0]
+            lo, hi = a - p, b + p
+            if i > 0: lo = max(lo, (ink_box(gs[i - 1])[1] + a) / 2)
+            if i < len(gs) - 1: hi = min(hi, (b + ink_box(gs[i + 1])[0]) / 2)
+            room[g['char']] = (lo * k, hi * k)
     for g in info['glyphs']:
         # the cell and two pixels round it: a glyph pasted in from another source can reach a little past its
         # cell. Its pieces of ink are those mostly inside the cell (a neighbour's can reach into it too)
@@ -71,6 +92,9 @@ def glyphs(font):
         x0, y0 = max(0, cx0 - pad), max(0, cy0 - pad)
         x1, y1 = min(sheet.shape[1], cx1 + pad), min(sheet.shape[0], cy1 + pad)
         crop = np.clip((paper - sheet[y0:y1, x0:x1]) / max(paper - dark, 0.2), 0, 1)
+        lo, hi = room[g['char']]
+        cols = np.arange(x0, x1)
+        crop[:, (cols < lo) | (cols >= hi)] = 0
         n, lab, st, _ = cv2.connectedComponentsWithStats((crop > 0.25).astype(np.uint8), 8)
         inside = np.bincount(lab[cy0 - y0:cy1 - y0, cx0 - x0:cx1 - x0].ravel(), minlength=n)
         own = [i for i in range(1, n) if inside[i] > 0.5 * st[i][4]]
@@ -85,6 +109,35 @@ def glyphs(font):
                     for c in trace.trace(ink, SIGMA)]
         out[g['char']] = (contours, g['source']['advance'] * PX)
     return out
+
+
+def reaccent(font, G, strike):
+    """the letters of REACCENT with the accent of another letter: one with the same accent (by its Unicode
+    decomposition) whose bitmap accent has the same pixels, and that isn't itself in REACCENT. A letter keeps its own
+    base; the accent, its outlines above the x-height, is moved to where the letter's bitmap has its accent"""
+    import unicodedata
+    xh = strike['x']['y']                                  # the x-height, in pixels
+    def accent(c):                                         # the bitmap's accent pixels, as (x, y up) from the origin
+        g = strike[c]
+        return {(g['x'] + x, g['y'] - y) for y, row in enumerate(g['bits']) for x, v in enumerate(row)
+                if v and g['y'] - y > xh}
+    mark = lambda c: unicodedata.decomposition(c).split()[-1:]
+    norm = lambda a: frozenset((x - min(p[0] for p in a), y - min(p[1] for p in a)) for x, y in a)
+    above = lambda c: max(p[1] for s in c for p in s[1:]) > xh * PX and min(p[1] for s in c for p in s[1:]) >= xh * PX - 10
+    notes = []
+    for t in REACCENT.get(font, ''):
+        at = accent(t)
+        donors = [d for d in G if len(d) == 1 and d != t and d not in REACCENT[font] and d in strike
+                  and mark(d) == mark(t) and d.islower() == t.islower() and accent(d) and norm(accent(d)) == norm(at)]
+        if not donors: raise SystemExit(f'{font}: no letter with the accent of {t!r}')
+        d = donors[0]; ad = accent(d)
+        dx = (min(p[0] for p in at) - min(p[0] for p in ad)) * PX
+        dy = (min(p[1] for p in at) - min(p[1] for p in ad)) * PX
+        base = [c for c in G[t][0] if not above(c)]
+        mark_ = [[(s[0],) + tuple((p[0] + dx, p[1] + dy) for p in s[1:]) for s in c] for c in G[d][0] if above(c)]
+        G[t] = (base + mark_, G[t][1])
+        notes.append(f'{t} from {d}')
+    return notes
 
 
 def font(fontname, otf=True, data=None):
@@ -156,6 +209,8 @@ if __name__ == '__main__':
     for f in [a for a in sys.argv[1:] if a in VERSIONS] or list(VERSIONS):
         G = glyphs(f)
         strike, metrics = bitmap.strike(f)
+        notes = reaccent(f, G, strike)
+        if notes: print(f'{f}: accents', ', '.join(notes))
         missing = sorted(c for c in strike if c not in G and c not in ' \xa0' + MOVED.get(f, '')
                          and not any(ord(c) in ALSO.get(g, []) for g in G))
         print(f'{f}: {len(G)} characters traced; in the bitmap but not on the sheet: {"".join(missing) or "none"}')
