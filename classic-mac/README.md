@@ -10,7 +10,7 @@ recreation lines up as the bitmap font set it.
 | Chicago HD | Chicago 12 (Susan Kare, 1984) | 1.001 | `fonts/otf/ChicagoHD-Regular.otf`, `fonts/ttf/ChicagoHD-Regular.ttf` |
 | Geneva HD | Geneva 12 (Susan Kare, 1984) | 1.000 | `fonts/otf/GenevaHD-Regular.otf`, `fonts/ttf/GenevaHD-Regular.ttf` |
 | New York HD | New York 12 (Susan Kare, 1984) | 1.000 | `fonts/otf/NewYorkHD-Regular.otf`, `fonts/ttf/NewYorkHD-Regular.ttf` |
-| Monaco HD | Monaco 12 (Susan Kare, 1984) | 1.000 | `fonts/otf/MonacoHD-Regular.otf`, `fonts/ttf/MonacoHD-Regular.ttf` |
+| Monaco HD | Monaco 12 (Susan Kare, 1984) | 1.001 | `fonts/otf/MonacoHD-Regular.otf`, `fonts/ttf/MonacoHD-Regular.ttf` |
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
 [ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px).
@@ -49,8 +49,8 @@ its bitmap's point size is the bitmap's size on a 72-dpi Mac screen:
 | Monaco HD | 12 pt | 12 px, 600 units | 12 px, 600 units | 3 px, 150 units | 15 px |
 
 Every advance width is the bitmap's, in whole pixels, and the line gap is none. There is no kerning, as the bitmaps
-had none. Monaco HD is monospaced, as the bitmap is: every character advances 7 pixels, 350 units, but `©` and `®`, which
-advance 6 in the bitmap and so here too.
+had none. Monaco HD is monospaced, and marked so: every character advances 7 pixels, 350 units. (The bitmap's `©` and `®`
+advance 6; here they advance 7 like the rest, with their ink where the bitmap has it.)
 
 Traced at their 50 % contour, the strokes come out the bitmap's exact width: Chicago's and Athens's stems are 2
 pixels, the others' 1. But antialiased outlines read darker than crisp pixels, more so with macOS's font
@@ -76,7 +76,7 @@ Geneva HD and Monaco HD have Chicago's characters, but in place of its menu symb
 characters and `§ ¶`, and a robot at `Ÿ`. Ω is at both U+03A9 and U+2126 wherever the bitmap has it.
 
 Monaco's `©` and `®` are cut off on the left, in the bitmap as here: the bitmap has the right-hand part of
-each circle only, in a cell a pixel narrower than the others.
+each circle only.
 
 `specimen/compare-<font>.png` ([Athens](specimen/compare-athens.png), [Chicago](specimen/compare-chicago.png),
 [Geneva](specimen/compare-geneva.png), [New York](specimen/compare-newyork.png),

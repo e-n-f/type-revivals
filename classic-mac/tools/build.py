@@ -31,7 +31,7 @@ import bitmap
 Image.MAX_IMAGE_PIXELS = None
 
 PX = 50                                   # font units per bitmap pixel
-VERSIONS = {'athens': '1.001', 'chicago': '1.001', 'geneva': '1.000', 'newyork': '1.000', 'monaco': '1.000'}
+VERSIONS = {'athens': '1.001', 'chicago': '1.001', 'geneva': '1.000', 'newyork': '1.000', 'monaco': '1.001'}
 # the size the Mac's menus gave the bitmap font, in points: its em, at 72 dpi, in pixels (the strike's 22 px are
 # its ascender and descender), so that set at 18 pt Athens HD matches Athens 18
 SIZE = {'athens': 18, 'chicago': 12, 'geneva': 12, 'newyork': 12, 'monaco': 12}
@@ -55,6 +55,10 @@ LIGHTEN = {'athens': 4, 'chicago': 4, 'geneva': 4, 'newyork': 4, 'monaco': 4}
 # pixels, and on the sheet á à é came out as circumflexes, ä and ï as broken marks. Each takes the accent of a
 # letter the sheet gets right whose bitmap accent has the same pixels (reaccent())
 REACCENT = {'geneva': 'áàäéï'}
+# Monospaced fonts: every advance, in bitmap pixels. Monaco 12's © and ® advance only 6 in the bitmap (the left of
+# each circle is cut off); here they advance 7 like the rest, their ink where the bitmap has it, and the font is
+# marked fixed-pitch
+MONO = {'monaco': 7}
 
 
 def gname(ch):
@@ -155,6 +159,7 @@ def font(fontname, otf=True, data=None):
     glyphs_['.notdef'] = [[('L', (50, 0), (50, 700)), ('L', (50, 700), (w - 50, 700)), ('L', (w - 50, 700), (w - 50, 0)),
                            ('L', (w - 50, 0), (50, 0))]]
     adv['.notdef'] = w
+    if fontname in MONO: adv = {n: MONO[fontname] * PX for n in adv}
     order = ['.notdef', 'space'] + sorted(n for n in glyphs_ if n not in ('.notdef', 'space'))
     UPM = SIZE[fontname] * PX
     fb = FontBuilder(UPM, isTTF=not otf)
@@ -195,7 +200,9 @@ def font(fontname, otf=True, data=None):
                 usWinAscent=int(np.ceil(max(ymax, asc))), usWinDescent=int(np.ceil(max(-ymin, -desc))),
                 sxHeight=int(round(box('x')[3])), sCapHeight=int(round(box('H')[3])), usWeightClass=400,
                 achVendID='NONE', fsType=0, fsSelection=0x40 | 0x80, version=4)
-    fb.setupPost()
+    fb.setupPost(isFixedPitch=int(fontname in MONO))
+    if fontname in MONO:                  # PANOSE: Latin text, monospaced
+        fb.font['OS/2'].panose.bFamilyType = 2; fb.font['OS/2'].panose.bProportion = 9
     fb.font['head'].fontRevision = float(VERSION)
     d = os.path.join(ROOT, 'fonts', 'otf' if otf else 'ttf')
     os.makedirs(d, exist_ok=True)
