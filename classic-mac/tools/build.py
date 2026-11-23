@@ -32,10 +32,10 @@ Image.MAX_IMAGE_PIXELS = None
 
 PX = 50                                   # font units per bitmap pixel
 VERSIONS = {'athens': '1.001', 'chicago': '1.001', 'geneva': '1.000', 'newyork12': '1.001', 'newyork24': '1.000',
-            'monaco': '1.002', 'newyork12mid': '1.000', 'newyork24mid': '1.000'}
+            'monaco': '1.002', 'newyork12mid': '1.001', 'newyork24mid': '1.001'}
 # fonts traced from another's sources (sheet, glyph positions and bitmap) at another weight
 SOURCE = {'newyork12mid': 'newyork12', 'newyork24mid': 'newyork24'}
-MID = {f: ' Its strokes are at the weight halfway between those of the New York 12 and 24 bitmaps.' for f in SOURCE}
+MID = {f: ' Its strokes are at the weight halfway between those of New York 12 HD and 24 HD.' for f in SOURCE}
 # the size the Mac's menus gave the bitmap font, in points: its em, at 72 dpi, in pixels (the strike's 22 px are
 # its ascender and descender), so that set at 18 pt Athens HD matches Athens 18
 SIZE = {'athens': 18, 'chicago': 12, 'geneva': 12, 'newyork12': 12, 'newyork24': 24, 'monaco': 12,
@@ -60,10 +60,10 @@ SIGMA = 1.5                               # smoothing of the traced ink, in font
 # both are thinned to about 1.8 px
 LIGHTEN = {'athens': 4, 'chicago': 4, 'geneva': 4, 'newyork12': 4, 'newyork24': 4, 'monaco': 4,
 # New York 12's and 24's bitmaps differ in weight: traced at their 50 % contour, unthinned, their strokes average
-# 0.0735 em and 0.0546 em. The Mid fonts are both at about the weight halfway between, 0.064 em: 12's thinned by
-# 3 units a side (of its em of 600), to 0.0625 em, 24's thickened by 5 (of 1200), to 0.0632. A negative LIGHTEN
-# thickens
-           'newyork12mid': 3, 'newyork24mid': -5}
+# 0.0735 em and 0.0546 em, and thinned by 4 units a side as the others are, as New York 12 HD and 24 HD, 0.0586
+# and 0.0476. The Mid fonts are both at about the weight halfway between those two, 0.053 em: 12's thinned by 6
+# units a side (of its em of 600), to 0.0514 em, 24's by 1 (of 1200), to 0.0528. A negative LIGHTEN thickens
+           'newyork12mid': 6, 'newyork24mid': 1}
 # Accented letters whose accent the upscaling got wrong: Geneva 12's acute, grave and dieresis are two or three
 # pixels, and on the sheet á à é came out as circumflexes, ä and ï as broken marks. Each takes the accent of a
 # letter the sheet gets right whose bitmap accent has the same pixels (reaccent())
