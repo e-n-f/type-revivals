@@ -146,7 +146,7 @@ def run_typed(face, dpi=300, src='Typed'):
     """a face's typed documents: the unit in pixels from the pairs of characters the face's table has (two
     centres  p (u_a + u_b) / 2  apart), then each other character's width from its pairs with known ones.  At
     the scan's 300 dpi the unit should come out at dpi / escapement pixels."""
-    path = os.path.join(R.BUILD, f'units-{face}.json')
+    path = os.path.join(R.BUILD, f'units-{R.S.UNITS_OF.get(face, face)}.json')
     if not os.path.exists(path): path = os.path.join(R.BUILD, f'units-{face}Typed.json')   # Secretarial, Registry
     if not os.path.exists(path):        # a face with no table of its own (Heritage, a 90 % Testimonial): not made
         print(f'{face}{src}: no units for {face}, skipped'); return

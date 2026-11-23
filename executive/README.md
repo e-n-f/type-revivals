@@ -7,12 +7,12 @@ keep those widths exactly, so text set in them falls where the machine would hav
 
 | Font | IBM's name | Unit | Sources | Files |
 |---|---|---|---|---|
-| Executive Modern | Modern (Monotype series 602) | 1/32 inch | Jowa "IBM Executive 602" card; Finnish brochure; typed keyboard sheet | `ExecutiveModern-Regular` |
-| Executive Documentary | Documentary | 1/32 inch | Finnish brochure | `ExecutiveDocumentary-Regular` |
+| Executive Modern | Modern (Monotype series 602) | 1/32 inch | Jowa "IBM Executive 602" card; Finnish brochure; typed keyboard sheet; 1983 Mag Card catalogue | `ExecutiveModern-Regular` |
+| Executive Documentary | Documentary | 1/32 inch | Finnish brochure; 1983 Mag Card catalogue | `ExecutiveDocumentary-Regular` |
 | Executive Mid-Century | Mid-Century | 1/36 inch | Finnish brochure; ASA letter of 1962 | `ExecutiveMidCentury-Regular` |
-| Executive Arcadia | Arcadia | 1/32 inch | Finnish brochure; E. T. News Letter of 1955 | `ExecutiveArcadia-Regular` |
+| Executive Arcadia | Arcadia | 1/32 inch | Finnish brochure; E. T. News Letter of 1955; 1983 Mag Card catalogue | `ExecutiveArcadia-Regular` |
 | Executive Doric | Doric | 1/32 inch | Finnish brochure | `ExecutiveDoric-Regular` |
-| Executive Bold Face 1 | Bold Face #1 | 1/32 inch | Finnish brochure | `ExecutiveBoldFace1-Regular` |
+| Executive Bold Face 1 | Bold Face #1 | 1/32 inch | Finnish brochure; 1983 Mag Card catalogue | `ExecutiveBoldFace1-Regular` |
 | Executive Bold Face 2 | Bold Face #2 | 1/36 inch | Finnish brochure | `ExecutiveBoldFace2-Regular` |
 | Executive Charter | Charter | 1/45 inch | Finnish brochure; BCD code table of 1962 | `ExecutiveCharter-Regular` |
 | Executive Secretarial | Secretarial | 1/32 inch | 1972 catalogue; R. W. Bemer's memo of 1961 | `ExecutiveSecretarial-Regular` |
@@ -20,7 +20,7 @@ keep those widths exactly, so text set in them falls where the machine would hav
 | Executive Text | Text | 1/45 inch | Typesetting; 1972 catalogue | `ExecutiveText-Regular` |
 | Executive Directory | Directory | 1/32 inch | Typesetting; 1972 catalogue | `ExecutiveDirectory-Regular` |
 | Executive Testimonial | Testimonial | 1/32 inch | Typesetting; 1972 catalogue | `ExecutiveTestimonial-Regular` |
-| Executive Bold Face 1 Italic | Bold Face Italic | 1/32 inch | 1972 catalogue; Typesetting | `ExecutiveBoldFace1-Italic` |
+| Executive Bold Face 1 Italic | Bold Face Italic | 1/32 inch | 1972 catalogue; Typesetting; 1983 Mag Card catalogue | `ExecutiveBoldFace1-Italic` |
 | Executive Copperplate Gothic 1 | Copperplate Gothic #1 | 1/36 inch | Typesetting | `ExecutiveCopperplateGothic1-Regular` |
 | Executive Copperplate Gothic 2 | Copperplate Gothic #2 | 1/36 inch | Typesetting; 1972 catalogue | `ExecutiveCopperplateGothic2-Regular` |
 | Executive Patron | Patron | 1/36 inch | Typesetting; 1972 catalogue | `ExecutivePatron-Regular` |
@@ -33,9 +33,10 @@ says (it also calls Bold Face #2 a 90 % Bold Face #1, and Registry an 85 % Direc
 separately. Bold Face 2 is made anyway, because it comes out lighter than a reduced Bold Face 1.
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
-[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Bold Face 1 Italic 1.004;
+[ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px). The versions are Bold Face 1 Italic 1.005;
 Directory, Testimonial, Copperplate Gothic 1 and 2, Patron and Registry 1.005; Secretarial and Text 1.006; Doric
-and Modern 1.010; Mid-Century 1.011; Documentary, Arcadia and Charter 1.012; Bold Face 2 1.013; Bold Face 1 1.014.
+1.010; Modern and Mid-Century 1.011; Charter 1.012; Documentary and Arcadia 1.013; Bold Face 2 1.013; Bold Face 1
+1.015.
 Every face takes its w and W
 (where nothing better has them) and its letters' widths from IBM's 1972 catalogue. The sources are listed in
 [`scans/README.md`](scans/README.md).
@@ -179,10 +180,18 @@ a font lacks is an empty box.
   styles, the only source that shows them: a small scan, so they are softer than their faces' other characters.
   Their widths are set, not fitted (`SET_WIDTHS` in `tools/build.py`): `# _ ¢` 3 units, as in every face that has
   them, and `@` 5.
+- **¼ and ½** in Arcadia, Bold Face 1, Bold Face 1 Italic, Documentary and Modern, **Bold Face 1's and
+  Documentary's ¢**, and **Modern's `)`** are from IBM's Mag Card Executive type catalogue (TC 5.1 and 5.2,
+  July 1983), which sets a line of signs in each of its faces: `!@#$%¢&*()_+¼:",.?` over
+  `1234567890-=½;',./`. Its Arcadia 72, Document 72, Modern 72, Bold Face 72 and Bold Face Italic 72 are these
+  faces (the 1/32-inch Bold Face, the only one on its 24-tooth ratchet). Its faces are refitted to the Mag Card's
+  widths (its four alphabets set to one length, where Arcadia's capitals are otherwise 14 % narrower than
+  Documentary's), so it gives shapes, not widths: ¼ and ½ are set at 3 units, as its lines space them, and ¢
+  at 3, as IBM's table has it. It also shows Essay, Essay Italic, Thesis and Title, which aren't made.
 - **`! ? :`** are set with their dots on the baseline where the face's own period sits, and `;` with its upper dot
   level with the colon's. A line of signs has few letters to find its baseline by, and they had come out as much as
   85 units high (Documentary's catalogue `!`) or 140 low (Directory's, from its book page).
-- `)` is the `(` turned round in Modern, whose card has only the `(`, and Text's `(` is its `)` turned round,
+- Text's `(` is its `)` turned round,
   because every print of its `(` touches the `¢` beside it. The other typographic quotes map to the
   typewriter's straight `'` and `"`.
 

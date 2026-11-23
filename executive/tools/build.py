@@ -68,6 +68,8 @@ VERSIONS.update(Arcadia='1.012', BoldFaceItalic='1.004', BoldFace1='1.014', Bold
                 Copperplate1='1.005', Copperplate2='1.005', Directory='1.005', Documentary='1.012', Doric='1.010',
                 MidCentury='1.011', Modern='1.010', Patron='1.005', Registry='1.005', Secretarial='1.006',
                 Testimonial='1.005', Text='1.006')
+# ¼ ½ from IBM's 1983 Mag Card catalogue, with Bold Face 1's and Documentary's ¢ and Modern's own )
+VERSIONS.update(Arcadia='1.013', BoldFace1='1.015', BoldFaceItalic='1.005', Documentary='1.013', Modern='1.011')
 
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
          'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter',
@@ -104,6 +106,11 @@ SOURCES['Copperplate1'] = [('Copperplate1Set', None)]           # its catalogue 
 # the NOMDA guide's lines (sources.TYPED_COLUMNS): Doric's @ # _ ¢ and Bold Face 2's @ # ¢, which nothing else shows
 SOURCES['Doric'].append(('DoricTyped', '@#_¢'))
 SOURCES['BoldFace2'].append(('BoldFace2Typed', '@#¢'))
+# IBM's 1983 Mag Card catalogue's lines of signs (sources.MAGCARD): ¼ ½, which nothing else shows, Bold Face 1's and
+# Documentary's ¢, and Modern's ) (its card has only the (, which had been turned round for it)
+for _f, _c in (('Arcadia', '¼½'), ('BoldFace1', '¢¼½'), ('BoldFaceItalic', '¼½'), ('Documentary', '¢¼½'),
+               ('Modern', '¼½)')):
+    SOURCES[_f].append((f'MagCard{_f}Typed', _c))
 SOURCES['Directory'].append(('DirectorySet3', '%'))   # the one whole % (its first page's prints in pieces)
 # Faces with no brochure line (tools/units.py CATALOG_FACES): Secretarial's letters from the catalogue (the memo
 # typed in it is a faint photocopy), its signs and figures from the memo; Registry's from the newsletter typed in
@@ -129,7 +136,9 @@ MATCH_HEIGHTS = {'Keyboard': ('Modern', '0123456789'), 'MidCenturyTyped': ('MidC
                  **{f'Catalog{f}': (f'{f}Set', 'EFHILTZxzvnmu') for f in NEW_FACES},
                  'CatalogBoldFaceItalic': ('BoldFaceItalicSet', 'EFHILTZxzvnmu'),
                  'DirectorySet3': ('DirectorySet', 'EFHILTZxzvnmu'),
-                 'DoricTyped': ('Doric', '$%&*()+'), 'BoldFace2Typed': ('BoldFace2', '$?!()*/')}
+                 'DoricTyped': ('Doric', '$%&*()+'), 'BoldFace2Typed': ('BoldFace2', '$?!()*/'),
+                 **{f'MagCard{f}Typed': ('BoldFaceItalicSet' if f == 'BoldFaceItalic' else f, '0123456789$%&()?!')
+                    for f in ('Arcadia', 'BoldFace1', 'BoldFaceItalic', 'Documentary', 'Modern')}}
 # printed sources, crisper than the typed ones: thickened to the face's weight (match_weight)
 REWEIGHT = ({f'Catalog{f}' for f in VERSIONS} - {'CatalogSecretarial', 'CatalogBoldFaceItalic'}
             | {f'{f}Set' for f in OLD_FACES} | {'BoldFaceItalicSet'}) - {'SecretarialSet'}
@@ -314,6 +323,11 @@ TRACE_LEVEL = {'Copperplate1Set': 0.4, 'Copperplate2Set': 0.4, 'PatronSet': 0.4,
 # every face that has them (IBM's own table, typed-bold-face-1-units.jpg, says so too), @ 4 or 5 (5 in Bold Face 1,
 # Mid-Century and Secretarial; Doric's, as wide as its capitals, too)
 SET_WIDTHS = {'Doric': {'@': 5, '#': 3, '_': 3, '¢': 3}, 'BoldFace2': {'@': 5, '#': 3, '¢': 3}}
+# The 1983 catalogue's ¼ and ½ (3 units, as its lines of signs space them, between the figures' 3), its ¢ (3, as
+# IBM's table has it) and Modern's ) (2, as its ( is): its lines are too short to fit them
+for _f in ('Arcadia', 'BoldFace1', 'BoldFaceItalic', 'Documentary', 'Modern'): SET_WIDTHS.setdefault(_f, {}).update({'¼': 3, '½': 3})
+for _f in ('BoldFace1', 'Documentary'): SET_WIDTHS[_f]['¢'] = 3
+SET_WIDTHS['Modern'][')'] = 2
 
 # A ( whose prints all touch the ¢ before it: the ) turned round instead (Text's)
 TURN = {'Text': '('}
