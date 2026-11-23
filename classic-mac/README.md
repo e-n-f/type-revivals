@@ -6,14 +6,14 @@ recreation lines up as the bitmap font set it.
 
 | Font | Recreates | Version | Files |
 |---|---|---|---|
-| Athens HD | Athens 18 (Susan Kare, 1984) | 1.001 | `fonts/otf/AthensHD-Regular.otf`, `fonts/ttf/AthensHD-Regular.ttf` |
-| Chicago HD | Chicago 12 (Susan Kare, 1984) | 1.001 | `fonts/otf/ChicagoHD-Regular.otf`, `fonts/ttf/ChicagoHD-Regular.ttf` |
-| Geneva HD | Geneva 12 (Susan Kare, 1984) | 1.000 | `fonts/otf/GenevaHD-Regular.otf`, `fonts/ttf/GenevaHD-Regular.ttf` |
-| New York 12 HD | New York 12 (Susan Kare, 1984) | 1.001 | `fonts/otf/NewYork12HD-Regular.otf`, `fonts/ttf/NewYork12HD-Regular.ttf` |
-| New York 24 HD | New York 24 (Susan Kare, 1984) | 1.000 | `fonts/otf/NewYork24HD-Regular.otf`, `fonts/ttf/NewYork24HD-Regular.ttf` |
-| Monaco HD | Monaco 12 (Susan Kare, 1984) | 1.002 | `fonts/otf/MonacoHD-Regular.otf`, `fonts/ttf/MonacoHD-Regular.ttf` |
-| New York 12 Mid HD | New York 12, at the weight halfway to New York 24's | 1.001 | `fonts/otf/NewYork12MidHD-Regular.otf`, `fonts/ttf/NewYork12MidHD-Regular.ttf` |
-| New York 24 Mid HD | New York 24, at the weight halfway to New York 12's | 1.001 | `fonts/otf/NewYork24MidHD-Regular.otf`, `fonts/ttf/NewYork24MidHD-Regular.ttf` |
+| Athens HD | Athens 18 (Susan Kare, 1984) | 1.002 | `fonts/otf/AthensHD-Regular.otf`, `fonts/ttf/AthensHD-Regular.ttf` |
+| Chicago HD | Chicago 12 (Susan Kare, 1984) | 1.002 | `fonts/otf/ChicagoHD-Regular.otf`, `fonts/ttf/ChicagoHD-Regular.ttf` |
+| Geneva HD | Geneva 12 (Susan Kare, 1984) | 1.001 | `fonts/otf/GenevaHD-Regular.otf`, `fonts/ttf/GenevaHD-Regular.ttf` |
+| New York 12 HD | New York 12 (Susan Kare, 1984) | 1.002 | `fonts/otf/NewYork12HD-Regular.otf`, `fonts/ttf/NewYork12HD-Regular.ttf` |
+| New York 24 HD | New York 24 (Susan Kare, 1984) | 1.001 | `fonts/otf/NewYork24HD-Regular.otf`, `fonts/ttf/NewYork24HD-Regular.ttf` |
+| Monaco HD | Monaco 12 (Susan Kare, 1984) | 1.003 | `fonts/otf/MonacoHD-Regular.otf`, `fonts/ttf/MonacoHD-Regular.ttf` |
+| New York 12 Mid HD | New York 12, at the weight halfway to New York 24's | 1.002 | `fonts/otf/NewYork12MidHD-Regular.otf`, `fonts/ttf/NewYork12MidHD-Regular.ttf` |
+| New York 24 Mid HD | New York 24, at the weight halfway to New York 12's | 1.002 | `fonts/otf/NewYork24MidHD-Regular.otf`, `fonts/ttf/NewYork24MidHD-Regular.ttf` |
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
 [ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px).
@@ -68,16 +68,17 @@ advance 6; here they advance 7 like the rest, with their ink where the bitmap ha
 Traced at their 50 % contour, the strokes come out the bitmap's exact width: Chicago's and Athens's stems are 2
 pixels, the others' 1 (New York 24's 1 and 2). But antialiased outlines read darker than crisp pixels, more so
 with macOS's font smoothing, so every font's strokes are thinned by 4 units a side (`LIGHTEN` in
-`tools/build.py`), to about 1.8 pixels (0.8 for a 1-pixel stroke).
+`tools/build.py`), to about 1.8 pixels (0.8 for a 1-pixel stroke). Thinning would widen any small dent in
+the traced ink into a notch, so dents narrower than the thinning are filled first.
 
 ## New York 12 and 24
 
 New York 24 isn't New York 12 drawn larger: it is a different design, with finer strokes for its size. Traced
 from their sheets, unthinned, the strokes of New York 12 average 0.0735 em and those of New York 24 0.0546 em;
-thinned by 4 units a side, as New York 12 HD and 24 HD, 0.0586 em and 0.0476 em. New York 12 Mid HD and New
-York 24 Mid HD are each at about the weight halfway between those two, 0.053 em, so that 12 Mid is lighter than
-12 HD and 24 Mid heavier than 24 HD: New York 12 thinned by 6 units a side (of its em of 600), to 0.0514 em, and
-New York 24 by 1 (of 1200), to 0.0528 em. Their metrics are New York 12's and 24's own.
+thinned by 4 units a side, as New York 12 HD and 24 HD, 0.0601 em and 0.0479 em. New York 12 Mid HD and New
+York 24 Mid HD are each at about the weight halfway between those two, 0.054 em, so that 12 Mid is lighter than
+12 HD and 24 Mid heavier than 24 HD: New York 12 thinned by 6 units a side (of its em of 600), to 0.0537 em, and
+New York 24 by 1 (of 1200), to 0.0529 em. Their metrics are New York 12's and 24's own.
 [`specimen/newyork-weights.png`](specimen/newyork-weights.png) sets the four at one size.
 
 ## Character set
