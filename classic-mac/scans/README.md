@@ -13,13 +13,6 @@ The sources for the classic Mac recreations, kept here so that the fonts can be 
 | `Geneva_15.dfont` | Geneva, the 12-point bitmap font (Susan Kare, 1984), as converted for Mac OS X: one strike at 15 px, from [macfonts](https://github.com/JohnDDuncanIII/macfonts) (`Macintosh OS 1-6/OS X/`) | As Athens's |
 | `geneva-glyphs.json` | As Athens's: from bitmap-upscaling's `Geneva_12_sq_ls2_mac_6x_glyphs.json` | As Athens's |
 | `geneva-upscaled.png` | As Athens's, for Geneva (4032 × 10872) | As Athens's |
-| `NewYork_15.dfont` | New York, the 12-point bitmap font (Susan Kare, 1984), as converted for Mac OS X: one strike at 15 px, from [macfonts](https://github.com/JohnDDuncanIII/macfonts) (`Macintosh OS 1-6/OS X/`) | As Athens's |
-| `newyork12-glyphs.json` | As Athens's: from bitmap-upscaling's `NewYork_12_sq_ls2_mac_6x_glyphs.json` | As Athens's |
-| `newyork12-upscaled.png` | As Athens's, for New York (4140 × 10152) | As Athens's |
 | `Monaco_15.dfont` | Monaco, the 12-point monospaced bitmap font (Susan Kare, 1984), as converted for Mac OS X: one strike at 15 px, from [macfonts](https://github.com/JohnDDuncanIII/macfonts) (`Macintosh OS 1-6/OS X/`) | As Athens's |
 | `monaco-glyphs.json` | As Athens's: from bitmap-upscaling's `Monaco_12_sq_ls2_mac_6x_glyphs.json` | As Athens's |
 | `monaco-upscaled.png` | As Athens's, for Monaco (3456 × 10872) | As Athens's |
-| `NewYork_26.dfont` | New York, the 24-point bitmap font (Susan Kare, 1984), as converted for Mac OS X: one strike at 26 px, from [macfonts](https://github.com/JohnDDuncanIII/macfonts) (`Macintosh OS 1-6/OS X/`) | As Athens's |
-| `newyork24-glyphs.json` | As Athens's: from bitmap-upscaling's `NewYork_24_sq_ls2_mac_6x_glyphs.json` | As Athens's |
-| `newyork24-upscaled.png` | As Athens's, for New York 24 (8100 × 16164). The upscaler's output was a JPEG, its three channels equal | As Athens's |
-| `newyork24-6x.png` | bitmap-upscaling's 6-times sheet of New York 24 (1350 × 2694), `NewYork_24_sq_ls2_mac_6x_best_grey.png` | The few characters the AI upscaling got wrong (`SIX` in `tools/build.py`) |

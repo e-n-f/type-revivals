@@ -13,7 +13,7 @@ from fontTools.ttLib.sfnt import SFNTReader, SFNTWriter
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(HERE, '..')
 DFONT = {'athens': 'Athens_22.dfont', 'chicago': 'Chicago_15.dfont', 'geneva': 'Geneva_15.dfont',
-         'newyork12': 'NewYork_15.dfont', 'newyork24': 'NewYork_26.dfont', 'monaco': 'Monaco_15.dfont'}
+         'monaco': 'Monaco_15.dfont'}
 
 
 def sfnt(font):
