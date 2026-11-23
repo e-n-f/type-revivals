@@ -70,6 +70,9 @@ VERSIONS.update(Arcadia='1.012', BoldFaceItalic='1.004', BoldFace1='1.014', Bold
                 Testimonial='1.005', Text='1.006')
 # ¼ ½ from IBM's 1983 Mag Card catalogue, with Bold Face 1's and Documentary's ¢
 VERSIONS.update(Arcadia='1.013', BoldFace1='1.015', BoldFaceItalic='1.005', Documentary='1.013', Modern='1.011')
+# the Mag Card catalogue's 1-bit originals in place of their JPEGs; ° ± ² ³ (and Bold Face 1 Italic's [ ]) from the
+# 1983 Electronic 50 and Selectric III catalogue
+VERSIONS.update(Arcadia='1.014', BoldFace1='1.016', BoldFaceItalic='1.006', Documentary='1.014', Modern='1.012')
 
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
          'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter',
@@ -111,6 +114,9 @@ SOURCES['BoldFace2'].append(('BoldFace2Typed', '@#¢'))
 for _f, _c in (('Arcadia', '¼½'), ('BoldFace1', '¢¼½'), ('BoldFaceItalic', '¼½'), ('Documentary', '¢¼½'),
                ('Modern', '¼½')):
     SOURCES[_f].append((f'MagCard{_f}Typed', _c))
+# its Electronic 50 and Selectric III catalogue's (sources.E50): ° ± ² ³, and Bold Face 1 Italic's [ ]
+for _f, _c in (('BoldFace1', '°±²³'), ('BoldFaceItalic', '°±²³[]'), ('Modern', '°±²³')):
+    SOURCES[_f].append((f'E50{_f}Typed', _c))
 SOURCES['Directory'].append(('DirectorySet3', '%'))   # the one whole % (its first page's prints in pieces)
 # Faces with no brochure line (tools/units.py CATALOG_FACES): Secretarial's letters from the catalogue (the memo
 # typed in it is a faint photocopy), its signs and figures from the memo; Registry's from the newsletter typed in
@@ -138,7 +144,9 @@ MATCH_HEIGHTS = {'Keyboard': ('Modern', '0123456789'), 'MidCenturyTyped': ('MidC
                  'DirectorySet3': ('DirectorySet', 'EFHILTZxzvnmu'),
                  'DoricTyped': ('Doric', '$%&*()+'), 'BoldFace2Typed': ('BoldFace2', '$?!()*/'),
                  **{f'MagCard{f}Typed': ('BoldFaceItalicSet' if f == 'BoldFaceItalic' else f, '0123456789$%&()?!')
-                    for f in ('Arcadia', 'BoldFace1', 'BoldFaceItalic', 'Documentary', 'Modern')}}
+                    for f in ('Arcadia', 'BoldFace1', 'BoldFaceItalic', 'Documentary', 'Modern')},
+                 **{f'E50{f}Typed': ('BoldFaceItalicSet' if f == 'BoldFaceItalic' else f, '0123456789$%&()?!')
+                    for f in ('BoldFace1', 'BoldFaceItalic', 'Modern')}}
 # printed sources, crisper than the typed ones: thickened to the face's weight (match_weight)
 REWEIGHT = ({f'Catalog{f}' for f in VERSIONS} - {'CatalogSecretarial', 'CatalogBoldFaceItalic'}
             | {f'{f}Set' for f in OLD_FACES} | {'BoldFaceItalicSet'}) - {'SecretarialSet'}
@@ -327,6 +335,10 @@ SET_WIDTHS = {'Doric': {'@': 5, '#': 3, '_': 3, '¢': 3}, 'BoldFace2': {'@': 5, 
 # IBM's table has it): its lines are too short to fit them
 for _f in ('Arcadia', 'BoldFace1', 'BoldFaceItalic', 'Documentary', 'Modern'): SET_WIDTHS.setdefault(_f, {}).update({'¼': 3, '½': 3})
 for _f in ('BoldFace1', 'Documentary'): SET_WIDTHS[_f]['¢'] = 3
+# The Electronic 50's characters are on its own 1/60-inch units: ° ² ³ 2 of the Executive's units, ± 3 (as + is),
+# Bold Face 1 Italic's [ ] 2 (as Bold Face 1's are)
+for _f in ('BoldFace1', 'BoldFaceItalic', 'Modern'): SET_WIDTHS[_f].update({'°': 2, '±': 3, '²': 2, '³': 2})
+SET_WIDTHS['BoldFaceItalic'].update({'[': 2, ']': 2})
 
 # A ( whose prints all touch the ¢ before it: the ) turned round instead (Text's)
 TURN = {'Text': '('}
@@ -355,6 +367,8 @@ def darkness(img):
 # weight of the figures of the source named
 REWEIGHT_FIGURES = {f'MagCard{f}Typed': MATCH_HEIGHTS[f'MagCard{f}Typed'][0]
                     for f in ('Arcadia', 'BoldFace1', 'BoldFaceItalic', 'Documentary', 'Modern')}
+# and the Electronic 50 catalogue's, its thin strokes broken on a 1-bit scan: matched the same way
+REWEIGHT_FIGURES.update({f'E50{f}Typed': MATCH_HEIGHTS[f'E50{f}Typed'][0] for f in ('BoldFace1', 'BoldFaceItalic', 'Modern')})
 # Patron's J (its stems 89 units wide, the other capitals' 63 to 76)
 THIN = {'Patron': {'J': 8}}
 
