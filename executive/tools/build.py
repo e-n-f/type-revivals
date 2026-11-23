@@ -68,6 +68,11 @@ VERSIONS.update(Arcadia='1.012', BoldFaceItalic='1.004', BoldFace1='1.014', Bold
                 Copperplate1='1.005', Copperplate2='1.005', Directory='1.005', Documentary='1.012', Doric='1.010',
                 MidCentury='1.011', Modern='1.010', Patron='1.005', Registry='1.005', Secretarial='1.006',
                 Testimonial='1.005', Text='1.006')
+# ¼ ½ from IBM's 1983 Mag Card catalogue, with Bold Face 1's and Documentary's ¢
+VERSIONS.update(Arcadia='1.013', BoldFace1='1.015', BoldFaceItalic='1.005', Documentary='1.013', Modern='1.011')
+# the Mag Card catalogue's 1-bit originals in place of their JPEGs; ° ± ² ³ (and Bold Face 1 Italic's [ ]) from the
+# 1983 Electronic 50 and Selectric III catalogue
+VERSIONS.update(Arcadia='1.014', BoldFace1='1.016', BoldFaceItalic='1.006', Documentary='1.014', Modern='1.012')
 
 NAMES = {'Modern': 'Modern', 'Documentary': 'Documentary', 'MidCentury': 'Mid-Century', 'Arcadia': 'Arcadia',
          'Doric': 'Doric', 'BoldFace1': 'Bold Face 1', 'BoldFace2': 'Bold Face 2', 'Charter': 'Charter',
@@ -104,6 +109,14 @@ SOURCES['Copperplate1'] = [('Copperplate1Set', None)]           # its catalogue 
 # the NOMDA guide's lines (sources.TYPED_COLUMNS): Doric's @ # _ ¢ and Bold Face 2's @ # ¢, which nothing else shows
 SOURCES['Doric'].append(('DoricTyped', '@#_¢'))
 SOURCES['BoldFace2'].append(('BoldFace2Typed', '@#¢'))
+# IBM's 1983 Mag Card catalogue's lines of signs (sources.MAGCARD): ¼ ½, which nothing else shows, and Bold Face 1's
+# and Documentary's ¢
+for _f, _c in (('Arcadia', '¼½'), ('BoldFace1', '¢¼½'), ('BoldFaceItalic', '¼½'), ('Documentary', '¢¼½'),
+               ('Modern', '¼½')):
+    SOURCES[_f].append((f'MagCard{_f}Typed', _c))
+# its Electronic 50 and Selectric III catalogue's (sources.E50): ° ± ² ³, and Bold Face 1 Italic's [ ]
+for _f, _c in (('BoldFace1', '°±²³'), ('BoldFaceItalic', '°±²³[]'), ('Modern', '°±²³')):
+    SOURCES[_f].append((f'E50{_f}Typed', _c))
 SOURCES['Directory'].append(('DirectorySet3', '%'))   # the one whole % (its first page's prints in pieces)
 # Faces with no brochure line (tools/units.py CATALOG_FACES): Secretarial's letters from the catalogue (the memo
 # typed in it is a faint photocopy), its signs and figures from the memo; Registry's from the newsletter typed in
@@ -129,7 +142,11 @@ MATCH_HEIGHTS = {'Keyboard': ('Modern', '0123456789'), 'MidCenturyTyped': ('MidC
                  **{f'Catalog{f}': (f'{f}Set', 'EFHILTZxzvnmu') for f in NEW_FACES},
                  'CatalogBoldFaceItalic': ('BoldFaceItalicSet', 'EFHILTZxzvnmu'),
                  'DirectorySet3': ('DirectorySet', 'EFHILTZxzvnmu'),
-                 'DoricTyped': ('Doric', '$%&*()+'), 'BoldFace2Typed': ('BoldFace2', '$?!()*/')}
+                 'DoricTyped': ('Doric', '$%&*()+'), 'BoldFace2Typed': ('BoldFace2', '$?!()*/'),
+                 **{f'MagCard{f}Typed': ('BoldFaceItalicSet' if f == 'BoldFaceItalic' else f, '0123456789$%&()?!')
+                    for f in ('Arcadia', 'BoldFace1', 'BoldFaceItalic', 'Documentary', 'Modern')},
+                 **{f'E50{f}Typed': ('BoldFaceItalicSet' if f == 'BoldFaceItalic' else f, '0123456789$%&()?!')
+                    for f in ('BoldFace1', 'BoldFaceItalic', 'Modern')}}
 # printed sources, crisper than the typed ones: thickened to the face's weight (match_weight)
 REWEIGHT = ({f'Catalog{f}' for f in VERSIONS} - {'CatalogSecretarial', 'CatalogBoldFaceItalic'}
             | {f'{f}Set' for f in OLD_FACES} | {'BoldFaceItalicSet'}) - {'SecretarialSet'}
@@ -314,6 +331,15 @@ TRACE_LEVEL = {'Copperplate1Set': 0.4, 'Copperplate2Set': 0.4, 'PatronSet': 0.4,
 # every face that has them (IBM's own table, typed-bold-face-1-units.jpg, says so too), @ 4 or 5 (5 in Bold Face 1,
 # Mid-Century and Secretarial; Doric's, as wide as its capitals, too)
 SET_WIDTHS = {'Doric': {'@': 5, '#': 3, '_': 3, '¢': 3}, 'BoldFace2': {'@': 5, '#': 3, '¢': 3}}
+# The 1983 catalogue's ¼ and ½ (3 units, as its lines of signs space them, between the figures' 3) and its ¢ (3, as
+# IBM's table has it): its lines are too short to fit them
+for _f in ('Arcadia', 'BoldFace1', 'BoldFaceItalic', 'Documentary', 'Modern'): SET_WIDTHS.setdefault(_f, {}).update({'¼': 3, '½': 3})
+for _f in ('BoldFace1', 'Documentary'): SET_WIDTHS[_f]['¢'] = 3
+# The Electronic 50's lines are spaced in its own units, and too short to fit widths: ° 3 of the Executive's units
+# (fitted at 2.8 to 3.3 in all three faces), ± 3 (as + is), ² ³ 2 (their ink), Bold Face 1 Italic's [ ] 2 (as Bold
+# Face 1's are)
+for _f in ('BoldFace1', 'BoldFaceItalic', 'Modern'): SET_WIDTHS[_f].update({'°': 3, '±': 3, '²': 2, '³': 2})
+SET_WIDTHS['BoldFaceItalic'].update({'[': 2, ']': 2})
 
 # A ( whose prints all touch the ¢ before it: the ) turned round instead (Text's)
 TURN = {'Text': '('}
@@ -337,6 +363,13 @@ def darkness(img):
 
 
 # Characters printed once, more heavily than the rest of their face, thinned by this many font units a side:
+# The 1983 Mag Card catalogue's lines print heavier than the faces' sources (their figures' strokes 4 units
+# heavier in Modern, 10 to 16 in Arcadia, Bold Face 1 and Documentary, 30 in Bold Face 1 Italic): thinned to the
+# weight of the figures of the source named
+REWEIGHT_FIGURES = {f'MagCard{f}Typed': MATCH_HEIGHTS[f'MagCard{f}Typed'][0]
+                    for f in ('Arcadia', 'BoldFace1', 'BoldFaceItalic', 'Documentary', 'Modern')}
+# and the Electronic 50 catalogue's, its thin strokes broken on a 1-bit scan: matched the same way
+REWEIGHT_FIGURES.update({f'E50{f}Typed': MATCH_HEIGHTS[f'E50{f}Typed'][0] for f in ('BoldFace1', 'BoldFaceItalic', 'Modern')})
 # Patron's J (its stems 89 units wide, the other capitals' 63 to 76)
 THIN = {'Patron': {'J': 8}}
 
@@ -390,6 +423,10 @@ def glyph_images(face):
             if pk < 0.9: img = Img(np.clip(img.ink / pk, 0, 1).astype(np.float32), img.x0, img.top)
             if s.name in UNSHEAR: img = slant(img, UNSHEAR[s.name])
             if s.name in REWEIGHT: img, _ = match_weight(img, s, main)
+            if s.name in REWEIGHT_FIGURES:
+                # a line of signs and figures with no letters: its weight matched to the face's by the figures
+                a, b = mean_stroke(s, '0123456789'), mean_stroke(Source(REWEIGHT_FIGURES[s.name]), '0123456789')
+                if a and b: img, _ = reweigh(img, int(round((b - a) / 2)))
             # the fitted offset in the slug holds only with the fitted width: where IBM's width differs (a
             # period fitted at 2 units, printed at 3), the glyph is centred
             fitted = next((t.units[ch] for t in srcs if ch in t.units), None)
@@ -483,7 +520,22 @@ def match_weight(img, src, ref, chars='nmhu'):
         xh = top_of(b); sa, sb = stems(a, xh / 2), stems(b, xh / 2)
         if len(sa) == len(sb): diffs += [y - x for x, y in zip(sa, sb)]
     if not diffs: return img, 0
-    d = int(round(np.median(diffs) / 2))                         # positive: thicken; negative: thin
+    return reweigh(img, int(round(np.median(diffs) / 2)))
+
+
+def mean_stroke(src, chars):
+    """the average width of the strokes of chars in src, in font units: their ink over their skeletons' length"""
+    from skimage.morphology import skeletonize
+    area = length = 0
+    for c in chars:
+        if c not in src.by_char(): continue
+        m = average(clean(src.by_char()[c]), src.k).ink > 0.5
+        area += m.sum(); length += skeletonize(m).sum()
+    return area / length if length else None
+
+
+def reweigh(img, d):
+    """img's strokes thickened by d font units a side (thinned, d negative), at its height and width"""
     if d == 0: return img, 0
     r = abs(d)
     k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1))
