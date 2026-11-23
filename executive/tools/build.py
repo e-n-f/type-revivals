@@ -335,9 +335,10 @@ SET_WIDTHS = {'Doric': {'@': 5, '#': 3, '_': 3, '¢': 3}, 'BoldFace2': {'@': 5, 
 # IBM's table has it): its lines are too short to fit them
 for _f in ('Arcadia', 'BoldFace1', 'BoldFaceItalic', 'Documentary', 'Modern'): SET_WIDTHS.setdefault(_f, {}).update({'¼': 3, '½': 3})
 for _f in ('BoldFace1', 'Documentary'): SET_WIDTHS[_f]['¢'] = 3
-# The Electronic 50's characters are on its own 1/60-inch units: ° ² ³ 2 of the Executive's units, ± 3 (as + is),
-# Bold Face 1 Italic's [ ] 2 (as Bold Face 1's are)
-for _f in ('BoldFace1', 'BoldFaceItalic', 'Modern'): SET_WIDTHS[_f].update({'°': 2, '±': 3, '²': 2, '³': 2})
+# The Electronic 50's lines are spaced in its own units, and too short to fit widths: ° 3 of the Executive's units
+# (fitted at 2.8 to 3.3 in all three faces), ± 3 (as + is), ² ³ 2 (their ink), Bold Face 1 Italic's [ ] 2 (as Bold
+# Face 1's are)
+for _f in ('BoldFace1', 'BoldFaceItalic', 'Modern'): SET_WIDTHS[_f].update({'°': 3, '±': 3, '²': 2, '³': 2})
 SET_WIDTHS['BoldFaceItalic'].update({'[': 2, ']': 2})
 
 # A ( whose prints all touch the ¢ before it: the ) turned round instead (Text's)

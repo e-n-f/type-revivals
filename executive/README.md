@@ -192,8 +192,8 @@ a font lacks is an empty box.
   1983 catalogue of the Electronic Typewriter 50's and Selectric III's 96-character type styles (TC 17.6), whose
   proportional Boldface, Boldface Italic and Modern are these faces redrawn for that machine's 54-tooth ratchet.
   Its lines of signs, `°!@#$%¢&*()_+¼[:"?,.¶³` and `±1234567890-=½];'/,.§²`, are a 1-bit scan whose thin strokes
-  break, so these characters are rough too. They are set in the Executive's units: `° ² ³` 2, `±` 3 (as `+` is),
-  `[ ]` 2 (as Bold Face 1's are).
+  break, so these characters are rough too. They are set in the Executive's units: `°` 3 (as the lines space it), `±` 3
+  (as `+` is), `² ³` 2, `[ ]` 2 (as Bold Face 1's are).
 - The two catalogues' prints are heavier or lighter than the faces' other sources: their characters are thickened
   or thinned by half the difference between the two sources' figure strokes.
 - **`! ? :`** are set with their dots on the baseline where the face's own period sits, and `;` with its upper dot
