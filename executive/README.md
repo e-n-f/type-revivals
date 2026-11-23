@@ -181,7 +181,7 @@ a font lacks is an empty box.
   Their widths are set, not fitted (`SET_WIDTHS` in `tools/build.py`): `# _ ¢` 3 units, as in every face that has
   them, and `@` 5.
 - **¼ and ½** in Arcadia, Bold Face 1, Bold Face 1 Italic, Documentary and Modern, **Bold Face 1's and
-  Documentary's ¢**, and **Modern's `)`** are from IBM's Mag Card Executive type catalogue (TC 5.1 and 5.2,
+  Documentary's ¢** are from IBM's Mag Card Executive type catalogue (TC 5.1 and 5.2,
   July 1983), which sets a line of signs in each of its faces: `!@#$%¢&*()_+¼:",.?` over
   `1234567890-=½;',./`. Its Arcadia 72, Document 72, Modern 72, Bold Face 72 and Bold Face Italic 72 are these
   faces (the 1/32-inch Bold Face, the only one on its 24-tooth ratchet). Its faces are refitted to the Mag Card's

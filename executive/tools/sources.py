@@ -309,7 +309,7 @@ TYPED_COLUMNS = {'Doric': [(NOMDA, (335, 540, 630, 592),
 # signs and figures in each face, two rows: !@#$%¢&*()_+¼:",.? over 1234567890-=½;',./.  Its Arcadia 72, Bold Face
 # 72, Bold Face Italic 72, Document 72 and Modern 72 are our Arcadia, Bold Face 1 (the 1/32-inch Bold Face),
 # Bold Face 1 Italic, Documentary and Modern.  It gives their ¼ and ½, which nothing else shows, Bold Face 1's and
-# Documentary's ¢, and Modern's ) (its card has only the ().  Read by hand-listed columns: in the first row the _
+# Documentary's ¢.  Read by hand-listed columns: in the first row the _
 # touches the +, and the second row's top is cut below the first row's _, which prints over the 0 - =.  (Arcadia's
 # first row is read to its :, after which it has a stray dot.)  Each is a source of its own, MagCard<Face>Typed,
 # fitted with its face's unit table (UNITS_OF).
