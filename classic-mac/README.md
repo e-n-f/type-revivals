@@ -6,10 +6,10 @@ recreation lines up as the bitmap font set it.
 
 | Font | Recreates | Version | Files |
 |---|---|---|---|
-| Athens HD | Athens 18 (Susan Kare, 1984) | 1.002 | `fonts/otf/AthensHD-Regular.otf`, `fonts/ttf/AthensHD-Regular.ttf` |
-| Chicago HD | Chicago 12 (Susan Kare, 1984) | 1.002 | `fonts/otf/ChicagoHD-Regular.otf`, `fonts/ttf/ChicagoHD-Regular.ttf` |
-| Geneva HD | Geneva 12 (Susan Kare, 1984) | 1.001 | `fonts/otf/GenevaHD-Regular.otf`, `fonts/ttf/GenevaHD-Regular.ttf` |
-| Monaco HD | Monaco 12 (Susan Kare, 1984) | 1.003 | `fonts/otf/MonacoHD-Regular.otf`, `fonts/ttf/MonacoHD-Regular.ttf` |
+| Athens HD | Athens 18 (Susan Kare, 1984) | 1.003 | `fonts/otf/AthensHD-Regular.otf`, `fonts/ttf/AthensHD-Regular.ttf` |
+| Chicago HD | Chicago 12 (Susan Kare, 1984) | 1.003 | `fonts/otf/ChicagoHD-Regular.otf`, `fonts/ttf/ChicagoHD-Regular.ttf` |
+| Geneva HD | Geneva 12 (Susan Kare, 1984) | 1.002 | `fonts/otf/GenevaHD-Regular.otf`, `fonts/ttf/GenevaHD-Regular.ttf` |
+| Monaco HD | Monaco 12 (Susan Kare, 1984) | 1.004 | `fonts/otf/MonacoHD-Regular.otf`, `fonts/ttf/MonacoHD-Regular.ttf` |
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
 [ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px).
@@ -47,11 +47,14 @@ Every advance width is the bitmap's, in whole pixels, and the line gap is none. 
 had none. Monaco HD is monospaced, and marked so: every character advances 7 pixels, 350 units. (The bitmap's `©` and `®`
 advance 6; here they advance 7 like the rest, with their ink where the bitmap has it.)
 
-Traced at their 50 % contour, the strokes come out the bitmap's exact width: Chicago's and Athens's stems are 2
-pixels, the others' 1. But antialiased outlines read darker than crisp pixels, more so
-with macOS's font smoothing, so every font's strokes are thinned by 4 units a side (`LIGHTEN` in
-`tools/build.py`), to about 1.8 pixels (0.8 for a 1-pixel stroke). Thinning would widen any small dent in
-the traced ink into a notch, so dents narrower than the thinning are filled first.
+Traced at their 50 % contour, the strokes come out about the bitmap's width (Chicago's and Athens's stems are 2
+pixels, the others' 1), but with a little less ink than the bitmap: the pixels' corners are rounded and the
+steps of diagonals cut. Each font's strokes are thickened by as many units a side as give it its bitmap's ink,
+over A–Z, a–z and 0–9 (`LIGHTEN` in `tools/build.py`; `tools/weight.py` measures it): Athens HD and Chicago HD
+by 1, Geneva HD by 2, Monaco HD by 3, each then within 2 % of its bitmap's ink.
+`specimen/line-<font>.png` ([Athens](specimen/line-athens.png), [Chicago](specimen/line-chicago.png),
+[Geneva](specimen/line-geneva.png), [Monaco](specimen/line-monaco.png)) sets the alphabets and figures on one
+line in the bitmap and in the HD font, to compare.
 
 ## Character set
 
@@ -91,6 +94,7 @@ Ubuntu) at `/usr/share/fonts/truetype/dejavu/` for the specimen's label.
 pip install -r requirements.txt
 python3 tools/build.py       # fonts/otf, fonts/ttf (about a minute)
 python3 tools/specimen.py    # specimen/
+python3 tools/weight.py      # each font's ink against its bitmap's
 python3 ../scripts/font_links.py   # the download lists and their specimen lines
 ```
 

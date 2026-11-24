@@ -31,7 +31,7 @@ import bitmap
 Image.MAX_IMAGE_PIXELS = None
 
 PX = 50                                   # font units per bitmap pixel
-VERSIONS = {'athens': '1.002', 'chicago': '1.002', 'geneva': '1.001', 'monaco': '1.003'}
+VERSIONS = {'athens': '1.003', 'chicago': '1.003', 'geneva': '1.002', 'monaco': '1.004'}
 # the size the Mac's menus gave the bitmap font, in points: its em, at 72 dpi, in pixels (the strike's 22 px are
 # its ascender and descender), so that set at 18 pt Athens HD matches Athens 18
 SIZE = {'athens': 18, 'chicago': 12, 'geneva': 12, 'monaco': 12}
@@ -46,10 +46,10 @@ MOVED = {'chicago': 'Ÿ⁄¤‹'}
 # further code points for a character: Ω is both the Greek letter and the ohm sign (Mac OS Roman 0xBD is either)
 ALSO = {'Ω': [0x2126]}
 SIGMA = 1.5                               # smoothing of the traced ink, in font units
-# Font units taken off each side of every stroke. Traced at their 50 % contour, the stems come out the bitmap's
-# exact width (2 px), but antialiased outlines (and macOS's font smoothing) read darker than crisp pixels:
-# both are thinned to about 1.8 px
-LIGHTEN = {'athens': 4, 'chicago': 4, 'geneva': 4, 'monaco': 4}
+# Font units taken off each side of every stroke (a negative number: added). Traced at their 50 % contour, the
+# glyphs come out with a little less ink than their bitmaps (the pixels' corners rounded, the steps of diagonals
+# cut); each font is thickened by as much as gives it its bitmap's ink, over A-Z, a-z and 0-9 (tools/weight.py)
+LIGHTEN = {'athens': -1, 'chicago': -1, 'geneva': -2, 'monaco': -3}
 # Accented letters whose accent the upscaling got wrong: Geneva 12's acute, grave and dieresis are two or three
 # pixels, and on the sheet á à é came out as circumflexes, ä and ï as broken marks. Each takes the accent of a
 # letter the sheet gets right whose bitmap accent has the same pixels (reaccent())
