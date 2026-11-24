@@ -34,7 +34,7 @@ PX = 50                                   # font units per bitmap pixel
 VERSIONS = {'athens': '1.002', 'chicago': '1.002', 'geneva': '1.001', 'newyork12': '1.003', 'newyork24': '1.001',
             'monaco': '1.003', 'newyork12mid': '1.003', 'newyork24mid': '1.002'}
 # New York 12 Blend HD (tools/sdfblend.py: New York 24 warped onto New York 12, their distance fields averaged)
-BLEND_VERSION = '1.010'
+BLEND_VERSION = '1.011'
 # fonts traced from another's sources (sheet, glyph positions and bitmap) at another weight
 SOURCE = {'newyork12mid': 'newyork12', 'newyork24mid': 'newyork24'}
 MID = {f: ' Its strokes are at the weight halfway between those of New York 12 HD and 24 HD.' for f in SOURCE}
