@@ -6,10 +6,10 @@ recreation lines up as the bitmap font set it.
 
 | Font | Recreates | Version | Files |
 |---|---|---|---|
-| Athens HD | Athens 18 (Susan Kare, 1984) | 1.003 | `fonts/otf/AthensHD-Regular.otf`, `fonts/ttf/AthensHD-Regular.ttf` |
-| Chicago HD | Chicago 12 (Susan Kare, 1984) | 1.003 | `fonts/otf/ChicagoHD-Regular.otf`, `fonts/ttf/ChicagoHD-Regular.ttf` |
-| Geneva HD | Geneva 12 (Susan Kare, 1984) | 1.002 | `fonts/otf/GenevaHD-Regular.otf`, `fonts/ttf/GenevaHD-Regular.ttf` |
-| Monaco HD | Monaco 12 (Susan Kare, 1984) | 1.004 | `fonts/otf/MonacoHD-Regular.otf`, `fonts/ttf/MonacoHD-Regular.ttf` |
+| Athens HD | Athens 18 (Susan Kare, 1984) | 1.004 | `fonts/otf/AthensHD-Regular.otf`, `fonts/ttf/AthensHD-Regular.ttf` |
+| Chicago HD | Chicago 12 (Susan Kare, 1984) | 1.004 | `fonts/otf/ChicagoHD-Regular.otf`, `fonts/ttf/ChicagoHD-Regular.ttf` |
+| Geneva HD | Geneva 12 (Susan Kare, 1984) | 1.003 | `fonts/otf/GenevaHD-Regular.otf`, `fonts/ttf/GenevaHD-Regular.ttf` |
+| Monaco HD | Monaco 12 (Susan Kare, 1984) | 1.005 | `fonts/otf/MonacoHD-Regular.otf`, `fonts/ttf/MonacoHD-Regular.ttf` |
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
 [ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px).
@@ -111,6 +111,6 @@ python3 ../scripts/font_links.py   # the download lists and their specimen lines
 3. **Placing.** Each outline is placed by its origin, and given the bitmap's advance. The bitmap font itself
    (`scans/*.dfont`, read by `tools/bitmap.py`) gives the space's width and the
    ascender and descender.
-4. **Accents.** Where the sheet has a wrong accent over a letter (Geneva's `á à ä é ï`, Monaco's `à`: `REACCENT` in
+4. **Accents.** Where the sheet has a wrong accent over a letter (Geneva's `á à ä é ï`, Monaco's `à ë`: `REACCENT` in
    `tools/build.py`), the accent is taken from another letter whose bitmap has the same accent, pixel for pixel,
    and set where the bitmap has it.

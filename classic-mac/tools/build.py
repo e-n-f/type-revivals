@@ -31,7 +31,7 @@ import bitmap
 Image.MAX_IMAGE_PIXELS = None
 
 PX = 50                                   # font units per bitmap pixel
-VERSIONS = {'athens': '1.003', 'chicago': '1.003', 'geneva': '1.002', 'monaco': '1.004'}
+VERSIONS = {'athens': '1.004', 'chicago': '1.004', 'geneva': '1.003', 'monaco': '1.005'}
 # the size the Mac's menus gave the bitmap font, in points: its em, at 72 dpi, in pixels (the strike's 22 px are
 # its ascender and descender), so that set at 18 pt Athens HD matches Athens 18
 SIZE = {'athens': 18, 'chicago': 12, 'geneva': 12, 'monaco': 12}
@@ -53,7 +53,7 @@ LIGHTEN = {'athens': -1, 'chicago': -1, 'geneva': -2, 'monaco': -3}
 # Accented letters whose accent the upscaling got wrong: Geneva 12's acute, grave and dieresis are two or three
 # pixels, and on the sheet á à é came out as circumflexes, ä and ï as broken marks. Each takes the accent of a
 # letter the sheet gets right whose bitmap accent has the same pixels (reaccent())
-REACCENT = {'geneva': 'áàäéï', 'monaco': 'à'}           # Monaco's à came out a circumflex
+REACCENT = {'geneva': 'áàäéï', 'monaco': 'àë'}          # Monaco's à came out a circumflex, its ë's dots an arch
 # Monospaced fonts: every advance, in bitmap pixels. Monaco 12's © and ® advance only 6 in the bitmap (the left of
 # each circle is cut off); here they advance 7 like the rest, their ink where the bitmap has it, and the font is
 # marked fixed-pitch
@@ -113,7 +113,13 @@ def glyphs(font):
                 # thinning widens any dent in the ink by the disc's radius each side, into a notch: first fill
                 # dents narrower than the disc (a closing), then thin
                 ink = cv2.erode(cv2.erode(cv2.dilate(ink, disc), disc), disc)
-            else: ink = cv2.dilate(ink, disc)
+            else:
+                # thickening would raise faint specks on the sheet (a neighbour's edge) into ink: pieces of ink
+                # smaller than a quarter of a pixel are dropped first
+                n, lab, st, _ = cv2.connectedComponentsWithStats((ink > 0.5).astype(np.uint8), 8)
+                small = [i for i in range(1, n) if st[i][4] < (PX / 2) ** 2]        # ink is in font units
+                ink = np.where(np.isin(lab, small), 0, ink).astype(np.float32)
+                ink = cv2.dilate(ink, disc)
         ox, oy = g['origin'][0] * k, g['origin'][1] * k
         dx, dy = (x0 - ox) * f, (oy - y0) * f                # the crop's top left corner, from the origin
         contours = [[(s[0],) + tuple((p[0] + dx, p[1] + dy) for p in s[1:]) for s in c]
