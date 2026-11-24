@@ -4,20 +4,22 @@
 
 For each glyph:
   1. both fonts' unthinned outlines (LIGHTEN 0) are rasterized at 1000 em units to the em;
-  2. New York 24's glyph is fitted onto New York 12's by their ink boxes, then registered to it by their
-     centerlines (centerlines/, from tools/centerline.py): each point of New York 12's centerline is matched to
-     the nearest point of 24's whose stroke runs the same way, a smoothed thin-plate spline is fitted through the
-     pairs, and again, ROUNDS times, so that a part that has to move a long way (the e's crossbar, 24's sitting
-     higher) comes in. Small pieces of ink (dots, accents) are paired by their centres and held. The warp moves
-     strokes onto New York 12's without fattening them: 24's stay as thick as they are;
-  3. New York 24's signed distance field (distance to the ink's edge, positive inside) is warped onto New York
-     12's positions with it;
-  4. New York 24's field is kept within GROW outside and THIN inside New York 12's (where the warp goes wrong it
-     can't put ink in a counter, nor lose an accent), and the two fields are averaged, t of the way to New York 24's, less the thinning (t of the way from New York
-     12 HD's to 24 HD's), and the result traced at its edge.
-Where the two designs agree in structure, strokes take in-between thickness and contrast; where they differ
-(a % or an @ drawn differently), the parts cross-fade rather than break. The advances and spacing are New York
-12's exactly; the shapes may move a little from 12's, towards 24's (12's square serifs, forced by its pixels).
+  2. New York 24's glyph is fitted onto New York 12's: across by their ink boxes, up and down by the fonts' guide
+     lines (descender, baseline, x-height, cap height, ascender), stretched linearly between them;
+  3. it is registered to New York 12's by their centerlines (centerlines/, from tools/centerline.py): each point
+     of 12's centerline matched to the nearest point of 24's whose stroke runs the same way, a smoothed
+     thin-plate spline fitted through the pairs, and again, ROUNDS times (so that a part that has to move a long
+     way, the e's crossbar, comes in). Small pieces of ink (dots, accents) are paired by their centres, and edges
+     on the guide lines by the guide lines (a thin serif's foot on the baseline, not its middle on 12's thicker
+     serif's middle), and held;
+  4. the two glyphs' signed distance fields (distance to the ink's edge, positive inside) are warped to the shape
+     t of the way from 12's to 24's (MORPH); 24's is kept within GROW outside and THIN inside 12's (where the warp
+     goes wrong it can't put ink in a counter, nor lose an accent); they are averaged, t of the way to 24's, less
+     the thinning (t of the way from New York 12 HD's to 24 HD's); and the result is traced at its edge, specks off
+     12's ink dropped.
+A glyph whose blend comes apart (in more or fewer pieces than New York 12's) is blended again with New York 12's
+shape kept, then a quarter of the way, else is New York 12's own, thinned; the build lists them. The advances
+and spacing are New York 12's exactly.
 """
 import os, sys
 import numpy as np, cv2
@@ -78,6 +80,11 @@ def lines_image(lines, X0, Y1, W, H, fit=lambda x, y: (x, y)):
     return cv2.GaussianBlur(im, (0, 0), BLUR)
 
 
+MORPH = True                    # the blend's shapes moved t of the way to New York 24's, not New York 12's kept
+ANCHOR = 12                     # em units: an edge this near a guide line is on it
+EDGE_STEP = 10                  # em units between the edges sampled along the guide lines
+PIECE = 200                     # em units squared: a piece of ink this small isn't counted
+FELL = []                       # the glyphs blended less than the rest (blend())
 SMALL = 0.25                    # a piece of ink less than this of the glyph's largest is a dot or an accent
 NEAR = 150                      # em units: the furthest two such pieces are paired
 SPECK = 2500                    # em units squared: a piece of the blend this small, off New York 12's ink, is dropped
@@ -105,6 +112,35 @@ def anchors(g, h, inv):
     for d, i, j in pairs:
         if d > NEAR or i in used_a or j in used_b: continue
         used_a.add(i); used_b.add(j); out.append((a[i], b[j]))
+    return out
+
+
+def guides(R):
+    """a font's guide lines, in em units, from its rasters: (baseline, x-height, cap height, ascender, descender)"""
+    b = lambda c: box(*R[c][:3])
+    return b('x')[1], b('x')[3], b('H')[3], b('h')[3], b('p')[1]
+
+
+def guide_pins(g, D24f, warp, inv_y, G12, G24):
+    """pairs holding the guide lines: where New York 12's ink has an edge on a guide line (a serif's foot on the
+    baseline, an arch's top on the x-height), the edge is pinned to the same guide line of New York 24's, where the
+    warp puts it across, if 24's ink has an edge there too. Lined up by their centerlines, a thin serif of 24's
+    would sit on the middle of 12's thicker one, and its edge sag from the baseline"""
+    m, x0, y1, _ = g
+    lines = [(G12[0], G24[0], -1), (G12[4], G24[4], -1), (G12[1], G24[1], 1), (G12[2], G24[2], 1), (G12[3], G24[3], 1)]
+    out = []
+    for c in range(0, m.shape[1], EDGE_STEP):
+        col = m[:, c]
+        rows = np.nonzero(col[1:] != col[:-1])[0]          # edges down the column, between rows r and r + 1
+        x = c + x0 + 0.5
+        for r in rows:
+            y = y1 - (r + 1)                                # the edge's height
+            top = col[r + 1] > col[r]                       # ink below it: a top edge
+            for y12, y24, side in lines:
+                if abs(y - y12) > ANCHOR or (side == 1) != top: continue
+                qx, _ = warp(np.array([[x, y]]))[0]
+                qy = inv_y(y24) + (y - y12)                 # 24's guide, on the canvas, as far off it as 12's edge
+                if abs(D24f(qx, qy)) < ANCHOR: out.append(((x, y), (qx, qy)))
     return out
 
 
@@ -137,12 +173,26 @@ def tps_register(L12, L24, inv, pins=()):
     return warp
 
 
-def blend_glyph(g, h, t, shrink, cl=None):
+def blend_glyph(g, h, t, shrink, cl=None, G=None):
     """New York 12's glyph g and 24's h, (ink, x0, y1, adv): the blended ink on a canvas round g, (f, x0, y1),
     f the field to trace (0 to 1, its edge at 0.5)"""
     m12, x12, y12, _ = g; m24, x24, y24, _ = h
     a0, b0, a1, b1 = box(m12, x12, y12); c0, d0, c1, d1 = box(m24, x24, y24)
     sx, sy = (a1 - a0) / (c1 - c0), (b1 - b0) / (d1 - d0)
+    # vertically, h is fitted to g by the fonts' guide lines (descender, baseline, x-height, cap height, ascender),
+    # stretched linearly between them, so that 24's x-height falls on 12's and so on, whatever the glyph's own box
+    # (an accented capital's takes in its accent); across, by the boxes
+    if G:
+        g12, g24 = sorted(G[0]), sorted(G[1])
+        def piecewise(y, src, dst):
+            y = np.asarray(y, np.float64)
+            out = np.interp(y, src, dst)
+            lo, hi = y < src[0], y > src[-1]
+            out = np.where(lo, dst[0] + (y - src[0]) * (dst[1] - dst[0]) / (src[1] - src[0]), out)
+            return np.where(hi, dst[-1] + (y - src[-1]) * (dst[-1] - dst[-2]) / (src[-1] - src[-2]), out)
+        to12 = lambda y: piecewise(y, g24, g12); to24 = lambda y: piecewise(y, g12, g24)
+    else:
+        to12 = lambda y: b0 + (np.asarray(y) - d0) * sy; to24 = lambda y: d0 + (np.asarray(y) - b0) / sy
     # the canvas: g's box and a margin, in em units (1 px = 1 em unit), x0 left and Y1 top
     X0, Y1 = int(a0) - MARGIN, int(b1) + MARGIN
     W, H = int(a1) + MARGIN - X0, Y1 - (int(b0) - MARGIN)
@@ -152,7 +202,7 @@ def blend_glyph(g, h, t, shrink, cl=None):
     D12 = cv2.remap(sdf(m12).astype(np.float32), (X - x12).astype(np.float32), (y12 - Y).astype(np.float32),
                     cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=-FAR)
     # h fitted by the boxes: its ink on the canvas
-    fx = lambda X: c0 + (X - a0) / sx; fy = lambda Y: d0 + (Y - b0) / sy      # canvas -> h's em units
+    fx = lambda X: c0 + (X - a0) / sx; fy = to24                              # canvas -> h's em units
     S24 = sdf(m24).astype(np.float32)
     fit = lambda Xs, Ys: cv2.remap(S24, (fx(Xs) - x24).astype(np.float32), (y24 - fy(Ys)).astype(np.float32),
                                    cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=-FAR)
@@ -160,13 +210,24 @@ def blend_glyph(g, h, t, shrink, cl=None):
     small = lambda D: cv2.GaussianBlur(cv2.resize((D > 0).astype(np.float32), (W // FLOW, H // FLOW),
                                                   interpolation=cv2.INTER_AREA), (0, 0), BLUR)
     if cl:      # the two glyphs' centerlines (centerline.py): matched point to point, a thin-plate spline through them
-        inv = lambda x, y: (a0 + (x - c0) * sx, b0 + (y - d0) * sy)        # h's em units -> the canvas
-        warp = tps_register(cl[0], cl[1], inv, anchors(g, h, inv))
+        inv = lambda x, y: (a0 + (x - c0) * sx, float(to12(y)))           # h's em units -> the canvas
+        pins = anchors(g, h, inv)
+        warp = tps_register(cl[0], cl[1], inv, pins)
+        if G:       # then held at the guide lines too, and registered again
+            D24f = lambda x, y: float(fit(np.array([[x]], np.float32), np.array([[y]], np.float32))[0, 0])
+            pins = pins + guide_pins(g, D24f, warp, lambda y: float(to12(y)), *G)
+            warp = tps_register(cl[0], cl[1], inv, pins)
         gx, gy = np.meshgrid(np.arange(0, W, FLOW) + X0 + 0.5, Y1 - np.arange(0, H, FLOW) - 0.5)
         Z = warp(np.c_[gx.ravel(), gy.ravel()])
         TX = cv2.resize(Z[:, 0].reshape(gx.shape).astype(np.float32), (W, H), interpolation=cv2.INTER_LINEAR)
         TY = cv2.resize(Z[:, 1].reshape(gy.shape).astype(np.float32), (W, H), interpolation=cv2.INTER_LINEAR)
-        D24 = fit(TX, TY)
+        # the shapes moved t of the way too: each point of the blend takes 12's ink from t of the way back along
+        # the warp, and 24's from the rest of the way on
+        UX, UY = TX - X, TY - Y
+        D12 = cv2.remap(sdf(m12).astype(np.float32), (X - t * UX - x12).astype(np.float32),
+                        (y12 - (Y - t * UY)).astype(np.float32), cv2.INTER_LINEAR,
+                        borderMode=cv2.BORDER_CONSTANT, borderValue=-FAR) if MORPH else D12
+        D24 = fit(X + (1 - t) * UX, Y + (1 - t) * UY) if MORPH else fit(TX, TY)
     else:       # their ink, blurred: optical flow between them
         A = np.clip(small(D12) * 255, 0, 255).astype(np.uint8); Bf = np.clip(small(fit(X, Y)) * 255, 0, 255).astype(np.uint8)
         flow = cv2.calcOpticalFlowFarneback(A, Bf, None, 0.5, 4, WIN, 6, 7, 1.5, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
@@ -192,14 +253,27 @@ def blend(t, R12, R24, C12=None, C24=None):
     """{char: (contours, adv)} in New York 12's font units; C12, C24 the fonts' centerlines, to register by"""
     s = EM / (B.SIZE['newyork12'] * B.PX)
     shrink = (1 - t) * B.LIGHTEN['newyork12'] * s + t * B.LIGHTEN['newyork24'] * EM / (B.SIZE['newyork24'] * B.PX)
+    global MORPH
+    G12, G24 = guides(R12), guides(R24)
     G = {}
+    own = lambda g: (np.clip(0.5 + (sdf(g[0]) - shrink) / 2, 0, 1).astype(np.float32), g[1], g[2])
     for ch, g in R12.items():
         if ch in R24:
             cl = (C12[ch]['lines'], C24[ch]['lines']) if C12 and ch in C12 and ch in C24 else None
-            f, X0, Y1 = blend_glyph(g, R24[ch], t, shrink, cl)
+            # a glyph whose blend comes apart (in more or fewer pieces than New York 12's: where the two designs
+            # differ, a stem of 12's that 24's lacks thins away) is blended again with its shape kept, then a
+            # quarter of the way only, and else is New York 12's own, thinned
+            want = len([1 for _, a in pieces(*g[:3]) if a > PIECE])
+            for morph, u in ((True, t), (False, t), (False, t / 2)):
+                MORPH = morph
+                f, X0, Y1 = blend_glyph(g, R24[ch], u, shrink, cl, (G12, G24))
+                if len([1 for _, a in pieces(f > 0.5, X0, Y1) if a > PIECE]) == want: break
+            else:
+                f, X0, Y1 = own(g); FELL.append(ch)
+            MORPH = True
+            if (morph, u) != (True, t) and ch not in FELL: FELL.append(ch)
         else:                       # nothing to blend with: New York 12's own, thinned
-            m, X0, Y1, _ = g
-            f = np.clip(0.5 + (sdf(m) - shrink) / 2, 0, 1).astype(np.float32)
+            f, X0, Y1 = own(g)
         f = cv2.resize(f, (int(round(f.shape[1] / s)), int(round(f.shape[0] / s))), interpolation=cv2.INTER_AREA)
         ox, oy = X0 / s, Y1 / s
         G[ch] = ([[(seg[0],) + tuple((p[0] + ox, p[1] + oy) for p in seg[1:]) for seg in c]
@@ -222,3 +296,4 @@ if __name__ == '__main__':
         strike, metrics = bitmap.strike('newyork12')
         G = blend(t, R12, R24, *C)
         B.font(key, True, (G, strike, metrics)); B.font(key, False, (G, strike, metrics))
+        print('blended less:', ''.join(FELL) or 'none')
