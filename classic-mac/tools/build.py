@@ -31,10 +31,10 @@ import bitmap
 Image.MAX_IMAGE_PIXELS = None
 
 PX = 50                                   # font units per bitmap pixel
-VERSIONS = {'athens': '1.002', 'chicago': '1.002', 'geneva': '1.001', 'newyork12': '1.002', 'newyork24': '1.001',
-            'monaco': '1.003', 'newyork12mid': '1.002', 'newyork24mid': '1.002'}
+VERSIONS = {'athens': '1.002', 'chicago': '1.002', 'geneva': '1.001', 'newyork12': '1.003', 'newyork24': '1.001',
+            'monaco': '1.003', 'newyork12mid': '1.003', 'newyork24mid': '1.002'}
 # New York 12 Blend HD (tools/sdfblend.py: New York 24 warped onto New York 12, their distance fields averaged)
-BLEND_VERSION = '1.008'
+BLEND_VERSION = '1.009'
 # fonts traced from another's sources (sheet, glyph positions and bitmap) at another weight
 SOURCE = {'newyork12mid': 'newyork12', 'newyork24mid': 'newyork24'}
 MID = {f: ' Its strokes are at the weight halfway between those of New York 12 HD and 24 HD.' for f in SOURCE}
@@ -80,6 +80,11 @@ SIX = {'newyork24': ',™À'}
 # Characters whose one-pixel dots (the dieresis) the upscaling drew faint or lost: each dot is a round dot a pixel
 # across (less LIGHTEN a side), at its pixel in the bitmap
 DOTS = {'newyork24': 'ÄÖÜäëïöüÿ¨'}
+# Letters the upscaling drew too large: New York 12's a (and so its accented a's and æ) came out reaching from 7 to
+# 343 font units, where c, e and o reach from 20 to 333 and the flat-topped x from 12 to 339; its bitmap is 7
+# pixels high, as theirs are. Its body is squeezed from the one span (font units, as traced) to the other, and an
+# accent over it moved down with it
+SQUEEZE = {'newyork12': ('aàáâãäåæ', (7, 343), (11, 333))}
 
 
 def gname(ch):
@@ -143,6 +148,10 @@ def glyphs(font):
         dx, dy = (x0 - ox) * f, (oy - y0) * f                # the crop's top left corner, from the origin
         contours = [[(s[0],) + tuple((p[0] + dx, p[1] + dy) for p in s[1:]) for s in c]
                     for c in trace.trace(ink, SIGMA)]
+        if g['char'] in SQUEEZE.get(src, ('',))[0]:
+            _, (a, b), (c, d) = SQUEEZE[src]
+            y = lambda v: c + (v - a) * (d - c) / (b - a) if v < b else v - (b - d)
+            contours = [[(s[0],) + tuple((p[0], y(p[1])) for p in s[1:]) for s in cn] for cn in contours]
         out[g['char']] = (contours, g['source']['advance'] * PX)
     return out
 

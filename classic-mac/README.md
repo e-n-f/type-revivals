@@ -9,11 +9,11 @@ recreation lines up as the bitmap font set it.
 | Athens HD | Athens 18 (Susan Kare, 1984) | 1.002 | `fonts/otf/AthensHD-Regular.otf`, `fonts/ttf/AthensHD-Regular.ttf` |
 | Chicago HD | Chicago 12 (Susan Kare, 1984) | 1.002 | `fonts/otf/ChicagoHD-Regular.otf`, `fonts/ttf/ChicagoHD-Regular.ttf` |
 | Geneva HD | Geneva 12 (Susan Kare, 1984) | 1.001 | `fonts/otf/GenevaHD-Regular.otf`, `fonts/ttf/GenevaHD-Regular.ttf` |
-| New York 12 HD | New York 12 (Susan Kare, 1984) | 1.002 | `fonts/otf/NewYork12HD-Regular.otf`, `fonts/ttf/NewYork12HD-Regular.ttf` |
+| New York 12 HD | New York 12 (Susan Kare, 1984) | 1.003 | `fonts/otf/NewYork12HD-Regular.otf`, `fonts/ttf/NewYork12HD-Regular.ttf` |
 | New York 24 HD | New York 24 (Susan Kare, 1984) | 1.001 | `fonts/otf/NewYork24HD-Regular.otf`, `fonts/ttf/NewYork24HD-Regular.ttf` |
 | Monaco HD | Monaco 12 (Susan Kare, 1984) | 1.003 | `fonts/otf/MonacoHD-Regular.otf`, `fonts/ttf/MonacoHD-Regular.ttf` |
-| New York 12 Blend HD | New York 12 blended halfway to New York 24, on 12's spacing | 1.008 | `fonts/otf/NewYork12BlendHD-Regular.otf`, `fonts/ttf/NewYork12BlendHD-Regular.ttf` |
-| New York 12 Mid HD | New York 12, at the weight halfway to New York 24's | 1.002 | `fonts/otf/NewYork12MidHD-Regular.otf`, `fonts/ttf/NewYork12MidHD-Regular.ttf` |
+| New York 12 Blend HD | New York 12 blended halfway to New York 24, on 12's spacing | 1.009 | `fonts/otf/NewYork12BlendHD-Regular.otf`, `fonts/ttf/NewYork12BlendHD-Regular.ttf` |
+| New York 12 Mid HD | New York 12, at the weight halfway to New York 24's | 1.003 | `fonts/otf/NewYork12MidHD-Regular.otf`, `fonts/ttf/NewYork12MidHD-Regular.ttf` |
 | New York 24 Mid HD | New York 24, at the weight halfway to New York 12's | 1.002 | `fonts/otf/NewYork24MidHD-Regular.otf`, `fonts/ttf/NewYork24MidHD-Regular.ttf` |
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
@@ -83,6 +83,9 @@ thinned by 4 units a side, as New York 12 HD and 24 HD, 0.0601 em and 0.0479 em.
 York 24 Mid HD are each at about the weight halfway between those two, 0.054 em, so that 12 Mid is lighter than
 12 HD and 24 Mid heavier than 24 HD: New York 12 thinned by 6 units a side (of its em of 600), to 0.0537 em, and
 New York 24 by 1 (of 1200), to 0.0529 em. Their metrics are New York 12's and 24's own.
+New York 12's `a` came out of the upscaling taller than the other lower-case letters (from 7 to 343 units, where
+`c e o` reach from 20 to 333), though its bitmap is as high as theirs: it is squeezed to 11 to 333, with its
+accented forms and `æ` (`SQUEEZE` in `tools/build.py`).
 [`specimen/newyork-weights.png`](specimen/newyork-weights.png) sets the four at one size.
 
 ### New York 12 Blend HD
@@ -99,10 +102,16 @@ are paired by their centres. Both glyphs' signed distance fields are warped to t
 New York 24's kept near New York 12's (so that where the warp goes wrong it can't put ink in a counter, nor lose
 an accent), and averaged and traced. Strokes take in-between thickness and contrast, and the shapes are halfway
 between the two designs: New York 12's square serifs, forced by its pixels, round off, and its round o becomes
-an oval with thick and thin. Lower-case stems are thinned a little, so as not to look heavier than the curves.
-W and w are made of two of the blended V and v (crossed near the top, as New York 24's W; joined, as New York
+an oval with thick and thin. In the lower case, upright strokes are thickened a little across and stems thinned,
+so that the sides of `o e c` are no lighter than the stems. A few glyphs need help: New York 24's two bars of `¢`
+and `$` are run together to register with New York 12's one; `ª º`, set high, are fitted by their boxes; the
+counter of `a` is smoothed where the two designs' joins differ; and `§ ™`, too unlike New York 24's to blend, are
+New York 12's own at the blend's weight. W and w are made of two of the blended V and v (crossed near the top, as New York 24's W; joined, as New York
 12's w). A glyph whose blend would come apart is blended less (`]` and `¶`). Every glyph holds
-together. [`specimen/newyork-blend.png`](specimen/newyork-blend.png) sets it with New York 12 HD and 24 HD.
+together. [`specimen/newyork-blend.png`](specimen/newyork-blend.png) sets it with New York 12 HD and 24 HD;
+[`specimen/newyork-alphabets.png`](specimen/newyork-alphabets.png) sets the alphabets and figures in New York 12's
+bitmap, 12 HD, the blend, 24 HD, 24's bitmap and Apple's 1991 TrueType New York (rendered from a copy of that
+font, which isn't in this repository: `python3 tools/specimen.py path/to/New\ York.ttf`).
 
 The centerlines it registers by (`tools/centerline.py`, in `centerlines/`) are each glyph's stroke skeleton,
 spurs pruned, ends carried on to the stroke's end, and smoothed, every point with its left and right pen widths.
