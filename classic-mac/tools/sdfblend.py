@@ -23,10 +23,11 @@ For each glyph:
 In the lower case, upright strokes are thickened SIDES a side across and stems thinned STEM_THIN more
 (lighten_stems()): as thick as the thick of a curve, stems looked heavier than the curves, which thin round from
 it. New York 24's two bars of ¢ and $ are run together (MERGE); ª º are fitted by their boxes (SUPERIOR); a's
-counter is smoothed (COUNTERS); § ™ are New York 12's own at the blend's weight (OWN). W and w are two of the blended V and v side by side
+counter is smoothed (COUNTERS); s and g, whose rounds read heavy, are thinned instead of thickened (LIGHTER);
+§ ™ are New York 12's own at the blend's weight (OWN). W and w are two of the blended V and v side by side
 (DOUBLED): the W across its advance less the V's sidebearings, its V's narrowed a little to stand as far apart
-as New York 24's, crossed near the top; the w across New York 12's w, its v's meeting at the top, as 12's. A glyph whose blend comes
-apart (in more or fewer pieces than New York 12's) is blended again with New York 12's shape kept, then a
+as New York 24's, crossed near the top; the w across New York 12's w, its v's meeting at the top, as 12's. A
+glyph whose blend comes apart (in more or fewer pieces than New York 12's) is blended again with New York 12's shape kept, then a
 quarter of the way, else is New York 12's own, thinned; the build lists them. The advances and spacing are New
 York 12's exactly.
 """
@@ -110,6 +111,7 @@ COUNTERS = {c: 30 for c in 'aàáâãäå'}            # em units: these glyphs'
 MERGE = {'¢': 60, '$': 60}      # em units: New York 24's two bars, this far apart, run together into one as New York 12's
 OWN = '§™'                      # New York 12's own, at the blend's weight (New York 12 Mid HD's): too unlike 24's to blend
 SUPERIOR = 'ªº'                 # letters set high: fitted by their boxes, not the guide lines
+LIGHTER = {'s': 4, 'g': 6}      # em units a side these glyphs are thinned more (their rounds read heavy), not thickened SIDES
 CHAR = ''                       # the glyph blend_glyph() is blending
 STEM_FADE = 15                  # em units the thinning fades in over
 SMALL = 0.25                    # a piece of ink less than this of the glyph's largest is a dot or an accent
@@ -363,7 +365,7 @@ def blend_glyph(g, h, t, shrink, cl=None, G=None, by_guides=True, keep_size=Fals
     D24 = np.clip(D24, D12 - THIN, D12 + GROW)
     D = (1 - t) * D12 + t * D24 - shrink
     if stems:   # a lower-case letter: its upright strokes thickened SIDES a side, its stems as much less again
-        D = cv2.dilate(D, np.ones((1, 2 * SIDES + 1), np.uint8)) if SIDES else D
+        D = cv2.dilate(D, np.ones((1, 2 * SIDES + 1), np.uint8)) if SIDES and CHAR not in LIGHTER else D - LIGHTER.get(CHAR, 0)
         D = lighten_stems(D)
     if CHAR in COUNTERS:    # its counters smoothed: bumps and bites the warp left where the two designs' joins differ
         r = COUNTERS[CHAR]; k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1))
