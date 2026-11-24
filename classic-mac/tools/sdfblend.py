@@ -269,7 +269,7 @@ def tps_register(L12, L24, inv, pins=()):
 
 
 def lighten_stems(D):
-    """D with its long upright stems (ink in runs down a column longer than STEM_RUN) thinned STEM_THIN a side,
+    """D with its long upright stems (ink in runs down a column longer than STEM_RUN) thinned STEM_THIN a side across,
     fading in over STEM_FADE: a stem as thick as the thick of a curve looks heavier than the curve, which thins
     round from it"""
     ink = D > 0
@@ -279,7 +279,11 @@ def lighten_stems(D):
         d = np.diff(np.r_[0, col.astype(np.int8), 0]); s = np.nonzero(d == 1)[0]; e = np.nonzero(d == -1)[0]
         for a, b in zip(s, e): run[a:b, c] = b - a
     w = cv2.GaussianBlur((run > STEM_RUN).astype(np.float32), (0, 0), STEM_FADE)
-    return D - (STEM_THIN + SIDES) * np.clip(w * 2, 0, 1)
+    # thinned across only (the field's least over a run of columns): taken off the field everywhere, it would
+    # lift a stem's foot serif's bottom edge under the stem, and the serif's bottom would arch
+    k = STEM_THIN + SIDES
+    across = cv2.erode(D, np.ones((1, 2 * k + 1), np.uint8))
+    return D + (across - D) * np.clip(w * 2, 0, 1)
 
 
 def blend_glyph(g, h, t, shrink, cl=None, G=None, by_guides=True, keep_size=False, stems=False):

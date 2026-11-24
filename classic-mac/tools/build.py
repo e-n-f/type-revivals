@@ -34,7 +34,7 @@ PX = 50                                   # font units per bitmap pixel
 VERSIONS = {'athens': '1.004', 'chicago': '1.004', 'geneva': '1.003', 'newyork12': '1.004', 'newyork24': '1.002',
             'monaco': '1.005', 'newyork12mid': '1.004', 'newyork24mid': '1.003'}
 # New York 12 Blend HD (tools/sdfblend.py: New York 24 warped onto New York 12, their distance fields averaged)
-BLEND_VERSION = '1.012'
+BLEND_VERSION = '1.013'
 # fonts traced from another's sources (sheet, glyph positions and bitmap) at another weight
 SOURCE = {'newyork12mid': 'newyork12', 'newyork24mid': 'newyork24'}
 MID = {f: ' Its strokes are at the weight halfway between those of New York 12 HD and 24 HD.' for f in SOURCE}
@@ -137,19 +137,19 @@ def glyphs(font):
         ink = cv2.resize(crop, (int(round(crop.shape[1] * f)), int(round(crop.shape[0] * f))),
                          interpolation=cv2.INTER_LINEAR)
         r = LIGHTEN.get(font, 0)
+        if r <= 0:
+            # faint specks on the sheet (a neighbour's edge), which thinning would take away and thickening raise
+            # into ink: pieces of ink smaller than a quarter of a pixel are dropped
+            n, lab, st, _ = cv2.connectedComponentsWithStats((ink > 0.5).astype(np.uint8), 8)
+            small = [i for i in range(1, n) if st[i][4] < (PX / 2) ** 2]            # ink is in font units
+            ink = np.where(np.isin(lab, small), 0, ink).astype(np.float32)
         if r:
             disc = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * abs(r) + 1,) * 2)
             if r > 0:
                 # thinning widens any dent in the ink by the disc's radius each side, into a notch: first fill
                 # dents narrower than the disc (a closing), then thin
                 ink = cv2.erode(cv2.erode(cv2.dilate(ink, disc), disc), disc)
-            else:
-                # thickening would raise faint specks on the sheet (a neighbour's edge) into ink: pieces of ink
-                # smaller than a quarter of a pixel are dropped first
-                n, lab, st, _ = cv2.connectedComponentsWithStats((ink > 0.5).astype(np.uint8), 8)
-                small = [i for i in range(1, n) if st[i][4] < (PX / 2) ** 2]        # ink is in font units
-                ink = np.where(np.isin(lab, small), 0, ink).astype(np.float32)
-                ink = cv2.dilate(ink, disc)
+            else: ink = cv2.dilate(ink, disc)
         ox, oy = g['origin'][0] * k, g['origin'][1] * k
         dx, dy = (x0 - ox) * f, (oy - y0) * f                # the crop's top left corner, from the origin
         contours = [[(s[0],) + tuple((p[0] + dx, p[1] + dy) for p in s[1:]) for s in c]
