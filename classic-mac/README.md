@@ -97,13 +97,17 @@ widths swept along New York 12's centerlines gives New York 12 back: its advance
 6 %. [`specimen/centerline-newyork.png`](specimen/centerline-newyork.png) shows the skeletons.
 
 **New York 12 Blend HD** (experimental) keeps New York 12's centerlines, advances and spacing exactly, and draws
-its strokes with pen widths halfway from New York 12's to New York 24's. New York 24's widths at a point of New
-York 12's centerline are where its ink is along New York 12's normal there, with its glyph fitted onto New York
-12's by their ink boxes, so that its strokes' edges fall where 24's do (a thin serif on the baseline, a flag
-leaning the way 24's does); a cut across a stroke on a slant is narrowed to the stroke's own thickness, and
-points in joins take their neighbours' widths. **New York 12 Blend 100 HD** has New York 24's widths whole.
-Where the two designs' details differ (brackets, the r's terminal), Blend 100 shows bumps; Blend 50, half of
-them. [`specimen/newyork-blend.png`](specimen/newyork-blend.png) sets them with New York 12 HD and 24 HD.
+its strokes with pen widths halfway from New York 12's to New York 24's. Each New York 24 glyph is registered onto
+New York 12's, stroke to stroke: fitted by their ink boxes, then carried by an optical-flow field between the two
+glyphs' centerlines (drawn soft), so that stem meets stem and serif serif. Each point of New York 12's centerline
+takes the left and right widths of New York 24's centerline at its counterpart (where the stroke runs the same
+way, outside a join), so 24's thickness, contrast and lean come with them, its strokes' ends capped as 12's are.
+Where an edge of New York 12's stroke lies on a guide line (baseline, x-height, cap height, ascender, descender),
+it stays there and the stroke thins from the other side: a serif stays on the baseline. Points in joins take
+their neighbours' widths; stubs inside joins take the glyph's typical width; dots keep their own size.
+**New York 12 Blend 100 HD** has New York 24's widths whole. Blend 50 holds together in every glyph; at 100 a
+few whose design differs from 24's in structure (`% @ Ø`, and roughly `W ¥ S`) break or roughen.
+[`specimen/newyork-blend.png`](specimen/newyork-blend.png) sets them with New York 12 HD and 24 HD.
 
 ## Character set
 

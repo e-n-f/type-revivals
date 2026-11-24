@@ -181,9 +181,10 @@ def extend(path, m, deg):
 
 
 def decompose(font):
-    """{char: dict(lines=[[(x, y, r, L, R, nx, ny, j), ...], ...], adv, box=[x0, y0, x1, y1])} in em units,
+    """{char: dict(lines=[[(x, y, r, L, R, nx, ny, j, free), ...], ...], adv, box=[x0, y0, x1, y1])} in em units,
     unthinned: each point of a centerline (the axis), the stroke's radius there, its left and right pen widths
-    (the ink's reach along the axis's left and right normals), its left normal, and j = 1 in a join"""
+    (the ink's reach along the axis's left and right normals), its left normal, j (1 in a join, 2 at a stroke's
+    end, else 0), and the number of free ends (not forks) of its path"""
     from scipy.ndimage import gaussian_filter1d
     keep = B.LIGHTEN[font]; B.LIGHTEN[font] = 0
     G = B.glyphs(font)
@@ -201,9 +202,10 @@ def decompose(font):
         deg = degree(sk)
         lines = []
         for path in paths(sk):
+            ends = (path[0], path[-1])              # (the skeleton's: an extended end is off it)
             path = extend(path, m, deg)
             P = np.array([(c + x0, y1 - r) for r, c in path], float)
-            loop = len(path) > 2 and path[0] == path[-1]
+            loop = len(path) > 2 and ends[0] == ends[1]
             if len(P) > 2:
                 Q = P[:-1] if loop else P
                 S_ = gaussian_filter1d(Q, SMOOTH, axis=0, mode='wrap' if loop else 'nearest')
@@ -213,7 +215,9 @@ def decompose(font):
                 Q = S_
                 P = np.vstack([Q, Q[:1]]) if loop else Q
             arc = np.r_[0, np.cumsum(np.hypot(*np.diff(P, axis=0).T))]
-            fork = [deg[path[0]] >= 3 and not loop, deg[path[-1]] >= 3 and not loop]
+            # (the degree map is unsigned: read only on the skeleton)
+            fork = [int(deg[ends[0]]) >= 3 and not loop, int(deg[ends[1]]) >= 3 and not loop]
+            free = int(int(deg[ends[0]]) <= 1 and not loop) + int(int(deg[ends[1]]) <= 1 and not loop)   # free ends
             keep_i = sorted(set(range(0, len(P), STEP)) | {len(P) - 1})
             L = []
             for i in keep_i:
@@ -222,8 +226,13 @@ def decompose(font):
                 tx, ty = b - a; n = np.hypot(tx, ty)
                 nx, ny = (-ty / n, tx / n) if n else (0.0, 1.0)
                 l, rr = widths((m, y1, x0), P[i][0], P[i][1], nx, ny, r)
-                j = int((fork[0] and arc[i] < JOIN * dist[path[0]]) or (fork[1] and arc[-1] - arc[i] < JOIN * dist[path[-1]]))
-                L.append([round(float(v), 1) for v in (P[i][0], P[i][1], r, l, rr)] + [round(float(nx), 3), round(float(ny), 3), j])
+                near = lambda k: arc[i] < JOIN * dist[path[0]] if k == 0 else arc[-1] - arc[i] < JOIN * dist[path[-1]]
+                end = [not loop and not fork[k] for k in (0, 1)]
+                # 1 near a fork (a join), 2 near a free end (the stroke's end): New York 12's own widths there are
+                # capped; New York 24's are left out of the matching only in a join
+                j = 1 if any(fork[k] and near(k) for k in (0, 1)) else 2 if any(end[k] and near(k) for k in (0, 1)) else 0
+                L.append([round(float(v), 1) for v in (P[i][0], P[i][1], r, l, rr)] + [round(float(nx), 3), round(float(ny), 3), j,
+                          free])
             lines.append(L)
         rows, cols = np.nonzero(m.any(1))[0], np.nonzero(m.any(0))[0]
         box = [float(cols[0] + x0), float(y1 - rows[-1] - 1), float(cols[-1] + 1 + x0), float(y1 - rows[0])]
@@ -242,6 +251,7 @@ def draw(lines, shrink=0.0):
     px = lambda x, y: (x - x0, y1 - y)
     for L in lines:
         pts = [(x, y, l - shrink, r - shrink, nx, ny) for x, y, _, l, r, nx, ny, *_ in L]
+        if all(l + r < 0.6 for _, _, l, r, _, _ in pts): continue
         for x, y, l, r, nx, ny in pts:                   # round joins and ends
             if l + r < 0.6: continue
             c = px(x + nx * (l - r) / 2, y + ny * (l - r) / 2)
@@ -262,53 +272,72 @@ def glyph(lines, shrink, s):
     return [[(seg[0],) + tuple((p[0] + ox, p[1] + oy) for p in seg[1:]) for seg in c] for c in trace.trace(f, B.SIGMA)]
 
 
-OBLIQUE = 1.15                  # h's ink along g's normal more than this times h's stroke's thickness is a
-                                # slanting cut through the stroke
-ALIGN = 0.7                     # a New York 24 centerline point whose stroke runs within 45 degrees of 12's ...
-NEAR = 60                       # ... and within this many em units of it (its glyph fitted onto 12's by their
-                                # boxes) gives its thickness
+ALIGN = 0.5                     # a New York 24 centerline point whose stroke runs within 60 degrees of 12's ...
+NEAR = 40                       # ... and within this many em units of where the registration puts 12's point
+FLOW = 4                        # em units to a pixel of the registration's canvas
+FLOOR = 14                      # em units: the thinnest a blended stroke gets (about New York 24's hairlines)
+ANCHOR = 10                     # em units: a stroke's edge this near a guide line of New York 12's stays on it
+
+
+def register(g, hl):
+    """the displacement field carrying New York 12's centerlines g onto New York 24's hl (its points already
+    fitted into g's frame): both drawn as soft lines on one canvas, and optical flow (Farneback) between them.
+    Returns a function from a point of g to its counterpart in hl's frame."""
+    pts = [(p[0], p[1]) for L in g['lines'] for p in L] + [(p[0], p[1]) for L in hl for p in L]
+    X0 = min(x for x, _ in pts) - 80; Y1 = max(y for _, y in pts) + 80
+    W = int((max(x for x, _ in pts) + 80 - X0) / FLOW) + 1; H = int((Y1 - min(y for _, y in pts) + 80) / FLOW) + 1
+    def image(lines):
+        im = np.zeros((H, W), np.uint8)
+        for L in lines:
+            P = np.array([((p[0] - X0) / FLOW, (Y1 - p[1]) / FLOW) for p in L])
+            if len(P) == 1: P = np.vstack([P, P])
+            cv2.polylines(im, [np.round(P * 4).astype(np.int32)], False, 255, 6, cv2.LINE_AA, 2)
+        return cv2.GaussianBlur(im, (0, 0), 3)
+    flow = cv2.calcOpticalFlowFarneback(image(g['lines']), image(hl), None, 0.5, 4, 21, 6, 7, 1.5,
+                                        cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
+    def to(x, y):
+        c, r = int(round((x - X0) / FLOW)), int(round((Y1 - y) / FLOW))
+        dx, dy = flow[min(max(r, 0), H - 1), min(max(c, 0), W - 1)]
+        return x + dx * FLOW, y - dy * FLOW
+    return to
 
 
 def matched(g, h):
-    """New York 24's pen widths along New York 12's centerline, with h, New York 24's glyph, fitted onto g, New
-    York 12's, by their ink boxes. At each point of g, the stroke's thickness is h's own (its pen widths at the
-    nearest point of its centerline that runs the same way, in ems, not scaled with the box: a stroke stays as
-    thick as in 24); its middle is the middle of h's ink along g's normal, mapped back, so that the stroke's edges
-    fall where 24's do (a thin serif on the baseline, not centred on 12's thicker one; a wedge leaning the way
-    24's does). A point of g in a join (h's ink there runs on into the stroke that crosses), or with nothing of h
-    near it, takes the widths along its centerline from its neighbours'."""
+    """New York 24's pen widths along New York 12's centerline. h, New York 24's glyph, is fitted onto g, New
+    York 12's, by their ink boxes, then registered stroke to stroke (register()): each point of g takes the left
+    and right widths of h's centerline at its counterpart there (the nearest point outside a join whose stroke
+    runs the same way, swapped where it runs the other way). The widths are h's own, in ems, not scaled: a stroke
+    stays as thick as in 24, and leans as it does. A point of g in a join, or with no counterpart, takes the
+    widths along its centerline from its neighbours'."""
     (a0, b0, a1, b1), (c0, d0, c1, d1) = g['box'], h['box']
     sx, sy = (a1 - a0) / (c1 - c0), (b1 - b0) / (d1 - d0)
-    m = (h['raster'][0], h['raster'][2], h['raster'][1])      # (ink, its top, its left), as widths() takes it
-    H = np.array([(a0 + (p[0] - c0) * sx, b0 + (p[1] - d0) * sy, p[3] + p[4], p[5] / sx, p[6] / sy)
-                  for L in h['lines'] for p in L if not p[7]] or [(0, 0, 0, 0, 1)])
-    nrm = np.hypot(H[:, 3], H[:, 4]); H[:, 3] /= nrm; H[:, 4] /= nrm
-    own = [p[3] + p[4] for L in g['lines'] for p in L if not p[7]] or [1]
-    ratio = np.median(H[:, 2]) / np.median(own)
+    fit = lambda p: [a0 + (p[0] - c0) * sx, b0 + (p[1] - d0) * sy]
+    hl = [[fit(p) for p in L] for L in h['lines']]
+    to = register(g, hl)
+    # (h's widths at a stroke's end capped as g's own are)
+    cap = lambda p, w: min(w, CAP * p[2]) if p[7] == 2 else w
+    Hp = np.array([fit(p) + [cap(p, p[3]), cap(p, p[4]), p[5] / sx, p[6] / sy] for L in h['lines'] for p in L if p[7] != 1]
+                  or [(0, 0, 0, 0, 0, 1)])
+    nrm = np.hypot(Hp[:, 4], Hp[:, 5]); Hp[:, 4] /= nrm; Hp[:, 5] /= nrm
     out = []
     for L in g['lines']:
         M = []
+        if L[0][8] == 2 and np.hypot(L[0][0] - L[-1][0], L[0][1] - L[-1][1]) < 3 * DOT:
+            out.append([(p[3], p[4]) for p in L]); continue     # a dot keeps its own size: it is not a stroke
         for p in L:
-            if p[7]: M.append(None); continue
-            d = np.hypot(H[:, 0] - p[0], H[:, 1] - p[1])
-            d[np.abs(H[:, 3] * p[5] + H[:, 4] * p[6]) < ALIGN] = np.inf
+            if p[7] == 1: M.append(None); continue
+            qx, qy = to(p[0], p[1])
+            dot = Hp[:, 4] * p[5] + Hp[:, 5] * p[6]
+            d = np.hypot(Hp[:, 0] - qx, Hp[:, 1] - qy); d[np.abs(dot) < ALIGN] = np.inf
             j = int(np.argmin(d))
             if d[j] > NEAR: M.append(None); continue
-            w = H[j, 2]
-            qx, qy = c0 + (p[0] - a0) / sx, d0 + (p[1] - b0) / sy          # the point in h
-            nx, ny = p[5] * sx, p[6] * sy; n = np.hypot(nx, ny); nx, ny = nx / n, ny / n   # its normal in h
-            l, r = widths(m, qx, qy, nx, ny, p[2])
-            if l + r <= 1: M.append(None); continue
-            # the run's edges mapped back onto g's normal: where h's stroke's edges are along it
-            back = lambda u: (a0 + (qx + nx * u - c0) * sx - p[0]) * p[5] + (b0 + (qy + ny * u - d0) * sy - p[1]) * p[6]
-            lo, hi = back(-r), back(l)
-            if hi - lo > OBLIQUE * w:   # a slanting cut through h's stroke: narrowed to its thickness about its middle
-                c = (hi + lo) / 2; lo, hi = c - w / 2, c + w / 2
-            M.append((hi, -lo))
+            l, r = Hp[j, 2], Hp[j, 3]
+            M.append((l, r) if dot[j] > 0 else (r, l))
         known = [i for i, w in enumerate(M) if w is not None]
         for i, w in enumerate(M):
             if w is not None: continue
-            if not known: M[i] = (min(L[i][3], CAP * L[i][2]) * ratio, min(L[i][4], CAP * L[i][2]) * ratio); continue
+            if not known: continue      # a path from fork to fork all in a join (the stubs where a stem meets
+                                        # its serifs), or a stroke's end with nothing of h near: None
             a = max([k for k in known if k < i], default=None); b = min([k for k in known if k > i], default=None)
             if a is None or b is None: M[i] = M[a if b is None else b]; continue
             u = (i - a) / (b - a)
@@ -317,18 +346,49 @@ def matched(g, h):
     return out
 
 
+def guides(d):
+    """New York 12's guide lines, in em units: the baseline, x-height, cap height, ascender and descender"""
+    top = lambda c: d[c]['box'][3] if c in d else None
+    bottom = lambda c: d[c]['box'][1] if c in d else None
+    # (from the ink: the traced baseline is a little above 0, the bitmap's pixel edge)
+    return [v for v in (bottom('x'), top('x'), top('H'), top('h'), bottom('p')) if v is not None]
+
+
 def blend(t, d12, d24):
     """New York 12's centerlines, advances and spacing, its pen widths t of the way to New York 24's, and thinned
     t of the way from New York 12 HD's thinning to 24 HD's: {char: (contours, adv)} in New York 12's font units.
-    New York 12's own widths in a join are kept to CAP times its radius."""
+    New York 12's own widths in a join are kept to CAP times its radius. Where one edge of a stroke of New York 12
+    lies on a guide line (a serif on the baseline, an arch at the x-height), it stays there, and the stroke takes
+    its new thickness from the other side."""
     s = EM / (B.SIZE['newyork12'] * B.PX)
     shrink = (1 - t) * B.LIGHTEN['newyork12'] * s + t * B.LIGHTEN['newyork24'] * EM / (B.SIZE['newyork24'] * B.PX)
+    lines_ = guides(d12)
+    on = lambda y: min(abs(y - v) for v in lines_) < ANCHOR
     G = {}
     for ch, g in d12.items():
         own = [[(min(p[3], CAP * p[2]), min(p[4], CAP * p[2])) if p[7] else (p[3], p[4]) for p in L] for L in g['lines']]
         W = matched(g, d24[ch]) if ch in d24 else own
-        lines = [[p[:3] + [(1 - t) * o[0] + t * w[0], (1 - t) * o[1] + t * w[1]] + p[5:] for p, o, w in zip(L, O, M)]
-                 for L, O, M in zip(g['lines'], own, W)]
+        lines = []
+        # a stub inside a join takes, from 12's own widths, the glyph's typical matched widths: it still joins
+        # the strokes that meet there (a K's arms, a #'s bars), at their thickness
+        typical = np.median([w[0] + w[1] for M in W for w in M if w is not None] or [60]) / 2
+        for L, O, M in zip(g['lines'], own, W):
+            out = []
+            for p, o, w in zip(L, O, M):
+                if w is None:
+                    out.append(p[:3] + [(1 - t) * o[0] + t * min(o[0], typical), (1 - t) * o[1] + t * min(o[1], typical)]
+                               + p[5:]); continue
+                l, r = (1 - t) * o[0] + t * w[0], (1 - t) * o[1] + t * w[1]
+                if abs(p[6]) > 0.8:        # a stroke running across: an edge on a guide line stays
+                    # (judged by the raw widths: in a join the capped side is the one toward the crossing stroke)
+                    left, right = on(p[1] + p[6] * p[3]), on(p[1] - p[6] * p[4])
+                    if left != right:
+                        if left: l, r = p[3], l + r - p[3]
+                        else: l, r = l + r - p[4], p[4]
+                if l + r < FLOOR:        # no thinner than a hairline of 24's: a stroke never breaks
+                    e = (FLOOR - l - r) / 2; l, r = l + e, r + e
+                out.append(p[:3] + [l, r] + p[5:])
+            lines.append(out)
         G[ch] = (glyph(lines, shrink, s), g['adv'] / s)
     return G
 
