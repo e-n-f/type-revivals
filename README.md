@@ -97,17 +97,14 @@ notes on its sources.
 **New York 24 HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork24HD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork24HD-Regular.ttf)  
 ![New York 24 HD](classic-mac/specimen/fonts/NewYork24HD-Regular.png)
 
+**New York 12 Blend HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork12BlendHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork12BlendHD-Regular.ttf)  
+![New York 12 Blend HD](classic-mac/specimen/fonts/NewYork12BlendHD-Regular.png)
+
 **New York 12 Mid HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork12MidHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork12MidHD-Regular.ttf)  
 ![New York 12 Mid HD](classic-mac/specimen/fonts/NewYork12MidHD-Regular.png)
 
 **New York 24 Mid HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork24MidHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork24MidHD-Regular.ttf)  
 ![New York 24 Mid HD](classic-mac/specimen/fonts/NewYork24MidHD-Regular.png)
-
-**New York 12 Blend HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork12BlendHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork12BlendHD-Regular.ttf)  
-![New York 12 Blend HD](classic-mac/specimen/fonts/NewYork12BlendHD-Regular.png)
-
-**New York 12 Blend 100 HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork12Blend100HD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork12Blend100HD-Regular.ttf)  
-![New York 12 Blend 100 HD](classic-mac/specimen/fonts/NewYork12Blend100HD-Regular.png)
 
 ### Selectric
 

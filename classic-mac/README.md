@@ -12,6 +12,7 @@ recreation lines up as the bitmap font set it.
 | New York 12 HD | New York 12 (Susan Kare, 1984) | 1.002 | `fonts/otf/NewYork12HD-Regular.otf`, `fonts/ttf/NewYork12HD-Regular.ttf` |
 | New York 24 HD | New York 24 (Susan Kare, 1984) | 1.001 | `fonts/otf/NewYork24HD-Regular.otf`, `fonts/ttf/NewYork24HD-Regular.ttf` |
 | Monaco HD | Monaco 12 (Susan Kare, 1984) | 1.003 | `fonts/otf/MonacoHD-Regular.otf`, `fonts/ttf/MonacoHD-Regular.ttf` |
+| New York 12 Blend HD | New York 12 blended halfway to New York 24, on 12's spacing | 1.004 | `fonts/otf/NewYork12BlendHD-Regular.otf`, `fonts/ttf/NewYork12BlendHD-Regular.ttf` |
 | New York 12 Mid HD | New York 12, at the weight halfway to New York 24's | 1.002 | `fonts/otf/NewYork12MidHD-Regular.otf`, `fonts/ttf/NewYork12MidHD-Regular.ttf` |
 | New York 24 Mid HD | New York 24, at the weight halfway to New York 12's | 1.002 | `fonts/otf/NewYork24MidHD-Regular.otf`, `fonts/ttf/NewYork24MidHD-Regular.ttf` |
 
@@ -39,17 +40,14 @@ Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadra
 **New York 24 HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork24HD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork24HD-Regular.ttf)  
 ![New York 24 HD](specimen/fonts/NewYork24HD-Regular.png)
 
+**New York 12 Blend HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork12BlendHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork12BlendHD-Regular.ttf)  
+![New York 12 Blend HD](specimen/fonts/NewYork12BlendHD-Regular.png)
+
 **New York 12 Mid HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork12MidHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork12MidHD-Regular.ttf)  
 ![New York 12 Mid HD](specimen/fonts/NewYork12MidHD-Regular.png)
 
 **New York 24 Mid HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork24MidHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork24MidHD-Regular.ttf)  
 ![New York 24 Mid HD](specimen/fonts/NewYork24MidHD-Regular.png)
-
-**New York 12 Blend HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork12BlendHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork12BlendHD-Regular.ttf)  
-![New York 12 Blend HD](specimen/fonts/NewYork12BlendHD-Regular.png)
-
-**New York 12 Blend 100 HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork12Blend100HD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork12Blend100HD-Regular.ttf)  
-![New York 12 Blend 100 HD](specimen/fonts/NewYork12Blend100HD-Regular.png)
 
 <!-- /downloads -->
 
@@ -87,27 +85,20 @@ York 24 Mid HD are each at about the weight halfway between those two, 0.054 em,
 New York 24 by 1 (of 1200), to 0.0529 em. Their metrics are New York 12's and 24's own.
 [`specimen/newyork-weights.png`](specimen/newyork-weights.png) sets the four at one size.
 
-### Centerlines
+### New York 12 Blend HD
 
-`tools/centerline.py` decomposes New York 12 and 24, unthinned, into centerlines (in `centerlines/`). A
-centerline is an axis along each stroke: its skeleton, spurs pruned, free ends carried on to the stroke's end,
-and smoothed along its length so that it runs straight through a stroke's lean. Every point keeps its left and
-right pen widths, the ink's reach along the axis's left and right normals, which carry the lean. A pen of those
-widths swept along New York 12's centerlines gives New York 12 back: its advances exactly, its ink within about
-6 %. [`specimen/centerline-newyork.png`](specimen/centerline-newyork.png) shows the skeletons.
+**New York 12 Blend HD** (experimental) is New York 12 and 24 blended halfway, in raster space, with New York
+12's advances and spacing exactly (`tools/sdfblend.py`). For each glyph, New York 24's is fitted onto New York
+12's by their ink boxes, then registered to it stroke to stroke by a smooth optical-flow field between the two
+glyphs' centerlines; New York 24's signed distance field is warped onto New York 12's with it, kept near New York
+12's (so that where the warp goes wrong it can't put ink in a counter, nor lose an accent), and the two fields
+are averaged and traced. Strokes take in-between thickness and contrast, and New York 12's shapes move a little
+toward New York 24's (its square serifs, forced by its pixels, round off). Every glyph holds together.
+[`specimen/newyork-blend.png`](specimen/newyork-blend.png) sets it with New York 12 HD and 24 HD.
 
-**New York 12 Blend HD** (experimental) keeps New York 12's centerlines, advances and spacing exactly, and draws
-its strokes with pen widths halfway from New York 12's to New York 24's. Each New York 24 glyph is registered onto
-New York 12's, stroke to stroke: fitted by their ink boxes, then carried by an optical-flow field between the two
-glyphs' centerlines (drawn soft), so that stem meets stem and serif serif. Each point of New York 12's centerline
-takes the left and right widths of New York 24's centerline at its counterpart (where the stroke runs the same
-way, outside a join), so 24's thickness, contrast and lean come with them, its strokes' ends capped as 12's are.
-Where an edge of New York 12's stroke lies on a guide line (baseline, x-height, cap height, ascender, descender),
-it stays there and the stroke thins from the other side: a serif stays on the baseline. Points in joins take
-their neighbours' widths; stubs inside joins take the glyph's typical width; dots keep their own size.
-**New York 12 Blend 100 HD** has New York 24's widths whole. Blend 50 holds together in every glyph; at 100 a
-few whose design differs from 24's in structure (`% @ Ø`, and roughly `W ¥ S`) break or roughen.
-[`specimen/newyork-blend.png`](specimen/newyork-blend.png) sets them with New York 12 HD and 24 HD.
+The centerlines it registers by (`tools/centerline.py`, in `centerlines/`) are each glyph's stroke skeleton,
+spurs pruned, ends carried on to the stroke's end, and smoothed, every point with its left and right pen widths.
+[`specimen/centerline-newyork.png`](specimen/centerline-newyork.png) shows them.
 
 ## Character set
 

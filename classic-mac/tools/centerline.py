@@ -1,20 +1,15 @@
-"""New York 12 and 24 as centerlines and pen widths, and New York 12's centerlines drawn with widths between the two.
+"""New York 12 and 24 as centerlines and pen widths: centerlines/<font>.json.
 
-    python3 tools/centerline.py [t ...]
+    python3 tools/centerline.py
 
-Each glyph is decomposed, in em units (1000 to the em), into its centerlines: the paths of its strokes'
-skeleton, each point with the stroke's radius there and its left and right pen widths, the ink's reach along the
-centerline's left and right normals. A pen of those widths swept along the centerlines gives the glyph back. The
-glyphs are the traced outlines, unthinned (LIGHTEN 0): the strokes at the bitmap's own weight.
+Each glyph is decomposed, in em units (1000 to the em), into centerlines: its strokes' skeleton, spurs pruned
+(SPUR), free ends carried on to the stroke's end, smoothed along its length (SMOOTH) so that it runs straight
+through a stroke's lean. Each point keeps the stroke's radius there, its left and right pen widths (the ink's
+reach along the axis's left and right normals, which carry the lean), its left normal, whether it is in a join
+or at a stroke's end, and its path's number of free ends. A pen of those widths swept along the centerlines
+(draw()) gives the glyph back. The glyphs are the traced outlines, unthinned (LIGHTEN 0).
 
-New York 12 Blend HD keeps New York 12's centerlines, advances and spacing exactly; only its strokes' thickness
-changes. Each centerline point's left and right widths are t of the way from New York 12's to New York 24's,
-taken from the nearest point of New York 24's centerline with its glyph fitted onto 12's by their ink boxes, and
-the strokes are thinned t of the way from New York 12 HD's thinning to 24 HD's. t = 0 is New York 12 HD drawn
-back from its centerlines; t = 1 has New York 24's stroke weight and contrast on New York 12's letters.
-centerlines/<font>.json keep the decompositions. specimen/centerline-newyork.png shows them (New York 12's and
-24's ink with their centerlines in red, blue where a stroke is over 1.3 times the glyph's median radius; between,
-New York 12 drawn back from its centerlines), and specimen/newyork-blend.png sets the blends.
+tools/sdfblend.py registers New York 24's glyphs onto New York 12's by these centerlines.
 """
 import os, sys, json
 import numpy as np, cv2
@@ -263,136 +258,6 @@ def draw(lines, shrink=0.0):
     return m, x0, y1
 
 
-def glyph(lines, shrink, s):
-    """the outlines of the centerlines drawn with shrink, in font units (s em units per font unit)"""
-    m, x0, y1 = draw(lines, shrink)
-    f = cv2.resize(m.astype(np.float32), (int(round(m.shape[1] / s)), int(round(m.shape[0] / s))),
-                   interpolation=cv2.INTER_AREA)
-    ox, oy = x0 / s, y1 / s                    # the raster's top left in font units
-    return [[(seg[0],) + tuple((p[0] + ox, p[1] + oy) for p in seg[1:]) for seg in c] for c in trace.trace(f, B.SIGMA)]
-
-
-ALIGN = 0.5                     # a New York 24 centerline point whose stroke runs within 60 degrees of 12's ...
-NEAR = 40                       # ... and within this many em units of where the registration puts 12's point
-FLOW = 4                        # em units to a pixel of the registration's canvas
-FLOOR = 14                      # em units: the thinnest a blended stroke gets (about New York 24's hairlines)
-ANCHOR = 10                     # em units: a stroke's edge this near a guide line of New York 12's stays on it
-
-
-def register(g, hl):
-    """the displacement field carrying New York 12's centerlines g onto New York 24's hl (its points already
-    fitted into g's frame): both drawn as soft lines on one canvas, and optical flow (Farneback) between them.
-    Returns a function from a point of g to its counterpart in hl's frame."""
-    pts = [(p[0], p[1]) for L in g['lines'] for p in L] + [(p[0], p[1]) for L in hl for p in L]
-    X0 = min(x for x, _ in pts) - 80; Y1 = max(y for _, y in pts) + 80
-    W = int((max(x for x, _ in pts) + 80 - X0) / FLOW) + 1; H = int((Y1 - min(y for _, y in pts) + 80) / FLOW) + 1
-    def image(lines):
-        im = np.zeros((H, W), np.uint8)
-        for L in lines:
-            P = np.array([((p[0] - X0) / FLOW, (Y1 - p[1]) / FLOW) for p in L])
-            if len(P) == 1: P = np.vstack([P, P])
-            cv2.polylines(im, [np.round(P * 4).astype(np.int32)], False, 255, 6, cv2.LINE_AA, 2)
-        return cv2.GaussianBlur(im, (0, 0), 3)
-    flow = cv2.calcOpticalFlowFarneback(image(g['lines']), image(hl), None, 0.5, 4, 21, 6, 7, 1.5,
-                                        cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
-    def to(x, y):
-        c, r = int(round((x - X0) / FLOW)), int(round((Y1 - y) / FLOW))
-        dx, dy = flow[min(max(r, 0), H - 1), min(max(c, 0), W - 1)]
-        return x + dx * FLOW, y - dy * FLOW
-    return to
-
-
-def matched(g, h):
-    """New York 24's pen widths along New York 12's centerline. h, New York 24's glyph, is fitted onto g, New
-    York 12's, by their ink boxes, then registered stroke to stroke (register()): each point of g takes the left
-    and right widths of h's centerline at its counterpart there (the nearest point outside a join whose stroke
-    runs the same way, swapped where it runs the other way). The widths are h's own, in ems, not scaled: a stroke
-    stays as thick as in 24, and leans as it does. A point of g in a join, or with no counterpart, takes the
-    widths along its centerline from its neighbours'."""
-    (a0, b0, a1, b1), (c0, d0, c1, d1) = g['box'], h['box']
-    sx, sy = (a1 - a0) / (c1 - c0), (b1 - b0) / (d1 - d0)
-    fit = lambda p: [a0 + (p[0] - c0) * sx, b0 + (p[1] - d0) * sy]
-    hl = [[fit(p) for p in L] for L in h['lines']]
-    to = register(g, hl)
-    # (h's widths at a stroke's end capped as g's own are)
-    cap = lambda p, w: min(w, CAP * p[2]) if p[7] == 2 else w
-    Hp = np.array([fit(p) + [cap(p, p[3]), cap(p, p[4]), p[5] / sx, p[6] / sy] for L in h['lines'] for p in L if p[7] != 1]
-                  or [(0, 0, 0, 0, 0, 1)])
-    nrm = np.hypot(Hp[:, 4], Hp[:, 5]); Hp[:, 4] /= nrm; Hp[:, 5] /= nrm
-    out = []
-    for L in g['lines']:
-        M = []
-        if L[0][8] == 2 and np.hypot(L[0][0] - L[-1][0], L[0][1] - L[-1][1]) < 3 * DOT:
-            out.append([(p[3], p[4]) for p in L]); continue     # a dot keeps its own size: it is not a stroke
-        for p in L:
-            if p[7] == 1: M.append(None); continue
-            qx, qy = to(p[0], p[1])
-            dot = Hp[:, 4] * p[5] + Hp[:, 5] * p[6]
-            d = np.hypot(Hp[:, 0] - qx, Hp[:, 1] - qy); d[np.abs(dot) < ALIGN] = np.inf
-            j = int(np.argmin(d))
-            if d[j] > NEAR: M.append(None); continue
-            l, r = Hp[j, 2], Hp[j, 3]
-            M.append((l, r) if dot[j] > 0 else (r, l))
-        known = [i for i, w in enumerate(M) if w is not None]
-        for i, w in enumerate(M):
-            if w is not None: continue
-            if not known: continue      # a path from fork to fork all in a join (the stubs where a stem meets
-                                        # its serifs), or a stroke's end with nothing of h near: None
-            a = max([k for k in known if k < i], default=None); b = min([k for k in known if k > i], default=None)
-            if a is None or b is None: M[i] = M[a if b is None else b]; continue
-            u = (i - a) / (b - a)
-            M[i] = tuple((1 - u) * M[a][k] + u * M[b][k] for k in (0, 1))
-        out.append(M)
-    return out
-
-
-def guides(d):
-    """New York 12's guide lines, in em units: the baseline, x-height, cap height, ascender and descender"""
-    top = lambda c: d[c]['box'][3] if c in d else None
-    bottom = lambda c: d[c]['box'][1] if c in d else None
-    # (from the ink: the traced baseline is a little above 0, the bitmap's pixel edge)
-    return [v for v in (bottom('x'), top('x'), top('H'), top('h'), bottom('p')) if v is not None]
-
-
-def blend(t, d12, d24):
-    """New York 12's centerlines, advances and spacing, its pen widths t of the way to New York 24's, and thinned
-    t of the way from New York 12 HD's thinning to 24 HD's: {char: (contours, adv)} in New York 12's font units.
-    New York 12's own widths in a join are kept to CAP times its radius. Where one edge of a stroke of New York 12
-    lies on a guide line (a serif on the baseline, an arch at the x-height), it stays there, and the stroke takes
-    its new thickness from the other side."""
-    s = EM / (B.SIZE['newyork12'] * B.PX)
-    shrink = (1 - t) * B.LIGHTEN['newyork12'] * s + t * B.LIGHTEN['newyork24'] * EM / (B.SIZE['newyork24'] * B.PX)
-    lines_ = guides(d12)
-    on = lambda y: min(abs(y - v) for v in lines_) < ANCHOR
-    G = {}
-    for ch, g in d12.items():
-        own = [[(min(p[3], CAP * p[2]), min(p[4], CAP * p[2])) if p[7] else (p[3], p[4]) for p in L] for L in g['lines']]
-        W = matched(g, d24[ch]) if ch in d24 else own
-        lines = []
-        # a stub inside a join takes, from 12's own widths, the glyph's typical matched widths: it still joins
-        # the strokes that meet there (a K's arms, a #'s bars), at their thickness
-        typical = np.median([w[0] + w[1] for M in W for w in M if w is not None] or [60]) / 2
-        for L, O, M in zip(g['lines'], own, W):
-            out = []
-            for p, o, w in zip(L, O, M):
-                if w is None:
-                    out.append(p[:3] + [(1 - t) * o[0] + t * min(o[0], typical), (1 - t) * o[1] + t * min(o[1], typical)]
-                               + p[5:]); continue
-                l, r = (1 - t) * o[0] + t * w[0], (1 - t) * o[1] + t * w[1]
-                if abs(p[6]) > 0.8:        # a stroke running across: an edge on a guide line stays
-                    # (judged by the raw widths: in a join the capped side is the one toward the crossing stroke)
-                    left, right = on(p[1] + p[6] * p[3]), on(p[1] - p[6] * p[4])
-                    if left != right:
-                        if left: l, r = p[3], l + r - p[3]
-                        else: l, r = l + r - p[4], p[4]
-                if l + r < FLOOR:        # no thinner than a hairline of 24's: a stroke never breaks
-                    e = (FLOOR - l - r) / 2; l, r = l + e, r + e
-                out.append(p[:3] + [l, r] + p[5:])
-            lines.append(out)
-        G[ch] = (glyph(lines, shrink, s), g['adv'] / s)
-    return G
-
-
 if __name__ == '__main__':
     os.makedirs(os.path.join(ROOT, 'centerlines'), exist_ok=True)
     D = {}
@@ -401,14 +266,3 @@ if __name__ == '__main__':
         json.dump({c: {k: v for k, v in g.items() if k != 'raster'} for c, g in D[f].items()},
                   open(os.path.join(ROOT, 'centerlines', f'{f}.json'), 'w'), ensure_ascii=False)
         print(f, len(D[f]), 'glyphs decomposed')
-    # the blends: New York 12's centerlines with bearings t of the way to New York 24's
-    for t in [float(a) for a in sys.argv[1:]] or [0.5]:
-        key = 'newyork12blend' if t == 0.5 else f'newyork12blend{int(round(t * 100)):02d}'
-        B.VERSIONS.setdefault(key, B.BLEND_VERSION); B.SOURCE[key] = 'newyork12'; B.SIZE[key] = 12
-        B.NAMES.setdefault(key, 'New York 12 Blend HD' if t == 0.5 else f'New York 12 Blend {int(round(t * 100))} HD')
-        B.ORIGINAL[key] = B.ORIGINAL['newyork12']
-        B.MID[key] = (f' Its letters are New York 12\'s, drawn along their centerlines with pen widths '
-                      f'{int(round(t * 100))} % of the way from New York 12\'s to New York 24\'s.')
-        strike, metrics = bitmap.strike('newyork12')
-        G = blend(t, D['newyork12'], D['newyork24'])
-        B.font(key, True, (G, strike, metrics)); B.font(key, False, (G, strike, metrics))
