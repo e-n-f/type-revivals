@@ -4,6 +4,9 @@
 
 compare-<font>.png: every character of the font set over its bitmap (pink, at three times its pixels), with the
 bitmap's advance width underlined in blue, so that the outlines can be checked against the pixels they recreate.
+
+line-<font>.png: the alphabets and figures on one line, in the bitmap and in the HD font, at one size, so that their
+weights can be compared.
 """
 import os, sys, json
 from fontTools.ttLib import TTFont
@@ -13,7 +16,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(HERE, '..')
 sys.path.insert(0, HERE)
 import bitmap
-from build import VERSIONS, NAMES, PX, CODES, MOVED, ALSO, SOURCE
+from build import VERSIONS, NAMES, PX, CODES, MOVED, ALSO, SIZE, ORIGINAL
+import build
+SOURCE = getattr(build, 'SOURCE', {})
 
 LABEL = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
 
@@ -72,29 +77,29 @@ def weights():
     im.save(os.path.join(ROOT, 'specimen', 'newyork-weights.png'), optimize=True)
 
 
-def blend(size=144, official=None):
-    """newyork-alphabets.png: the alphabets and figures on one line, in New York 12's bitmap, New York 12 HD,
-    New York 12 Blend HD, New York 24 HD and New York 24's bitmap, all at one size; and, given the path of Apple's
-    TrueType New York (not in this repository), in that too"""
-    text = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789'
+TEXT = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789'
+
+
+def hd(font):
+    return os.path.join(ROOT, 'fonts', 'otf', NAMES[font].replace(' ', '') + '-Regular.otf')
+
+
+def lines(rows, out, size=144, text=TEXT):
+    """rows of text, one under another, at one size (px to the em): each row (label, font, bitmap), the font an
+    HD font's key or a font file's path, bitmap true to set the HD font's bitmap, each pixel a square, at the size
+    the HD font's em gives it. A font file other than ours is set at the size that sets the line as wide as the
+    first HD font's"""
     L = ImageFont.truetype(LABEL, 28)
-    rows = [('newyork12', 'New York 12 bitmap'), ('New York 12 HD', None), ('New York 12 Blend HD', None),
-            ('New York 24 HD', None), ('newyork24', 'New York 24 bitmap')]
-    if official: rows.append((official, 'New York (Apple TrueType, 1991), at the size that sets the line as wide as New York 12 HD'))
     gap = int(size * 1.45) + 30
     im = Image.new('RGB', (60 * size, len(rows) * gap + 20), 'white'); d = ImageDraw.Draw(im)
+    first = next(f for _, f, _ in rows if f in NAMES)
     right = 0
-    for i, (f, label) in enumerate(rows):
+    for i, (label, f, bits) in enumerate(rows):
         top = 10 + i * gap; base = top + 36 + size
-        d.text((10, top), label or f, font=L, fill=(90, 90, 90))
-        if label and f == official:     # at the size that sets the line as wide as New York 12 HD does
-            F12 = ImageFont.truetype(os.path.join(ROOT, 'fonts', 'otf', 'NewYork12HD-Regular.otf'), size)
-            F = ImageFont.truetype(f, size * d.textlength(text, font=F12) / d.textlength(text, font=ImageFont.truetype(f, size)))
-            d.text((10, base), text, font=F, fill=(0, 0, 0), anchor='ls'); x = 10 + d.textlength(text, font=F)
-        elif label:                                         # a bitmap, each pixel a square size/ppem across
-            strike, metrics = bitmap.strike(f); x = 10.0
-            hd = os.path.join(ROOT, 'fonts', 'otf', NAMES[f].replace(' ', '') + '-Regular.otf')
-            s = size * PX / TTFont(hd)['head'].unitsPerEm      # the HD font's em is unitsPerEm/PX of its pixels
+        d.text((10, top), label, font=L, fill=(90, 90, 90))
+        if bits:
+            strike, metrics = bitmap.strike(SOURCE.get(f, f)); x = 10.0
+            s = size * PX / TTFont(hd(f))['head'].unitsPerEm      # the HD font's em is unitsPerEm/PX of its pixels
             for c in text:
                 g = strike[c]
                 for yy in range(g['h']):
@@ -105,16 +110,39 @@ def blend(size=144, official=None):
                                         fill=(0, 0, 0))
                 x += g['adv'] * s
         else:
-            F = ImageFont.truetype(os.path.join(ROOT, 'fonts', 'otf', f.replace(' ', '') + '-Regular.otf'), size)
+            if f in NAMES or os.path.dirname(os.path.abspath(f)) == os.path.abspath(os.path.join(ROOT, 'fonts', 'otf')):
+                F = ImageFont.truetype(hd(f) if f in NAMES else f, size)
+            else:
+                F1 = ImageFont.truetype(hd(first), size)
+                F = ImageFont.truetype(f, size * d.textlength(text, font=F1) / d.textlength(text, font=ImageFont.truetype(f, size)))
             d.text((10, base), text, font=F, fill=(0, 0, 0), anchor='ls'); x = 10 + d.textlength(text, font=F)
         right = max(right, x)
     im = im.crop((0, 0, int(right) + 20, im.height))
-    im.save(os.path.join(ROOT, 'specimen', 'newyork-alphabets.png'), optimize=True)
+    im.save(os.path.join(ROOT, 'specimen', out), optimize=True)
+
+
+def line(font):
+    """line-<font>.png: the font's bitmap over the HD font"""
+    lines([(f'{ORIGINAL[font][0]} {SIZE[font]} bitmap', font, True),
+           (NAMES[font], font, False)], f'line-{font}.png')
+
+
+def blend(official=None):
+    """newyork-alphabets.png: the alphabets and figures on one line, in New York 12's bitmap, New York 12 HD,
+    New York 12 Blend HD, New York 24 HD and New York 24's bitmap, all at one size; and, given the path of Apple's
+    TrueType New York (not in this repository), in that too, at the size that sets the line as wide"""
+    rows = [('New York 12 bitmap', 'newyork12', True), ('New York 12 HD', 'newyork12', False),
+            ('New York 12 Blend HD', os.path.join(ROOT, 'fonts', 'otf', 'NewYork12BlendHD-Regular.otf'), False),
+            ('New York 24 HD', 'newyork24', False), ('New York 24 bitmap', 'newyork24', True)]
+    if official: rows.append(('New York (Apple TrueType, 1991), at the size that sets the line as wide as New York 12 HD',
+                              official, False))
+    lines(rows, 'newyork-alphabets.png')
 
 
 if __name__ == '__main__':
     official = next((a for a in sys.argv[1:] if a.lower().endswith('.ttf')), None)
     for f in [a for a in sys.argv[1:] if a in VERSIONS] or list(VERSIONS):
         compare(f)
+        line(f)
     weights()
     blend(official=official)

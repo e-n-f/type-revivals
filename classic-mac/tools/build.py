@@ -31,10 +31,10 @@ import bitmap
 Image.MAX_IMAGE_PIXELS = None
 
 PX = 50                                   # font units per bitmap pixel
-VERSIONS = {'athens': '1.002', 'chicago': '1.002', 'geneva': '1.001', 'newyork12': '1.003', 'newyork24': '1.001',
-            'monaco': '1.003', 'newyork12mid': '1.003', 'newyork24mid': '1.002'}
+VERSIONS = {'athens': '1.004', 'chicago': '1.004', 'geneva': '1.003', 'newyork12': '1.004', 'newyork24': '1.002',
+            'monaco': '1.005', 'newyork12mid': '1.004', 'newyork24mid': '1.003'}
 # New York 12 Blend HD (tools/sdfblend.py: New York 24 warped onto New York 12, their distance fields averaged)
-BLEND_VERSION = '1.011'
+BLEND_VERSION = '1.012'
 # fonts traced from another's sources (sheet, glyph positions and bitmap) at another weight
 SOURCE = {'newyork12mid': 'newyork12', 'newyork24mid': 'newyork24'}
 MID = {f: ' Its strokes are at the weight halfway between those of New York 12 HD and 24 HD.' for f in SOURCE}
@@ -57,19 +57,19 @@ MOVED = {'chicago': 'Ÿ⁄¤‹'}
 # further code points for a character: Ω is both the Greek letter and the ohm sign (Mac OS Roman 0xBD is either)
 ALSO = {'Ω': [0x2126]}
 SIGMA = 1.5                               # smoothing of the traced ink, in font units
-# Font units taken off each side of every stroke. Traced at their 50 % contour, the stems come out the bitmap's
-# exact width (2 px), but antialiased outlines (and macOS's font smoothing) read darker than crisp pixels:
-# both are thinned to about 1.8 px
-LIGHTEN = {'athens': 4, 'chicago': 4, 'geneva': 4, 'newyork12': 4, 'newyork24': 4, 'monaco': 4,
+# Font units taken off each side of every stroke (a negative number: added). Traced at their 50 % contour, the
+# glyphs come out with a little less ink than their bitmaps (the pixels' corners rounded, the steps of diagonals
+# cut); each font is thickened by as much as gives it its bitmap's ink, over A-Z, a-z and 0-9 (tools/weight.py)
+LIGHTEN = {'athens': -1, 'chicago': -1, 'geneva': -2, 'newyork12': -2, 'newyork24': -5, 'monaco': -3,
 # New York 12's and 24's bitmaps differ in weight: traced at their 50 % contour, unthinned, their strokes average
-# 0.0735 em and 0.0546 em, and thinned by 4 units a side as the others are, as New York 12 HD and 24 HD, 0.0601
-# and 0.0479. The Mid fonts are both at about the weight halfway between those two, 0.054 em: 12's thinned by 6
-# units a side (of its em of 600), to 0.0537 em, 24's by 1 (of 1200), to 0.0529. A negative LIGHTEN thickens
-           'newyork12mid': 6, 'newyork24mid': 1}
+# 0.0735 em and 0.0546 em, and thickened to their bitmaps' ink, as New York 12 HD and 24 HD, 0.0802 and 0.0629.
+# The Mid fonts are both at about the weight halfway between those two, 0.0715 em: 12's thinned by 1 unit a side
+# (of its em of 600), to 0.0702 em, 24's thickened by 10 (of 1200), to 0.0713
+           'newyork12mid': 1, 'newyork24mid': -10}
 # Accented letters whose accent the upscaling got wrong: Geneva 12's acute, grave and dieresis are two or three
 # pixels, and on the sheet á à é came out as circumflexes, ä and ï as broken marks. Each takes the accent of a
 # letter the sheet gets right whose bitmap accent has the same pixels (reaccent())
-REACCENT = {'geneva': 'áàäéï', 'monaco': 'à'}           # Monaco's à came out a circumflex
+REACCENT = {'geneva': 'áàäéï', 'monaco': 'àë'}          # Monaco's à came out a circumflex, its ë's dots an arch
 # Monospaced fonts: every advance, in bitmap pixels. Monaco 12's © and ® advance only 6 in the bitmap (the left of
 # each circle is cut off); here they advance 7 like the rest, their ink where the bitmap has it, and the font is
 # marked fixed-pitch
@@ -143,7 +143,13 @@ def glyphs(font):
                 # thinning widens any dent in the ink by the disc's radius each side, into a notch: first fill
                 # dents narrower than the disc (a closing), then thin
                 ink = cv2.erode(cv2.erode(cv2.dilate(ink, disc), disc), disc)
-            else: ink = cv2.dilate(ink, disc)
+            else:
+                # thickening would raise faint specks on the sheet (a neighbour's edge) into ink: pieces of ink
+                # smaller than a quarter of a pixel are dropped first
+                n, lab, st, _ = cv2.connectedComponentsWithStats((ink > 0.5).astype(np.uint8), 8)
+                small = [i for i in range(1, n) if st[i][4] < (PX / 2) ** 2]        # ink is in font units
+                ink = np.where(np.isin(lab, small), 0, ink).astype(np.float32)
+                ink = cv2.dilate(ink, disc)
         ox, oy = g['origin'][0] * k, g['origin'][1] * k
         dx, dy = (x0 - ox) * f, (oy - y0) * f                # the crop's top left corner, from the origin
         contours = [[(s[0],) + tuple((p[0] + dx, p[1] + dy) for p in s[1:]) for s in c]

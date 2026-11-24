@@ -6,15 +6,15 @@ recreation lines up as the bitmap font set it.
 
 | Font | Recreates | Version | Files |
 |---|---|---|---|
-| Athens HD | Athens 18 (Susan Kare, 1984) | 1.002 | `fonts/otf/AthensHD-Regular.otf`, `fonts/ttf/AthensHD-Regular.ttf` |
-| Chicago HD | Chicago 12 (Susan Kare, 1984) | 1.002 | `fonts/otf/ChicagoHD-Regular.otf`, `fonts/ttf/ChicagoHD-Regular.ttf` |
-| Geneva HD | Geneva 12 (Susan Kare, 1984) | 1.001 | `fonts/otf/GenevaHD-Regular.otf`, `fonts/ttf/GenevaHD-Regular.ttf` |
-| New York 12 HD | New York 12 (Susan Kare, 1984) | 1.003 | `fonts/otf/NewYork12HD-Regular.otf`, `fonts/ttf/NewYork12HD-Regular.ttf` |
-| New York 24 HD | New York 24 (Susan Kare, 1984) | 1.001 | `fonts/otf/NewYork24HD-Regular.otf`, `fonts/ttf/NewYork24HD-Regular.ttf` |
-| Monaco HD | Monaco 12 (Susan Kare, 1984) | 1.003 | `fonts/otf/MonacoHD-Regular.otf`, `fonts/ttf/MonacoHD-Regular.ttf` |
-| New York 12 Blend HD | New York 12 blended halfway to New York 24, on 12's spacing | 1.011 | `fonts/otf/NewYork12BlendHD-Regular.otf`, `fonts/ttf/NewYork12BlendHD-Regular.ttf` |
-| New York 12 Mid HD | New York 12, at the weight halfway to New York 24's | 1.003 | `fonts/otf/NewYork12MidHD-Regular.otf`, `fonts/ttf/NewYork12MidHD-Regular.ttf` |
-| New York 24 Mid HD | New York 24, at the weight halfway to New York 12's | 1.002 | `fonts/otf/NewYork24MidHD-Regular.otf`, `fonts/ttf/NewYork24MidHD-Regular.ttf` |
+| Athens HD | Athens 18 (Susan Kare, 1984) | 1.004 | `fonts/otf/AthensHD-Regular.otf`, `fonts/ttf/AthensHD-Regular.ttf` |
+| Chicago HD | Chicago 12 (Susan Kare, 1984) | 1.004 | `fonts/otf/ChicagoHD-Regular.otf`, `fonts/ttf/ChicagoHD-Regular.ttf` |
+| Geneva HD | Geneva 12 (Susan Kare, 1984) | 1.003 | `fonts/otf/GenevaHD-Regular.otf`, `fonts/ttf/GenevaHD-Regular.ttf` |
+| New York 12 HD | New York 12 (Susan Kare, 1984) | 1.004 | `fonts/otf/NewYork12HD-Regular.otf`, `fonts/ttf/NewYork12HD-Regular.ttf` |
+| New York 24 HD | New York 24 (Susan Kare, 1984) | 1.002 | `fonts/otf/NewYork24HD-Regular.otf`, `fonts/ttf/NewYork24HD-Regular.ttf` |
+| Monaco HD | Monaco 12 (Susan Kare, 1984) | 1.005 | `fonts/otf/MonacoHD-Regular.otf`, `fonts/ttf/MonacoHD-Regular.ttf` |
+| New York 12 Blend HD | New York 12 blended halfway to New York 24, on 12's spacing | 1.012 | `fonts/otf/NewYork12BlendHD-Regular.otf`, `fonts/ttf/NewYork12BlendHD-Regular.ttf` |
+| New York 12 Mid HD | New York 12, at the weight halfway to New York 24's | 1.004 | `fonts/otf/NewYork12MidHD-Regular.otf`, `fonts/ttf/NewYork12MidHD-Regular.ttf` |
+| New York 24 Mid HD | New York 24, at the weight halfway to New York 12's | 1.003 | `fonts/otf/NewYork24MidHD-Regular.otf`, `fonts/ttf/NewYork24MidHD-Regular.ttf` |
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
 [ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px).
@@ -69,20 +69,25 @@ Every advance width is the bitmap's, in whole pixels, and the line gap is none. 
 had none. Monaco HD is monospaced, and marked so: every character advances 7 pixels, 350 units. (The bitmap's `©` and `®`
 advance 6; here they advance 7 like the rest, with their ink where the bitmap has it.)
 
-Traced at their 50 % contour, the strokes come out the bitmap's exact width: Chicago's and Athens's stems are 2
-pixels, the others' 1 (New York 24's 1 and 2). But antialiased outlines read darker than crisp pixels, more so
-with macOS's font smoothing, so every font's strokes are thinned by 4 units a side (`LIGHTEN` in
-`tools/build.py`), to about 1.8 pixels (0.8 for a 1-pixel stroke). Thinning would widen any small dent in
-the traced ink into a notch, so dents narrower than the thinning are filled first.
+Traced at their 50 % contour, the strokes come out about the bitmap's width (Chicago's and Athens's stems are 2
+pixels, the others' 1, New York 24's 1 and 2), but with a little less ink than the bitmap: the pixels' corners are rounded and the
+steps of diagonals cut. Each font's strokes are thickened by as many units a side as give it its bitmap's ink,
+over A–Z, a–z and 0–9 (`LIGHTEN` in `tools/build.py`; `tools/weight.py` measures it): Athens HD and Chicago HD
+by 1, Geneva HD and New York 12 HD by 2, Monaco HD by 3, New York 24 HD by 5, each then within 2 % of its
+bitmap's ink.
+`specimen/line-<font>.png` ([Athens](specimen/line-athens.png), [Chicago](specimen/line-chicago.png),
+[Geneva](specimen/line-geneva.png), [New York 12](specimen/line-newyork12.png),
+[New York 24](specimen/line-newyork24.png), [Monaco](specimen/line-monaco.png)) sets the alphabets and figures on one
+line in the bitmap and in the HD font, to compare.
 
 ## New York 12 and 24
 
 New York 24 isn't New York 12 drawn larger: it is a different design, with finer strokes for its size. Traced
 from their sheets, unthinned, the strokes of New York 12 average 0.0735 em and those of New York 24 0.0546 em;
-thinned by 4 units a side, as New York 12 HD and 24 HD, 0.0601 em and 0.0479 em. New York 12 Mid HD and New
-York 24 Mid HD are each at about the weight halfway between those two, 0.054 em, so that 12 Mid is lighter than
-12 HD and 24 Mid heavier than 24 HD: New York 12 thinned by 6 units a side (of its em of 600), to 0.0537 em, and
-New York 24 by 1 (of 1200), to 0.0529 em. Their metrics are New York 12's and 24's own.
+thickened to their bitmaps' ink, as New York 12 HD and 24 HD, 0.0802 em and 0.0629 em. New York 12 Mid HD and
+New York 24 Mid HD are each at about the weight halfway between those two, 0.0715 em, so that 12 Mid is lighter
+than 12 HD and 24 Mid heavier than 24 HD: New York 12 thinned by 1 unit a side (of its em of 600), to 0.0702 em,
+and New York 24 thickened by 10 (of 1200), to 0.0713 em. Their metrics are New York 12's and 24's own.
 New York 12's `a` came out of the upscaling taller than the other lower-case letters (from 7 to 343 units, where
 `c e o` reach from 20 to 333), though its bitmap is as high as theirs: it is squeezed to 11 to 333, with its
 accented forms and `æ` (`SQUEEZE` in `tools/build.py`).
@@ -159,6 +164,7 @@ Ubuntu) at `/usr/share/fonts/truetype/dejavu/` for the specimen's label.
 pip install -r requirements.txt
 python3 tools/build.py       # fonts/otf, fonts/ttf (about a minute)
 python3 tools/specimen.py    # specimen/
+python3 tools/weight.py      # each font's ink against its bitmap's
 python3 ../scripts/font_links.py   # the download lists and their specimen lines
 ```
 
@@ -175,7 +181,7 @@ python3 ../scripts/font_links.py   # the download lists and their specimen lines
 3. **Placing.** Each outline is placed by its origin, and given the bitmap's advance. The bitmap font itself
    (`scans/*.dfont`, read by `tools/bitmap.py`) gives the space's width and the
    ascender and descender.
-4. **Accents.** Where the sheet has a wrong accent over a letter (Geneva's `á à ä é ï`, Monaco's `à`: `REACCENT` in
+4. **Accents.** Where the sheet has a wrong accent over a letter (Geneva's `á à ä é ï`, Monaco's `à ë`: `REACCENT` in
    `tools/build.py`), the accent is taken from another letter whose bitmap has the same accent, pixel for pixel,
    and set where the bitmap has it.
 5. **Other repairs.** A few characters the AI upscaler got wrong are traced from bitmap-upscaling's 6-times sheet
