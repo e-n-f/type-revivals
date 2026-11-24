@@ -80,15 +80,16 @@ def blend(size=144, official=None):
     L = ImageFont.truetype(LABEL, 28)
     rows = [('newyork12', 'New York 12 bitmap'), ('New York 12 HD', None), ('New York 12 Blend HD', None),
             ('New York 24 HD', None), ('newyork24', 'New York 24 bitmap')]
-    if official: rows.append((official, 'New York (Apple TrueType, 1991)'))
+    if official: rows.append((official, 'New York (Apple TrueType, 1991), at the size that sets the line as wide as New York 12 HD'))
     gap = int(size * 1.45) + 30
     im = Image.new('RGB', (60 * size, len(rows) * gap + 20), 'white'); d = ImageDraw.Draw(im)
     right = 0
     for i, (f, label) in enumerate(rows):
         top = 10 + i * gap; base = top + 36 + size
         d.text((10, top), label or f, font=L, fill=(90, 90, 90))
-        if label and f == official:
-            F = ImageFont.truetype(f, size)
+        if label and f == official:     # at the size that sets the line as wide as New York 12 HD does
+            F12 = ImageFont.truetype(os.path.join(ROOT, 'fonts', 'otf', 'NewYork12HD-Regular.otf'), size)
+            F = ImageFont.truetype(f, size * d.textlength(text, font=F12) / d.textlength(text, font=ImageFont.truetype(f, size)))
             d.text((10, base), text, font=F, fill=(0, 0, 0), anchor='ls'); x = 10 + d.textlength(text, font=F)
         elif label:                                         # a bitmap, each pixel a square size/ppem across
             strike, metrics = bitmap.strike(f); x = 10.0

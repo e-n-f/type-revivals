@@ -110,7 +110,8 @@ New York 12's own at the blend's weight. W and w are made of two of the blended 
 12's w). A glyph whose blend would come apart is blended less (`]` and `¶`). Every glyph holds
 together. [`specimen/newyork-blend.png`](specimen/newyork-blend.png) sets it with New York 12 HD and 24 HD;
 [`specimen/newyork-alphabets.png`](specimen/newyork-alphabets.png) sets the alphabets and figures in New York 12's
-bitmap, 12 HD, the blend, 24 HD, 24's bitmap and Apple's 1991 TrueType New York (rendered from a copy of that
+bitmap, 12 HD, the blend, 24 HD, 24's bitmap and Apple's 1991 TrueType New York (at the size that sets the line
+as wide as 12 HD does; rendered from a copy of that
 font, which isn't in this repository: `python3 tools/specimen.py path/to/New\ York.ttf`).
 
 The centerlines it registers by (`tools/centerline.py`, in `centerlines/`) are each glyph's stroke skeleton,
