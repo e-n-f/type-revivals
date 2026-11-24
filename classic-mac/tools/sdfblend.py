@@ -4,12 +4,12 @@
 
 For each glyph:
   1. both fonts' unthinned outlines (LIGHTEN 0) are rasterized at 1000 em units to the em;
-  2. New York 24's glyph is fitted onto New York 12's by their ink boxes, then registered to it by a smooth,
-     dense displacement field: optical flow (Farneback) between the two glyphs' centerlines (centerlines/, from
-     tools/centerline.py), drawn as soft lines of one weight, which the flow follows where the two glyphs' ink,
-     thick against thin, misleads it; smoothed, and trusted only near the lines. It moves strokes onto New York
-     12's without fattening them: New York 24's stay as thick as they are (a thin serif, centred on 12's thicker
-     one, rides a little above the baseline);
+  2. New York 24's glyph is fitted onto New York 12's by their ink boxes, then registered to it by their
+     centerlines (centerlines/, from tools/centerline.py): each point of New York 12's centerline is matched to
+     the nearest point of 24's whose stroke runs the same way, a smoothed thin-plate spline is fitted through the
+     pairs, and again, ROUNDS times, so that a part that has to move a long way (the e's crossbar, 24's sitting
+     higher) comes in. Small pieces of ink (dots, accents) are paired by their centres and held. The warp moves
+     strokes onto New York 12's without fattening them: 24's stay as thick as they are;
   3. New York 24's signed distance field (distance to the ink's edge, positive inside) is warped onto New York
      12's positions with it;
   4. New York 24's field is kept within GROW outside and THIN inside New York 12's (where the warp goes wrong it
@@ -78,6 +78,65 @@ def lines_image(lines, X0, Y1, W, H, fit=lambda x, y: (x, y)):
     return cv2.GaussianBlur(im, (0, 0), BLUR)
 
 
+SMALL = 0.25                    # a piece of ink less than this of the glyph's largest is a dot or an accent
+NEAR = 150                      # em units: the furthest two such pieces are paired
+SPECK = 2500                    # em units squared: a piece of the blend this small, off New York 12's ink, is dropped
+ROUNDS = 6                      # rounds of matching and fitting (registration by centerlines)
+PAIR = 60                       # em units: the furthest a centerline point is matched
+ALIGNED = 0.7                   # ... to one whose stroke runs within 45 degrees of its own
+BEND = 300                      # the thin-plate spline's smoothing
+
+
+def pieces(m, x0, y1):
+    """the separate pieces of a glyph's ink: their centres (em units) and areas"""
+    n, lab, st, cen = cv2.connectedComponentsWithStats(m.astype(np.uint8), 8)
+    return [((cen[i][0] + x0 + 0.5, y1 - cen[i][1] - 0.5), st[i][4]) for i in range(1, n)]
+
+
+def anchors(g, h, inv):
+    """pairs of the centres of the two glyphs' small pieces of ink (a dot, an accent): each of New York 12's
+    paired with the nearest of New York 24's (fitted onto it), one to one. A dot has no stroke direction to be
+    matched by, and unmoved it would be cross-faded in two halves"""
+    a = [(c, s) for c, s in pieces(*g[:3])]; b = [(inv(*c), s) for c, s in pieces(*h[:3])]
+    big_a, big_b = max(s for _, s in a), max(s for _, s in b)
+    a = [c for c, s in a if s < SMALL * big_a]; b = [c for c, s in b if s < SMALL * big_b]
+    pairs = sorted((np.hypot(p[0] - q[0], p[1] - q[1]), i, j) for i, p in enumerate(a) for j, q in enumerate(b))
+    used_a, used_b, out = set(), set(), []
+    for d, i, j in pairs:
+        if d > NEAR or i in used_a or j in used_b: continue
+        used_a.add(i); used_b.add(j); out.append((a[i], b[j]))
+    return out
+
+
+def tps_register(L12, L24, inv, pins=()):
+    """the warp carrying New York 12's centerlines L12 onto New York 24's L24 (inv: h's em units -> the
+    canvas): each point of 12's centerline matched to the nearest point of 24's whose stroke runs the same way,
+    a smoothed thin-plate spline fitted through the pairs, and again, ROUNDS times, each round matching from
+    where the last put 12's points. pins: pairs always held (anchors()), each counted ten times. Returns a
+    function from canvas points (n, 2) to their counterparts."""
+    from scipy.interpolate import RBFInterpolator
+    pts = lambda L, f: [(f(p[0], p[1]), (p[5], p[6])) for l in L for p in l if p[7] != 1]
+    P = np.array([q for q, _ in pts(L12, lambda x, y: (x, y))], float)
+    N12 = np.array([n for _, n in pts(L12, lambda x, y: (x, y))], float)
+    Q = np.array([q for q, _ in pts(L24, inv)], float)
+    N24 = np.array([n for _, n in pts(L24, inv)], float)
+    if len(P) < 4 or len(Q) < 4: return lambda Z: Z
+    ok = np.abs(N12 @ N24.T) >= ALIGNED                       # (P, Q) pairs whose strokes run the same way
+    warp = lambda Z: Z
+    for _ in range(ROUNDS):
+        Pm = warp(P)
+        d = np.hypot(Pm[:, None, 0] - Q[None, :, 0], Pm[:, None, 1] - Q[None, :, 1]); d[~ok] = np.inf
+        j = np.argmin(d, 1); keep = d[np.arange(len(P)), j] < PAIR
+        if keep.sum() < 4: break
+        src, dst = P[keep], Q[j[keep]]
+        if pins:
+            src = np.vstack([src] + [np.array([p for p, _ in pins])] * 10)
+            dst = np.vstack([dst] + [np.array([q for _, q in pins])] * 10)
+        rbf = RBFInterpolator(src, dst - src, kernel='thin_plate_spline', smoothing=BEND)
+        warp = lambda Z, rbf=rbf: Z + rbf(Z)
+    return warp
+
+
 def blend_glyph(g, h, t, shrink, cl=None):
     """New York 12's glyph g and 24's h, (ink, x0, y1, adv): the blended ink on a canvas round g, (f, x0, y1),
     f the field to trace (0 to 1, its edge at 0.5)"""
@@ -100,23 +159,32 @@ def blend_glyph(g, h, t, shrink, cl=None):
     # the registration, on a coarser canvas: optical flow from g's ink (blurred) to fitted h's
     small = lambda D: cv2.GaussianBlur(cv2.resize((D > 0).astype(np.float32), (W // FLOW, H // FLOW),
                                                   interpolation=cv2.INTER_AREA), (0, 0), BLUR)
-    if cl:      # the two glyphs' centerlines (centerline.py): thin lines of one weight in both, which the flow follows
+    if cl:      # the two glyphs' centerlines (centerline.py): matched point to point, a thin-plate spline through them
         inv = lambda x, y: (a0 + (x - c0) * sx, b0 + (y - d0) * sy)        # h's em units -> the canvas
-        A, Bf = lines_image(cl[0], X0, Y1, W, H), lines_image(cl[1], X0, Y1, W, H, inv)
-    else:       # their ink, blurred
+        warp = tps_register(cl[0], cl[1], inv, anchors(g, h, inv))
+        gx, gy = np.meshgrid(np.arange(0, W, FLOW) + X0 + 0.5, Y1 - np.arange(0, H, FLOW) - 0.5)
+        Z = warp(np.c_[gx.ravel(), gy.ravel()])
+        TX = cv2.resize(Z[:, 0].reshape(gx.shape).astype(np.float32), (W, H), interpolation=cv2.INTER_LINEAR)
+        TY = cv2.resize(Z[:, 1].reshape(gy.shape).astype(np.float32), (W, H), interpolation=cv2.INTER_LINEAR)
+        D24 = fit(TX, TY)
+    else:       # their ink, blurred: optical flow between them
         A = np.clip(small(D12) * 255, 0, 255).astype(np.uint8); Bf = np.clip(small(fit(X, Y)) * 255, 0, 255).astype(np.uint8)
-    flow = cv2.calcOpticalFlowFarneback(A, Bf, None, 0.5, 4, WIN, 6, 7, 1.5, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
-    # smoothed, and trusted only near ink (in blank space optical flow has nothing to follow, and points anywhere):
-    # each pixel's flow the average of its neighbours', weighted by the ink of either glyph about them
-    w = cv2.GaussianBlur(np.maximum(A, Bf).astype(np.float32) / 255, (0, 0), BLUR) + 1e-3
-    flow = (cv2.GaussianBlur(flow * w[..., None], (0, 0), SMOOTH)
-            / cv2.GaussianBlur(w, (0, 0), SMOOTH)[..., None])
-    flow = cv2.resize(flow, (W, H), interpolation=cv2.INTER_LINEAR) * FLOW     # canvas px, x right and y down
-    D24 = fit(X + flow[..., 0], Y - flow[..., 1])
+        flow = cv2.calcOpticalFlowFarneback(A, Bf, None, 0.5, 4, WIN, 6, 7, 1.5, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
+        # smoothed, and trusted only near ink (in blank space optical flow has nothing to follow, and points
+        # anywhere): each pixel's flow the average of its neighbours', weighted by the ink of either glyph about them
+        w = cv2.GaussianBlur(np.maximum(A, Bf).astype(np.float32) / 255, (0, 0), BLUR) + 1e-3
+        flow = (cv2.GaussianBlur(flow * w[..., None], (0, 0), SMOOTH)
+                / cv2.GaussianBlur(w, (0, 0), SMOOTH)[..., None])
+        flow = cv2.resize(flow, (W, H), interpolation=cv2.INTER_LINEAR) * FLOW     # canvas px, x right and y down
+        D24 = fit(X + flow[..., 0], Y - flow[..., 1])
     # New York 24 kept near New York 12: no ink more than GROW outside 12's (where the warp misplaces a stroke,
     # into a counter), nor 12's thinned by more than THIN a side (where 24's part is elsewhere: an accent)
     D24 = np.clip(D24, D12 - THIN, D12 + GROW)
     D = (1 - t) * D12 + t * D24 - shrink
+    # a small piece of the blend mostly off New York 12's ink is a speck the warp left: dropped
+    n, lab, st, _ = cv2.connectedComponentsWithStats((D > 0).astype(np.uint8), 8)
+    for i in range(1, n):
+        if st[i][4] < SPECK and (D12[lab == i] > 0).mean() < 0.5: D[lab == i] = -1
     return np.clip(0.5 + D / 2, 0, 1).astype(np.float32), X0, Y1
 
 

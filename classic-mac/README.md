@@ -12,7 +12,7 @@ recreation lines up as the bitmap font set it.
 | New York 12 HD | New York 12 (Susan Kare, 1984) | 1.002 | `fonts/otf/NewYork12HD-Regular.otf`, `fonts/ttf/NewYork12HD-Regular.ttf` |
 | New York 24 HD | New York 24 (Susan Kare, 1984) | 1.001 | `fonts/otf/NewYork24HD-Regular.otf`, `fonts/ttf/NewYork24HD-Regular.ttf` |
 | Monaco HD | Monaco 12 (Susan Kare, 1984) | 1.003 | `fonts/otf/MonacoHD-Regular.otf`, `fonts/ttf/MonacoHD-Regular.ttf` |
-| New York 12 Blend HD | New York 12 blended halfway to New York 24, on 12's spacing | 1.004 | `fonts/otf/NewYork12BlendHD-Regular.otf`, `fonts/ttf/NewYork12BlendHD-Regular.ttf` |
+| New York 12 Blend HD | New York 12 blended halfway to New York 24, on 12's spacing | 1.005 | `fonts/otf/NewYork12BlendHD-Regular.otf`, `fonts/ttf/NewYork12BlendHD-Regular.ttf` |
 | New York 12 Mid HD | New York 12, at the weight halfway to New York 24's | 1.002 | `fonts/otf/NewYork12MidHD-Regular.otf`, `fonts/ttf/NewYork12MidHD-Regular.ttf` |
 | New York 24 Mid HD | New York 24, at the weight halfway to New York 12's | 1.002 | `fonts/otf/NewYork24MidHD-Regular.otf`, `fonts/ttf/NewYork24MidHD-Regular.ttf` |
 
@@ -89,8 +89,10 @@ New York 24 by 1 (of 1200), to 0.0529 em. Their metrics are New York 12's and 24
 
 **New York 12 Blend HD** (experimental) is New York 12 and 24 blended halfway, in raster space, with New York
 12's advances and spacing exactly (`tools/sdfblend.py`). For each glyph, New York 24's is fitted onto New York
-12's by their ink boxes, then registered to it stroke to stroke by a smooth optical-flow field between the two
-glyphs' centerlines; New York 24's signed distance field is warped onto New York 12's with it, kept near New York
+12's by their ink boxes, then registered to it stroke to stroke: each point of New York 12's centerline is
+matched to the nearest point of 24's whose stroke runs the same way, and a smooth thin-plate spline is fitted
+through the pairs, several rounds over (dots and accents are paired by their centres);
+New York 24's signed distance field is warped onto New York 12's with it, kept near New York
 12's (so that where the warp goes wrong it can't put ink in a counter, nor lose an accent), and the two fields
 are averaged and traced. Strokes take in-between thickness and contrast, and New York 12's shapes move a little
 toward New York 24's (its square serifs, forced by its pixels, round off). Every glyph holds together.
