@@ -45,6 +45,9 @@ Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadra
 **New York 24 Mid HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork24MidHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork24MidHD-Regular.ttf)  
 ![New York 24 Mid HD](specimen/fonts/NewYork24MidHD-Regular.png)
 
+**New York 12 Blend HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork12BlendHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork12BlendHD-Regular.ttf)  
+![New York 12 Blend HD](specimen/fonts/NewYork12BlendHD-Regular.png)
+
 <!-- /downloads -->
 
 ## Size and metrics
@@ -80,6 +83,19 @@ York 24 Mid HD are each at about the weight halfway between those two, 0.054 em,
 12 HD and 24 Mid heavier than 24 HD: New York 12 thinned by 6 units a side (of its em of 600), to 0.0537 em, and
 New York 24 by 1 (of 1200), to 0.0529 em. Their metrics are New York 12's and 24's own.
 [`specimen/newyork-weights.png`](specimen/newyork-weights.png) sets the four at one size.
+
+### Centerlines
+
+`tools/centerline.py` decomposes New York 12 and 24, unthinned, into centerlines and bearings (in
+`centerlines/`): each glyph's stroke skeleton, every point with the stroke's radius there, and the space left and
+right of its ink. A round pen drawn along New York 12's centerlines gives New York 12 back (its advances exactly;
+its ink within 1 %, the outlines a little rounder at stroke ends and dots).
+[`specimen/centerline-newyork.png`](specimen/centerline-newyork.png) shows the centerlines.
+
+**New York 12 Blend HD** (experimental) draws New York 12's centerlines, thinned as New York 12 HD is, with each
+glyph's bearings halfway from New York 12's to New York 24's (in ems). New York 24's letters are narrower and
+their bearings looser, so it sets wider than either:
+[`specimen/newyork-blend.png`](specimen/newyork-blend.png).
 
 ## Character set
 

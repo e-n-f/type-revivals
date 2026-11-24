@@ -103,6 +103,9 @@ notes on its sources.
 **New York 24 Mid HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork24MidHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork24MidHD-Regular.ttf)  
 ![New York 24 Mid HD](classic-mac/specimen/fonts/NewYork24MidHD-Regular.png)
 
+**New York 12 Blend HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork12BlendHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork12BlendHD-Regular.ttf)  
+![New York 12 Blend HD](classic-mac/specimen/fonts/NewYork12BlendHD-Regular.png)
+
 ### Selectric
 
 **Selectric Advocate**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/otf/SelectricAdvocate-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/selectric/fonts/ttf/SelectricAdvocate-Regular.ttf)  
