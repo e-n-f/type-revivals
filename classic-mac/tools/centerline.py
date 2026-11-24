@@ -181,9 +181,7 @@ def decompose(font):
     (the ink's reach along the axis's left and right normals), its left normal, j (1 in a join, 2 at a stroke's
     end, else 0), and the number of free ends (not forks) of its path"""
     from scipy.ndimage import gaussian_filter1d
-    keep = B.LIGHTEN[font]; B.LIGHTEN[font] = 0
-    G = B.glyphs(font)
-    B.LIGHTEN[font] = keep
+    G = B.glyphs(font, raw=True)
     strike, _ = bitmap.strike(B.SOURCE.get(font, font))
     B.reaccent(font, G, strike); B.redot(font, G, strike)
     s = EM / (B.SIZE[font] * B.PX)

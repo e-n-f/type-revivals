@@ -40,5 +40,5 @@ def weight(font):
 if __name__ == '__main__':
     for f in [a for a in sys.argv[1:] if a in build.VERSIONS] or list(build.VERSIONS):
         r, d = weight(f)
-        print(f'{build.NAMES[f]:22s} LIGHTEN {build.LIGHTEN[f]:3d}   ink {r:6.1%} of the bitmap\'s   '
+        print(f'{build.NAMES[f]:22s} LIGHTEN {build.LIGHTEN[f]:3g}   ink {r:6.1%} of the bitmap\'s   '
               f'{d:+.1f} units a side to match')

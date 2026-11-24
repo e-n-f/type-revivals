@@ -20,10 +20,11 @@ For each glyph:
      within GROW outside and THIN inside 12's (where the warp goes wrong it can't put ink in a counter, nor lose an
      accent); they are averaged, t of the way to 24's, less the thinning (t of the way from New York 12 HD's to 24
      HD's); and the result is traced at its edge, specks off 12's ink dropped.
-In the lower case, upright strokes are thickened SIDES a side across and stems thinned STEM_THIN more
-(lighten_stems()): as thick as the thick of a curve, stems looked heavier than the curves, which thin round from
-it. New York 24's two bars of ¢ and $ are run together (MERGE); ª º are fitted by their boxes (SUPERIOR); a's
-counter is smoothed (COUNTERS); s and g, whose rounds read heavy, are thinned instead of thickened (LIGHTER);
+The blend's letters and figures are evened as New York 12's are (build.evening()): each thickened or thinned so
+that its upright strokes (upright()) are as thick as the font's median, as the warp can thin one glyph's stems
+more than another's (J's more than I's). (SIDES, STEM_THIN and LIGHTER, which once balanced stems against curves
+by hand, are off.) New York 24's two bars of ¢ and $ are run together (MERGE); ª º are fitted by their boxes (SUPERIOR); a's
+counter is smoothed (COUNTERS);
 § ™ are New York 12's own at the blend's weight (OWN). W and w are two of the blended V and v side by side
 (DOUBLED): the W across its advance less the V's sidebearings, its V's narrowed a little to stand as far apart
 as New York 24's, crossed near the top; the w across New York 12's w, its v's meeting at the top, as 12's. A
@@ -54,9 +55,7 @@ FAR = 1000.0                    # the distance field outside New York 24's raste
 
 def unthinned(font):
     """{char: (ink 0/1, x0, y1, advance)} in em units: the font's outlines unthinned, rasterized"""
-    keep = B.LIGHTEN[font]; B.LIGHTEN[font] = 0
-    G = B.glyphs(font)
-    B.LIGHTEN[font] = keep
+    G = B.glyphs(font, raw=True)
     strike, _ = bitmap.strike(B.SOURCE.get(font, font))
     B.reaccent(font, G, strike); B.redot(font, G, strike)
     s = EM / (B.SIZE[font] * B.PX)
@@ -104,14 +103,16 @@ APART = {'W': 0.405}            # ... spread across the advance (less the V's si
 PIECE = 200                     # em units squared: a piece of ink this small isn't counted
 FELL = []                       # the glyphs blended less than the rest (blend())
 STEM_RUN = 350                  # em units: an upright run of ink longer than this is a stem (not the side of an o)
-STEM_THIN = 4                   # em units a side that lower-case stems are thinned
-SIDES = 5                       # em units a side that a lower-case letter's upright strokes are thickened (the sides
+STEM_THIN = 0                   # em units a side that lower-case stems are thinned
+SIDES = 0                       # em units a side that a lower-case letter's upright strokes are thickened (the sides
                                 # of an o), its stems thinned STEM_THIN more than that
 COUNTERS = {c: 30 for c in 'aàáâãäå'}            # em units: these glyphs' counters smoothed, bumps and bites narrower than this gone
 MERGE = {'¢': 60, '$': 60}      # em units: New York 24's two bars, this far apart, run together into one as New York 12's
 OWN = '§™'                      # New York 12's own, at the blend's weight (New York 12 Mid HD's): too unlike 24's to blend
 SUPERIOR = 'ªº'                 # letters set high: fitted by their boxes, not the guide lines
-LIGHTER = {'s': 4, 'g': 2}      # em units a side these glyphs are thinned more (their rounds read heavy), not thickened SIDES
+LIGHTER = {}                  # em units a side these glyphs are thinned more (their rounds read heavy), not thickened SIDES
+BLEND_EVEN = True               # the blend's glyphs evened (blend(), upright())
+UPRIGHT_ROWS = 40               # em units of upright stroke a glyph needs to be evened
 CHAR = ''                       # the glyph blend_glyph() is blending
 STEM_FADE = 15                  # em units the thinning fades in over
 SMALL = 0.25                    # a piece of ink less than this of the glyph's largest is a dot or an accent
@@ -411,12 +412,15 @@ def blend(t, R12, R24, C12=None, C24=None):
     """{char: (contours, adv)} in New York 12's font units; C12, C24 the fonts' centerlines, to register by"""
     s = EM / (B.SIZE['newyork12'] * B.PX)
     shrink = (1 - t) * B.LIGHTEN['newyork12'] * s + t * B.LIGHTEN['newyork24'] * EM / (B.SIZE['newyork24'] * B.PX)
+    # New York 12's glyphs evened (build.evening()): each blend thinned by its share of New York 12's evening too
+    even = B.evening('newyork12') if 'newyork12' in B.EVEN else {}
+    shrink_of = lambda ch: shrink - (1 - t) * even.get(ch, 0) * s
     global MORPH, CHAR
     G12, G24 = guides(R12), guides(R24)
     G, fields = {}, {}
     # W and w last: two of the blended V and v (doubled()), not blends of their own
     R12 = dict(sorted(R12.items(), key=lambda kv: kv[0] in DOUBLED))
-    own = lambda g: (np.clip(0.5 + (sdf(g[0]) - shrink) / 2, 0, 1).astype(np.float32), g[1], g[2])
+    own = lambda g, ch: (np.clip(0.5 + (sdf(g[0]) - shrink_of(ch)) / 2, 0, 1).astype(np.float32), g[1], g[2])
     for ch, g in R12.items():
         if ch in DOUBLED and DOUBLED[ch] in fields:
             if ch in APART:     # spanning 12's W's advance less the V's sidebearings, the V's apart as 24's are
@@ -425,7 +429,7 @@ def blend(t, R12, R24, C12=None, C24=None):
             else:
                 f, X0, Y1 = doubled(fields[DOUBLED[ch]], box(*g[:3]))
         elif ch in OWN:     # New York 12's own, thinned as New York 12 Mid HD is
-            f, X0, Y1 = np.clip(0.5 + (sdf(g[0]) - B.LIGHTEN['newyork12mid'] * s) / 2, 0, 1).astype(np.float32), g[1], g[2]
+            f, X0, Y1 = np.clip(0.5 + (sdf(g[0]) - (B.LIGHTEN['newyork12mid'] - even.get(ch, 0)) * s) / 2, 0, 1).astype(np.float32), g[1], g[2]
         elif ch in R24:
             cl = (C12[ch]['lines'], C24[ch]['lines']) if C12 and ch in C12 and ch in C24 else None
             # a glyph whose blend comes apart (in more or fewer pieces than New York 12's: where the two designs
@@ -434,22 +438,46 @@ def blend(t, R12, R24, C12=None, C24=None):
             want = len([1 for _, a in pieces(*g[:3]) if a > PIECE])
             for morph, u in ((True, t), (False, t), (False, t / 2)):
                 MORPH = morph; CHAR = ch
-                f, X0, Y1 = blend_glyph(g, R24[ch], u, shrink, cl, (G12, G24),
+                f, X0, Y1 = blend_glyph(g, R24[ch], u, shrink_of(ch), cl, (G12, G24),
                                         unicodedata.category(ch).startswith('L') and ch not in SUPERIOR, unicodedata.category(ch) == 'Sk',
                                         unicodedata.category(ch) == 'Ll')
                 if len([1 for _, a in pieces(f > 0.5, X0, Y1) if a > PIECE]) == want: break
             else:
-                f, X0, Y1 = own(g); FELL.append(ch)
+                f, X0, Y1 = own(g, ch); FELL.append(ch)
             MORPH = True
             if (morph, u) != (True, t) and ch not in FELL: FELL.append(ch)
         else:                       # nothing to blend with: New York 12's own, thinned
-            f, X0, Y1 = own(g)
+            f, X0, Y1 = own(g, ch)
         fields[ch] = (f, X0, Y1)
+    # the blend's letters and figures evened as New York 12's are (build.evening()): the warp can thin one glyph's
+    # stems more than another's (J's more than I's)
+    up = {ch: upright(fields[ch][0]) for ch in fields if unicodedata.category(ch)[0] in 'LN'}
+    up = {ch: w for ch, w in up.items() if w}
+    target = float(np.median(list(up.values())))
+    for ch, (f, X0, Y1) in fields.items():
+        if ch in up and BLEND_EVEN:
+            e = float(np.clip((target - up[ch]) / 2, -B.EVEN_MOST * s, B.EVEN_MOST * s))
+            f = np.clip(0.5 + (sdf(f > 0.5) + e) / 2, 0, 1).astype(np.float32)
         f = cv2.resize(f, (int(round(f.shape[1] / s)), int(round(f.shape[0] / s))), interpolation=cv2.INTER_AREA)
         ox, oy = X0 / s, Y1 / s
         G[ch] = ([[(seg[0],) + tuple((p[0] + ox, p[1] + oy) for p in seg[1:]) for seg in c]
-                  for c in trace.trace(f, B.SIGMA)], g[3] / s)
+                  for c in trace.trace(f, B.SIGMA)], R12[ch][3] / s)
     return G
+
+
+def upright(f):
+    """the median width of a blended glyph's upright strokes (em units), or None: across each row, the runs of ink
+    both of whose edges are upright (the ink's gradient there within about 25 degrees of across), as many as
+    UPRIGHT_ROWS of them"""
+    m = (f > 0.5).astype(np.uint8)
+    S = cv2.GaussianBlur(f, (0, 0), 2)
+    gy, gx = np.gradient(S)
+    ok = np.abs(gx) > B.EVEN_UPRIGHT * np.hypot(gx, gy) + 1e-6
+    w = []
+    for r in range(m.shape[0]):
+        d = np.diff(np.r_[0, m[r], 0].astype(np.int8)); a = np.nonzero(d == 1)[0]; b = np.nonzero(d == -1)[0]
+        w += [e - s for s, e in zip(a, b) if ok[r, s] and ok[r, e - 1]]
+    return float(np.median(w)) if len(w) >= UPRIGHT_ROWS else None
 
 
 if __name__ == '__main__':
