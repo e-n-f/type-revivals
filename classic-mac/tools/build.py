@@ -35,7 +35,7 @@ VERSIONS = {'athens': '1.002', 'chicago': '1.002', 'geneva': '1.001', 'newyork12
             'monaco': '1.003', 'newyork12mid': '1.002', 'newyork24mid': '1.002'}
 # New York 12 Blend HD and Blend 100 HD (tools/centerline.py: New York 12's centerlines and spacing, with pen widths
 # halfway to New York 24's, and New York 24's)
-BLEND_VERSION = '1.001'
+BLEND_VERSION = '1.002'
 # fonts traced from another's sources (sheet, glyph positions and bitmap) at another weight
 SOURCE = {'newyork12mid': 'newyork12', 'newyork24mid': 'newyork24'}
 MID = {f: ' Its strokes are at the weight halfway between those of New York 12 HD and 24 HD.' for f in SOURCE}

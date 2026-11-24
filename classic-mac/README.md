@@ -89,18 +89,21 @@ New York 24 by 1 (of 1200), to 0.0529 em. Their metrics are New York 12's and 24
 
 ### Centerlines
 
-`tools/centerline.py` decomposes New York 12 and 24, unthinned, into centerlines (in `centerlines/`): each glyph's
-stroke skeleton, every point with the stroke's radius there and its left and right pen widths (the ink's reach
-along the centerline's left and right normals). A pen of those widths swept along New York 12's centerlines gives
-New York 12 back: its advances exactly, its ink within 3 %, a little rounder at dots and stroke ends.
-[`specimen/centerline-newyork.png`](specimen/centerline-newyork.png) shows the centerlines.
+`tools/centerline.py` decomposes New York 12 and 24, unthinned, into centerlines (in `centerlines/`). A
+centerline is an axis along each stroke: its skeleton, spurs pruned, free ends carried on to the stroke's end,
+and smoothed along its length so that it runs straight through a stroke's lean. Every point keeps its left and
+right pen widths, the ink's reach along the axis's left and right normals, which carry the lean. A pen of those
+widths swept along New York 12's centerlines gives New York 12 back: its advances exactly, its ink within about
+6 %. [`specimen/centerline-newyork.png`](specimen/centerline-newyork.png) shows the skeletons.
 
 **New York 12 Blend HD** (experimental) keeps New York 12's centerlines, advances and spacing exactly, and draws
-its strokes with pen widths halfway from New York 12's to New York 24's. New York 24's widths are taken at the
-nearest point of its centerline, its glyph fitted onto New York 12's by their ink boxes (the widths themselves
-aren't scaled), so its thick and thin come with them; the thinning is halfway between the two HD fonts' too.
-**New York 12 Blend 100 HD** has New York 24's pen widths whole: its weight and contrast on New York 12's letters.
-[`specimen/newyork-blend.png`](specimen/newyork-blend.png) sets them with New York 12 HD and 24 HD.
+its strokes with pen widths halfway from New York 12's to New York 24's. New York 24's widths at a point of New
+York 12's centerline are where its ink is along New York 12's normal there, with its glyph fitted onto New York
+12's by their ink boxes, so that its strokes' edges fall where 24's do (a thin serif on the baseline, a flag
+leaning the way 24's does); a cut across a stroke on a slant is narrowed to the stroke's own thickness, and
+points in joins take their neighbours' widths. **New York 12 Blend 100 HD** has New York 24's widths whole.
+Where the two designs' details differ (brackets, the r's terminal), Blend 100 shows bumps; Blend 50, half of
+them. [`specimen/newyork-blend.png`](specimen/newyork-blend.png) sets them with New York 12 HD and 24 HD.
 
 ## Character set
 
