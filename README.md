@@ -7,7 +7,7 @@ notes on its sources.
 |---|---|---|
 | [`metal-pal/`](metal-pal/) | Metal Pal Regular, Italic, Bold | D. Stempel AG specimen cards of Hermann Zapf's foundry Palatino (1950–51) |
 | [`executive/`](executive/) | Executive Modern, Documentary, Mid-Century, Arcadia, Doric, Bold Face 1, Bold Face 2, Charter, Secretarial, Registry, Text, Directory, Testimonial, Bold Face 1 Italic, Copperplate Gothic 1, Copperplate Gothic 2, Patron | Specimens of the Executive proportional typewriter's faces (IBM, 1950s) |
-| [`classic-mac/`](classic-mac/) | Athens HD, Chicago HD, Geneva HD, Monaco HD | High-resolution recreations of the early Macintosh's bitmap fonts, on their metrics |
+| [`classic-mac/`](classic-mac/) | Athens HD, Chicago HD, Geneva HD, New York 12 HD, New York 24 HD, Monaco HD, New York 12 and 24 Mid HD | High-resolution recreations of the early Macintosh's bitmap fonts, on their metrics |
 | [`selectric/`](selectric/) | Selectric Courier 72, Prestige Elite 72, Letter Gothic, Orator, Script, ANSI OCR and 17 more, monospaced | The Selectric typewriter's type-style brochure (IBM, 1972) |
 
 <!-- downloads -->
@@ -90,6 +90,18 @@ notes on its sources.
 
 **Monaco HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/MonacoHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/MonacoHD-Regular.ttf)  
 ![Monaco HD](classic-mac/specimen/fonts/MonacoHD-Regular.png)
+
+**New York 12 HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork12HD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork12HD-Regular.ttf)  
+![New York 12 HD](classic-mac/specimen/fonts/NewYork12HD-Regular.png)
+
+**New York 24 HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork24HD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork24HD-Regular.ttf)  
+![New York 24 HD](classic-mac/specimen/fonts/NewYork24HD-Regular.png)
+
+**New York 12 Mid HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork12MidHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork12MidHD-Regular.ttf)  
+![New York 12 Mid HD](classic-mac/specimen/fonts/NewYork12MidHD-Regular.png)
+
+**New York 24 Mid HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork24MidHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork24MidHD-Regular.ttf)  
+![New York 24 Mid HD](classic-mac/specimen/fonts/NewYork24MidHD-Regular.png)
 
 ### Selectric
 
