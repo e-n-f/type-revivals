@@ -48,6 +48,9 @@ Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadra
 **New York 12 Blend HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork12BlendHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork12BlendHD-Regular.ttf)  
 ![New York 12 Blend HD](specimen/fonts/NewYork12BlendHD-Regular.png)
 
+**New York 12 Blend 100 HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/NewYork12Blend100HD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/NewYork12Blend100HD-Regular.ttf)  
+![New York 12 Blend 100 HD](specimen/fonts/NewYork12Blend100HD-Regular.png)
+
 <!-- /downloads -->
 
 ## Size and metrics
@@ -86,16 +89,18 @@ New York 24 by 1 (of 1200), to 0.0529 em. Their metrics are New York 12's and 24
 
 ### Centerlines
 
-`tools/centerline.py` decomposes New York 12 and 24, unthinned, into centerlines and bearings (in
-`centerlines/`): each glyph's stroke skeleton, every point with the stroke's radius there, and the space left and
-right of its ink. A round pen drawn along New York 12's centerlines gives New York 12 back (its advances exactly;
-its ink within 1 %, the outlines a little rounder at stroke ends and dots).
+`tools/centerline.py` decomposes New York 12 and 24, unthinned, into centerlines (in `centerlines/`): each glyph's
+stroke skeleton, every point with the stroke's radius there and its left and right pen widths (the ink's reach
+along the centerline's left and right normals). A pen of those widths swept along New York 12's centerlines gives
+New York 12 back: its advances exactly, its ink within 3 %, a little rounder at dots and stroke ends.
 [`specimen/centerline-newyork.png`](specimen/centerline-newyork.png) shows the centerlines.
 
-**New York 12 Blend HD** (experimental) draws New York 12's centerlines, thinned as New York 12 HD is, with each
-glyph's bearings halfway from New York 12's to New York 24's (in ems). New York 24's letters are narrower and
-their bearings looser, so it sets wider than either:
-[`specimen/newyork-blend.png`](specimen/newyork-blend.png).
+**New York 12 Blend HD** (experimental) keeps New York 12's centerlines, advances and spacing exactly, and draws
+its strokes with pen widths halfway from New York 12's to New York 24's. New York 24's widths are taken at the
+nearest point of its centerline, its glyph fitted onto New York 12's by their ink boxes (the widths themselves
+aren't scaled), so its thick and thin come with them; the thinning is halfway between the two HD fonts' too.
+**New York 12 Blend 100 HD** has New York 24's pen widths whole: its weight and contrast on New York 12's letters.
+[`specimen/newyork-blend.png`](specimen/newyork-blend.png) sets them with New York 12 HD and 24 HD.
 
 ## Character set
 
