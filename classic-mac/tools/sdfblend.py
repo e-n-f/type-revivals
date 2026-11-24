@@ -20,8 +20,10 @@ For each glyph:
      within GROW outside and THIN inside 12's (where the warp goes wrong it can't put ink in a counter, nor lose an
      accent); they are averaged, t of the way to 24's, less the thinning (t of the way from New York 12 HD's to 24
      HD's); and the result is traced at its edge, specks off 12's ink dropped.
-W and w are two of the blended V and v side by side, spanning 12's W and w (DOUBLED): crossed in the middle
-where they overlap, as New York 24's W, or meeting at the top, as New York 12's w. A glyph whose blend comes
+Lower-case stems are thinned STEM_THIN a side (lighten_stems()): as thick as the thick of a curve, they looked
+heavier than the curves, which thin round from it. W and w are two of the blended V and v side by side
+(DOUBLED): the W across its advance less the V's sidebearings, its V's narrowed a little to stand as far apart
+as New York 24's, crossed near the top; the w across New York 12's w, its v's meeting at the top, as 12's. A glyph whose blend comes
 apart (in more or fewer pieces than New York 12's) is blended again with New York 12's shape kept, then a
 quarter of the way, else is New York 12's own, thinned; the build lists them. The advances and spacing are New
 York 12's exactly.
@@ -93,8 +95,14 @@ MORPH = True                    # the blend's shapes moved t of the way to New Y
 ANCHOR = 12                     # em units: an edge this near a guide line is on it
 EDGE_STEP = 10                  # em units between the edges sampled along the guide lines
 DOUBLED = {'W': 'V', 'w': 'v'}  # made of two of another (doubled())
+APART = {'W': 0.405}            # ... spread across the advance (less the V's sidebearings), the second V this much of
+                                # a V's width right of the first, as in New York 24's W (12's W is too narrow for
+                                # two of the V: they would almost coincide)
 PIECE = 200                     # em units squared: a piece of ink this small isn't counted
 FELL = []                       # the glyphs blended less than the rest (blend())
+STEM_RUN = 350                  # em units: an upright run of ink longer than this is a stem (not the side of an o)
+STEM_THIN = 4                   # em units a side that lower-case stems are thinned
+STEM_FADE = 15                  # em units the thinning fades in over
 SMALL = 0.25                    # a piece of ink less than this of the glyph's largest is a dot or an accent
 NEAR = 150                      # em units: the furthest two such pieces are paired
 SPECK = 2500                    # em units squared: a piece of the blend this small, off New York 12's ink, is dropped
@@ -249,7 +257,21 @@ def tps_register(L12, L24, inv, pins=()):
     return warp
 
 
-def blend_glyph(g, h, t, shrink, cl=None, G=None, by_guides=True, keep_size=False):
+def lighten_stems(D):
+    """D with its long upright stems (ink in runs down a column longer than STEM_RUN) thinned STEM_THIN a side,
+    fading in over STEM_FADE: a stem as thick as the thick of a curve looks heavier than the curve, which thins
+    round from it"""
+    ink = D > 0
+    run = np.zeros(D.shape, np.float32)
+    for c in range(D.shape[1]):
+        col = ink[:, c]
+        d = np.diff(np.r_[0, col.astype(np.int8), 0]); s = np.nonzero(d == 1)[0]; e = np.nonzero(d == -1)[0]
+        for a, b in zip(s, e): run[a:b, c] = b - a
+    w = cv2.GaussianBlur((run > STEM_RUN).astype(np.float32), (0, 0), STEM_FADE)
+    return D - STEM_THIN * np.clip(w * 2, 0, 1)
+
+
+def blend_glyph(g, h, t, shrink, cl=None, G=None, by_guides=True, keep_size=False, stems=False):
     """New York 12's glyph g and 24's h, (ink, x0, y1, adv): the blended ink on a canvas round g, (f, x0, y1),
     f the field to trace (0 to 1, its edge at 0.5)"""
     m12, x12, y12, _ = g; m24, x24, y24, _ = h
@@ -329,6 +351,7 @@ def blend_glyph(g, h, t, shrink, cl=None, G=None, by_guides=True, keep_size=Fals
     # into a counter), nor 12's thinned by more than THIN a side (where 24's part is elsewhere: an accent)
     D24 = np.clip(D24, D12 - THIN, D12 + GROW)
     D = (1 - t) * D12 + t * D24 - shrink
+    if stems: D = lighten_stems(D)
     # a small piece of the blend mostly off New York 12's ink is a speck the warp left: dropped
     n, lab, st, _ = cv2.connectedComponentsWithStats((D > 0).astype(np.uint8), 8)
     for i in range(1, n):
@@ -336,7 +359,7 @@ def blend_glyph(g, h, t, shrink, cl=None, G=None, by_guides=True, keep_size=Fals
     return np.clip(0.5 + D / 2, 0, 1).astype(np.float32), X0, Y1
 
 
-def doubled(fv, target):
+def doubled(fv, target, apart=None):
     """a W of two V's (or a w of two v's): two copies of the blended V's ink, side by side, spanning New York 12's W
     across (its ink box, target); where they overlap, their middle strokes cross, as New York 24's W's do. New York
     12's W and 24's differ in their middle (one apex; two V's crossed), and blended they mix the two"""
@@ -344,6 +367,10 @@ def doubled(fv, target):
     cols = np.nonzero((f > 0.5).any(0))[0]
     v0, v1 = cols[0] + X0, cols[-1] + 1 + X0                 # the V's ink across, em units
     a0, _, a1, _ = target
+    if apart:   # each V narrowed so that the second is this fraction of a V's width right of the first
+        s = (a1 - a0) / (1 + apart) / (v1 - v0)
+        f = cv2.resize(f, (int(round(f.shape[1] * s)), f.shape[0]), interpolation=cv2.INTER_AREA)
+        X0 = v0 - (v0 - X0) * s; v1 = v0 + (v1 - v0) * s
     dx = int(round((a1 - a0) - (v1 - v0)))                    # the second V this far right of the first
     out = np.zeros((f.shape[0], f.shape[1] + max(dx, 0)), np.float32)
     out[:, :f.shape[1]] = f
@@ -363,7 +390,11 @@ def blend(t, R12, R24, C12=None, C24=None):
     own = lambda g: (np.clip(0.5 + (sdf(g[0]) - shrink) / 2, 0, 1).astype(np.float32), g[1], g[2])
     for ch, g in R12.items():
         if ch in DOUBLED and DOUBLED[ch] in fields:
-            f, X0, Y1 = doubled(fields[DOUBLED[ch]], box(*g[:3]))
+            if ch in APART:     # spanning 12's W's advance less the V's sidebearings, the V's apart as 24's are
+                v = R12[DOUBLED[ch]]; vb = box(*v[:3])
+                f, X0, Y1 = doubled(fields[DOUBLED[ch]], (vb[0], 0, g[3] - (v[3] - vb[2]), 0), APART[ch])
+            else:
+                f, X0, Y1 = doubled(fields[DOUBLED[ch]], box(*g[:3]))
         elif ch in R24:
             cl = (C12[ch]['lines'], C24[ch]['lines']) if C12 and ch in C12 and ch in C24 else None
             # a glyph whose blend comes apart (in more or fewer pieces than New York 12's: where the two designs
@@ -373,7 +404,8 @@ def blend(t, R12, R24, C12=None, C24=None):
             for morph, u in ((True, t), (False, t), (False, t / 2)):
                 MORPH = morph
                 f, X0, Y1 = blend_glyph(g, R24[ch], u, shrink, cl, (G12, G24),
-                                        unicodedata.category(ch).startswith('L'), unicodedata.category(ch) == 'Sk')
+                                        unicodedata.category(ch).startswith('L'), unicodedata.category(ch) == 'Sk',
+                                        unicodedata.category(ch) == 'Ll')
                 if len([1 for _, a in pieces(f > 0.5, X0, Y1) if a > PIECE]) == want: break
             else:
                 f, X0, Y1 = own(g); FELL.append(ch)
