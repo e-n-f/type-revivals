@@ -31,10 +31,10 @@ import bitmap
 Image.MAX_IMAGE_PIXELS = None
 
 PX = 50                                   # font units per bitmap pixel
-VERSIONS = {'athens': '1.004', 'chicago': '1.004', 'geneva': '1.003', 'newyork12': '1.005', 'newyork24': '1.002',
-            'monaco': '1.005', 'newyork12mid': '1.005', 'newyork24mid': '1.003'}
+VERSIONS = {'athens': '1.004', 'chicago': '1.004', 'geneva': '1.003', 'newyork12': '1.006', 'newyork24': '1.002',
+            'monaco': '1.005', 'newyork12mid': '1.006', 'newyork24mid': '1.003'}
 # New York 12 Blend HD (tools/sdfblend.py: New York 24 warped onto New York 12, their distance fields averaged)
-BLEND_VERSION = '1.014'
+BLEND_VERSION = '1.015'
 # fonts traced from another's sources (sheet, glyph positions and bitmap) at another weight
 SOURCE = {'newyork12mid': 'newyork12', 'newyork24mid': 'newyork24'}
 MID = {f: ' Its strokes are at the weight halfway between those of New York 12 HD and 24 HD.' for f in SOURCE}
@@ -60,13 +60,12 @@ SIGMA = 1.5                               # smoothing of the traced ink, in font
 # Font units taken off each side of every stroke (a negative number: added). Traced at their 50 % contour, the
 # glyphs come out with a little less ink than their bitmaps (the pixels' corners rounded, the steps of diagonals
 # cut); each font is thickened by as much as gives it its bitmap's ink, over A-Z, a-z and 0-9 (tools/weight.py)
-LIGHTEN = {'athens': -1, 'chicago': -1, 'geneva': -2, 'newyork12': -3, 'newyork24': -5, 'monaco': -3,
+LIGHTEN = {'athens': -1, 'chicago': -1, 'geneva': -2, 'newyork12': -2, 'newyork24': -5, 'monaco': -3,
 # New York 12's and 24's bitmaps differ in weight: traced at their 50 % contour, unthinned, their strokes average
-# 0.0735 em and 0.0546 em, and thickened to their bitmaps' ink, as New York 12 HD and 24 HD, 0.0802 and 0.0629
-# (New York 12 by 3 units a side: by 2, its glyphs evened (EVEN) came out lighter). The Mid fonts are both at about
-# the weight halfway between those two, 0.0715 em: 12's thinned by half a unit a side (of its em of 600), 24's
-# thickened by 10 (of 1200), to 0.0713
-           'newyork12mid': 0.5, 'newyork24mid': -10}
+# 0.0735 em and 0.0546 em, and thickened to their bitmaps' ink, as New York 12 HD and 24 HD, 0.0802 and 0.0629.
+# The Mid fonts are both at about the weight halfway between those two, 0.0715 em: 12's thinned by 1 unit a side
+# (of its em of 600), to 0.0702 em, 24's thickened by 10 (of 1200), to 0.0713
+           'newyork12mid': 1, 'newyork24mid': -10}
 # Accented letters whose accent the upscaling got wrong: Geneva 12's acute, grave and dieresis are two or three
 # pixels, and on the sheet á à é came out as circumflexes, ä and ï as broken marks. Each takes the accent of a
 # letter the sheet gets right whose bitmap accent has the same pixels (reaccent())
@@ -86,54 +85,18 @@ DOTS = {'newyork24': 'ÄÖÜäëïöüÿ¨'}
 # pixels high, as theirs are. Its body is squeezed from the one span (font units, as traced) to the other, and an
 # accent over it moved down with it
 SQUEEZE = {'newyork12': ('aàáâãäåæ', (7, 343), (11, 333))}
-# Fonts whose glyphs are each thickened or thinned, about the font's LIGHTEN, so that their upright strokes (stems,
-# the sides of rounds) are all as thick: New York 12's bitmap draws every stroke a pixel wide, but traced from the
-# upscaled sheet its glyphs' strokes vary, J's stem thinner than I's, o's sides thinner than l's (evening()).
-# New York 24's bitmap has thick and thin by design (its N's and U's uprights hairlines), so it isn't evened
-EVEN = {'newyork12'}
-EVEN_UPRIGHT = 0.9          # a centerline point whose stroke runs within about 25 degrees of upright
-EVEN_POINTS = 15            # a glyph with fewer such points (x, the accents) isn't evened
-EVEN_MOST = 3               # font units a side, at most
-EVEN_GAP = 2                # font units: the least gap thickening may leave between a glyph's pieces
+# Glyphs the upscaling drew thinner than the rest, thickened this many more font units a side: New York 12's J,
+# whose stem came out 4 units thinner than I's, though both are a pixel wide in the bitmap
+THICKER = {'newyork12': {'J': 2}}
 
 
 def gname(ch):
     return UV2AGL.get(ord(ch), f'uni{ord(ch):04X}')
 
 
-def evening(src):
-    """{char: font units a side to thicken it by (negative: thin)}: for each letter and figure, the median width of
-    its upright strokes, from its centerline (centerlines/<src>.json, tools/centerline.py), brought to the median
-    of all of theirs"""
-    import unicodedata
-    C = json.load(open(os.path.join(ROOT, 'centerlines', f'{src}.json')))
-    s = 1000 / (SIZE[src] * PX)                          # the centerlines' em units per font unit
-    w = {}
-    for ch, v in C.items():
-        if unicodedata.category(ch)[0] not in 'LN': continue
-        up = [(p[3] + p[4]) / s for l in v['lines'] for p in l if p[7] == 0 and abs(p[5]) > EVEN_UPRIGHT]
-        if len(up) >= EVEN_POINTS: w[ch] = float(np.median(up))
-    target = float(np.median(list(w.values())))
-    return {ch: float(np.clip((target - x) / 2, -EVEN_MOST, EVEN_MOST)) for ch, x in w.items()}
-
-
-def offset(ink, r):
-    """ink (0 to 1, a pixel a font unit) with its edges moved in r font units (out, negative), to a fraction of a
-    unit: by its distance field, at four times the resolution"""
-    if r > 0:   # first fill dents narrower than the thinning, which would widen them into notches (a closing)
-        disc = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * int(np.ceil(r)) + 1,) * 2)
-        ink = cv2.erode(cv2.dilate(ink, disc), disc)
-    U = 4
-    b = (cv2.resize(ink, (ink.shape[1] * U, ink.shape[0] * U), interpolation=cv2.INTER_LINEAR) > 0.5).astype(np.uint8)
-    d = (cv2.distanceTransform(b, cv2.DIST_L2, 5) - cv2.distanceTransform(1 - b, cv2.DIST_L2, 5)) / U
-    return cv2.resize(np.clip(0.5 + (d - r) * U, 0, 1).astype(np.float32), (ink.shape[1], ink.shape[0]),
-                      interpolation=cv2.INTER_AREA)
-
-
-def glyphs(font, raw=False):
-    """{char: (contours in font units, advance)} traced from the upscaled sheet; raw, neither thinned nor evened"""
+def glyphs(font):
+    """{char: (contours in font units, advance)} traced from the upscaled sheet"""
     src = SOURCE.get(font, font)
-    even = evening(src) if src in EVEN and not raw else {}
     info = json.load(open(os.path.join(ROOT, 'scans', f'{src}-glyphs.json')))
     def load(name):
         sheet = np.asarray(Image.open(os.path.join(ROOT, 'scans', name)).convert('L'), np.float32) / 255
@@ -176,20 +139,15 @@ def glyphs(font, raw=False):
         crop = np.where(np.isin(lab, own), crop, 0).astype(np.float32)
         ink = cv2.resize(crop, (int(round(crop.shape[1] * f)), int(round(crop.shape[0] * f))),
                          interpolation=cv2.INTER_LINEAR)
-        r = 0 if raw else LIGHTEN.get(font, 0)
-        # faint specks on the sheet (a neighbour's edge), which thickening would raise into ink: pieces of ink
-        # smaller than a quarter of a pixel are dropped
-        n, lab, st, _ = cv2.connectedComponentsWithStats((ink > 0.5).astype(np.uint8), 8)
-        small = [i for i in range(1, n) if st[i][4] < (PX / 2) ** 2]                # ink is in font units
-        ink = np.where(np.isin(lab, small), 0, ink).astype(np.float32)
-        if even:
-            # thickened, a glyph's pieces mustn't run together (an accent onto its letter), nor come within EVEN_GAP
-            # of each other, which the trace's smoothing would close: thickened less till they don't
-            pieces = lambda m: cv2.connectedComponents((m > 0.5).astype(np.uint8), connectivity=8)[0]
-            want, thin = pieces(ink), r - even.get(g['char'], 0)
-            while pieces(offset(ink, thin - EVEN_GAP)) < want and thin < 0: thin += 0.5
-            ink = offset(ink, thin)
-        elif r:
+        r = LIGHTEN.get(font, 0)
+        if r: r -= THICKER.get(src, {}).get(g['char'], 0)  # (not the unthinned outlines, LIGHTEN 0, the blend's)
+        if r <= 0:
+            # faint specks on the sheet (a neighbour's edge), which thinning would take away and thickening raise
+            # into ink: pieces of ink smaller than a quarter of a pixel are dropped
+            n, lab, st, _ = cv2.connectedComponentsWithStats((ink > 0.5).astype(np.uint8), 8)
+            small = [i for i in range(1, n) if st[i][4] < (PX / 2) ** 2]            # ink is in font units
+            ink = np.where(np.isin(lab, small), 0, ink).astype(np.float32)
+        if r:
             disc = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * abs(r) + 1,) * 2)
             if r > 0:
                 # thinning widens any dent in the ink by the disc's radius each side, into a notch: first fill
