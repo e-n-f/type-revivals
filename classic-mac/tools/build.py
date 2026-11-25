@@ -31,13 +31,15 @@ import bitmap
 Image.MAX_IMAGE_PIXELS = None
 
 PX = 50                                   # font units per bitmap pixel
-VERSIONS = {'athens': '1.004', 'chicago': '1.004', 'geneva': '1.003', 'monaco': '1.005'}
+VERSIONS = {'athens': '1.004', 'chicago': '1.004', 'geneva': '1.003', 'monaco': '1.005', 'london': '1.000'}
 # the size the Mac's menus gave the bitmap font, in points: its em, at 72 dpi, in pixels (the strike's 22 px are
 # its ascender and descender), so that set at 18 pt Athens HD matches Athens 18
-SIZE = {'athens': 18, 'chicago': 12, 'geneva': 12, 'monaco': 12}
-NAMES = {'athens': 'Athens HD', 'chicago': 'Chicago HD', 'geneva': 'Geneva HD', 'monaco': 'Monaco HD'}
+SIZE = {'athens': 18, 'chicago': 12, 'geneva': 12, 'monaco': 12, 'london': 18}
+NAMES = {'athens': 'Athens HD', 'chicago': 'Chicago HD', 'geneva': 'Geneva HD', 'monaco': 'Monaco HD',
+         'london': 'London HD'}
 ORIGINAL = {'athens': ('Athens', 'Susan Kare', 1984), 'chicago': ('Chicago', 'Susan Kare', 1984),
-            'geneva': ('Geneva', 'Susan Kare', 1984), 'monaco': ('Monaco', 'Susan Kare', 1984)}
+            'geneva': ('Geneva', 'Susan Kare', 1984), 'monaco': ('Monaco', 'Susan Kare', 1984),
+            'london': ('London', 'Susan Kare', 1984)}
 # Characters the sheet names by their Mac control codes, at their Unicode places: Chicago's command key, check
 # mark, diamond and Apple logo (the logo where Apple's own fonts put it, in the Private Use Area). The OS X
 # .dfont keeps them at Mac OS Roman 0xD9-0xDC instead, in the places of Ÿ ⁄ ¤ ‹.
@@ -49,7 +51,7 @@ SIGMA = 1.5                               # smoothing of the traced ink, in font
 # Font units taken off each side of every stroke (a negative number: added). Traced at their 50 % contour, the
 # glyphs come out with a little less ink than their bitmaps (the pixels' corners rounded, the steps of diagonals
 # cut); each font is thickened by as much as gives it its bitmap's ink, over A-Z, a-z and 0-9 (tools/weight.py)
-LIGHTEN = {'athens': -1, 'chicago': -1, 'geneva': -2, 'monaco': -3}
+LIGHTEN = {'athens': -1, 'chicago': -1, 'geneva': -2, 'monaco': -3, 'london': -5}
 # Accented letters whose accent the upscaling got wrong: Geneva 12's acute, grave and dieresis are two or three
 # pixels, and on the sheet á à é came out as circumflexes, ä and ï as broken marks. Each takes the accent of a
 # letter the sheet gets right whose bitmap accent has the same pixels (reaccent())

@@ -10,6 +10,7 @@ recreation lines up as the bitmap font set it.
 | Chicago HD | Chicago 12 (Susan Kare, 1984) | 1.004 | `fonts/otf/ChicagoHD-Regular.otf`, `fonts/ttf/ChicagoHD-Regular.ttf` |
 | Geneva HD | Geneva 12 (Susan Kare, 1984) | 1.003 | `fonts/otf/GenevaHD-Regular.otf`, `fonts/ttf/GenevaHD-Regular.ttf` |
 | Monaco HD | Monaco 12 (Susan Kare, 1984) | 1.005 | `fonts/otf/MonacoHD-Regular.otf`, `fonts/ttf/MonacoHD-Regular.ttf` |
+| London HD | London 18 (Susan Kare, 1984) | 1.000 | `fonts/otf/LondonHD-Regular.otf`, `fonts/ttf/LondonHD-Regular.ttf` |
 
 Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadratic, hinted with
 [ttfautohint](https://freetype.org/ttfautohint/) at 8–50 px).
@@ -25,6 +26,9 @@ Each font is in `fonts/otf/` (cubic outlines, unhinted) and `fonts/ttf/` (quadra
 
 **Geneva HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/GenevaHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/GenevaHD-Regular.ttf)  
 ![Geneva HD](specimen/fonts/GenevaHD-Regular.png)
+
+**London HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/LondonHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/LondonHD-Regular.ttf)  
+![London HD](specimen/fonts/LondonHD-Regular.png)
 
 **Monaco HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/MonacoHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/MonacoHD-Regular.ttf)  
 ![Monaco HD](specimen/fonts/MonacoHD-Regular.png)
@@ -42,18 +46,21 @@ its bitmap's point size is the bitmap's size on a 72-dpi Mac screen:
 | Chicago HD | 12 pt | 12 px, 600 units | 12 px, 600 units | 3 px, 150 units | 15 px |
 | Geneva HD | 12 pt | 12 px, 600 units | 12 px, 600 units | 3 px, 150 units | 15 px |
 | Monaco HD | 12 pt | 12 px, 600 units | 12 px, 600 units | 3 px, 150 units | 15 px |
+| London HD | 18 pt | 18 px, 900 units | 17 px, 850 units | 3 px, 150 units | 20 px |
 
 Every advance width is the bitmap's, in whole pixels, and the line gap is none. There is no kerning, as the bitmaps
 had none. Monaco HD is monospaced, and marked so: every character advances 7 pixels, 350 units. (The bitmap's `©` and `®`
 advance 6; here they advance 7 like the rest, with their ink where the bitmap has it.)
 
 Traced at their 50 % contour, the strokes come out about the bitmap's width (Chicago's and Athens's stems are 2
-pixels, the others' 1), but with a little less ink than the bitmap: the pixels' corners are rounded and the
-steps of diagonals cut. Each font's strokes are thickened by as many units a side as give it its bitmap's ink,
+pixels, London's 2 and its hairlines 1, the others' 1), but with a little less ink than the bitmap: the pixels'
+corners are rounded and the steps of diagonals cut. Each font's strokes are thickened by as many units a side as give it its bitmap's ink,
 over A–Z, a–z and 0–9 (`LIGHTEN` in `tools/build.py`; `tools/weight.py` measures it): Athens HD and Chicago HD
-by 1, Geneva HD by 2, Monaco HD by 3, each then within 2 % of its bitmap's ink.
+by 1, Geneva HD by 2, Monaco HD by 3, London HD by 5 (its many hairlines and points lose the most), each then
+within 2 % of its bitmap's ink.
 `specimen/line-<font>.png` ([Athens](specimen/line-athens.png), [Chicago](specimen/line-chicago.png),
-[Geneva](specimen/line-geneva.png), [Monaco](specimen/line-monaco.png)) sets the alphabets and figures on one
+[Geneva](specimen/line-geneva.png), [Monaco](specimen/line-monaco.png), [London](specimen/line-london.png)) sets the
+alphabets and figures on one
 line in the bitmap and in the HD font, to compare.
 
 ## Character set
@@ -75,11 +82,15 @@ Geneva HD and Monaco HD have Chicago's characters, but in place of its menu symb
 `Ÿ` (U+0178), as Athens has its paw prints: Geneva's is a rabbit, Monaco's a candle. Ω is at both U+03A9 and
 U+2126 wherever the bitmap has it.
 
+London HD has ASCII but `< > ^ \` ~`, which are in the bitmap but not on the upscaled sheet, and `– — ‘ ’ “ ”`; at `Ÿ`
+(U+0178), as the others have their jokes, an ornament.
+
 Monaco's `©` and `®` are cut off on the left, in the bitmap as here: the bitmap has the right-hand part of
 each circle only.
 
 `specimen/compare-<font>.png` ([Athens](specimen/compare-athens.png), [Chicago](specimen/compare-chicago.png),
-[Geneva](specimen/compare-geneva.png), [Monaco](specimen/compare-monaco.png)) sets every character over its bitmap (pink), with its advance width
+[Geneva](specimen/compare-geneva.png), [Monaco](specimen/compare-monaco.png), [London](specimen/compare-london.png))
+sets every character over its bitmap (pink), with its advance width
 underlined.
 
 ## How the fonts are made

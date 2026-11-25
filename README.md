@@ -88,6 +88,9 @@ notes on its sources.
 **Geneva HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/GenevaHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/GenevaHD-Regular.ttf)  
 ![Geneva HD](classic-mac/specimen/fonts/GenevaHD-Regular.png)
 
+**London HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/LondonHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/LondonHD-Regular.ttf)  
+![London HD](classic-mac/specimen/fonts/LondonHD-Regular.png)
+
 **Monaco HD**: [OTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/otf/MonacoHD-Regular.otf) · [TTF](https://raw.githubusercontent.com/e-n-f/type-revivals/main/classic-mac/fonts/ttf/MonacoHD-Regular.ttf)  
 ![Monaco HD](classic-mac/specimen/fonts/MonacoHD-Regular.png)
 
