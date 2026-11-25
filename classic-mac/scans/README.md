@@ -17,5 +17,5 @@ The sources for the classic Mac recreations, kept here so that the fonts can be 
 | `monaco-glyphs.json` | As Athens's: from bitmap-upscaling's `Monaco_12_sq_ls2_mac_6x_glyphs.json` | As Athens's |
 | `monaco-upscaled.png` | As Athens's, for Monaco (3456 × 10872) | As Athens's |
 | `London_20.dfont` | London, the 18-point blackletter bitmap font (Susan Kare, 1984), as converted for Mac OS X: one strike at 20 px, from [macfonts](https://github.com/JohnDDuncanIII/macfonts) (`Macintosh OS 1-6/OS X/`) | As Athens's |
-| `london-glyphs.json` | As Athens's: from bitmap-upscaling's `London_18_sq_ls2_mac_6x_glyphs.json`. It places 96 characters: the bitmap's `< > ^ \` ~` aren't among them | As Athens's |
+| `london-glyphs.json` | As Athens's: from bitmap-upscaling's `London_18_sq_ls2_mac_6x_glyphs.json`. It places 96 characters: the bitmap's `` < > ^ ` ~ `` aren't among them | As Athens's |
 | `london-upscaled.png` | As Athens's, for London (7524 × 7884) | As Athens's |

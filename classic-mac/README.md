@@ -82,7 +82,7 @@ Geneva HD and Monaco HD have Chicago's characters, but in place of its menu symb
 `Ÿ` (U+0178), as Athens has its paw prints: Geneva's is a rabbit, Monaco's a candle. Ω is at both U+03A9 and
 U+2126 wherever the bitmap has it.
 
-London HD has ASCII but `< > ^ \` ~`, which are in the bitmap but not on the upscaled sheet, and `– — ‘ ’ “ ”`; at `Ÿ`
+London HD has ASCII but `` < > ^ ` ~ ``, which are in the bitmap but not on the upscaled sheet, and `– — ‘ ’ “ ”`; at `Ÿ`
 (U+0178), as the others have their jokes, an ornament.
 
 Monaco's `©` and `®` are cut off on the left, in the bitmap as here: the bitmap has the right-hand part of
